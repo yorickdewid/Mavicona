@@ -10,9 +10,13 @@
 #endif
 
 int main(int argc, char *argv[]) {
+
 	//  Prepare our context and socket
 	zmq::context_t context(1);
 	zmq::socket_t socket(context, ZMQ_REP);
+
+	int opt = 1;
+	socket.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
 	socket.bind("tcp://*:5577");
 
 	while (true) {
