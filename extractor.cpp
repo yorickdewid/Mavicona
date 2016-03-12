@@ -9,7 +9,7 @@
 //#define sleep(n)    Sleep(n)
 #endif
 
-int main() {
+int main(int argc, char *argv[]) {
 	//  Prepare our context and socket
 	zmq::context_t context(1);
 	zmq::socket_t socket(context, ZMQ_REP);
