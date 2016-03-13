@@ -1,7 +1,9 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <ctime>
 #include <fstream>
+#include <sstream>
 
 class FileLogger {
   public:
@@ -11,43 +13,37 @@ class FileLogger {
 		LOG_INFO
 	};
 
-	explicit FileLogger(const char *engine_version, const char *fname = "mavicona_main.log")
-		:   numWarnings(0U),
-		    numErrors(0U) {
+	explicit FileLogger(const char *engine_version, const char *fname = "mavicona_main.log") {
+		logFile.open(fname);
 
-		myFile.open(fname);
-
-		if (myFile.is_open()) {
-			myFile << "My Game Engine, version " << engine_version << std::endl;
-			myFile << "Log file created" << std::endl << std::endl;
+		if (logFile.is_open()) {
+			logFile << getTimesamp() << "Logger started" << std::endl;
+			logFile << getTimesamp() << "Version " << engine_version << std::endl;
 		}
 	}
 
 	~FileLogger() {
-		if (myFile.is_open()) {
-			myFile << std::endl << std::endl;
-
-			myFile << numWarnings << " warnings" << std::endl;
-			myFile << numErrors << " errors" << std::endl;
-
-			myFile.close();
+		if (logFile.is_open()) {
+			logFile << getTimesamp() << "Logger stopped" << std::endl;
+			logFile.close();
 		}
 	}
 
 	friend FileLogger &operator << (FileLogger &logger, const logType l_type) {
 		switch (l_type) {
 			case FileLogger::logType::LOG_ERROR:
-				logger.myFile << "[ERROR]: ";
-				++logger.numErrors;
+				logger.logFile << "[ERROR]: ";
+				std::cout << "[ERROR]: " << std::endl;
 				break;
 
 			case FileLogger::logType::LOG_WARNING:
-				logger.myFile << "[WARNING]: ";
-				++logger.numWarnings;
+				logger.logFile << "[WARNING]: ";
+				std::cout << "[WARNING]: " << std::endl;
 				break;
 
 			default:
-				logger.myFile << "[INFO]: ";
+				logger.logFile << "[INFO]: ";
+				std::cout << "[INFO]: " << std::endl;
 				break;
 		}
 
@@ -55,7 +51,8 @@ class FileLogger {
 	}
 
 	friend FileLogger &operator << (FileLogger &logger, const char *text) {
-		logger.myFile << text << std::endl;
+		logger.logFile << FileLogger::getTimesamp() << text << std::endl;
+		std::cout << text << std::endl;
 		return logger;
 
 	}
@@ -64,11 +61,18 @@ class FileLogger {
 	FileLogger &operator= (const FileLogger &) = delete;
 
   private:
-	std::ofstream           myFile;
+	std::ofstream logFile;
 
-	unsigned int            numWarnings;
-	unsigned int            numErrors;
+	static std::string getTimesamp() {
+		std::stringstream ss;
+		time_t t = time(0);
+		struct tm * now = localtime(& t);
+		ss << (now->tm_year + 1900) << '-'
+		   << (now->tm_mon + 1) << '-'
+		   <<  now->tm_mday << ' ';
 
+		return ss.str();
+	}
 };
 
 #endif // LOGGER_H
