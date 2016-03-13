@@ -1,13 +1,8 @@
 #include <zmq.hpp>
 #include <string>
 #include <iostream>
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <windows.h>
 
-//#define sleep(n)    Sleep(n)
-#endif
+#include "logger.h"
 
 int main(int argc, char *argv[]) {
 
@@ -25,9 +20,6 @@ int main(int argc, char *argv[]) {
 		//  Wait for next request from client
 		socket.recv(&request);
 		std::cout << "Received: " << (char *)request.data() << std::endl;
-
-		//  Do some 'work'
-		// sleep(1);
 
 		//  Send reply back to client
 		zmq::message_t reply(5);

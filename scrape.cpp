@@ -3,6 +3,8 @@
 #include <iostream>
 #include <Python.h>
 
+#include "logger.h"
+
 static int numargs = 0;
 
 /* Push data on the stack */
