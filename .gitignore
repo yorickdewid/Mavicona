@@ -1,2 +1,4 @@
 extractor
 scrape
+*.o
+*.so

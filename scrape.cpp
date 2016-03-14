@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include <Python.h>
+#include <dlfcn.h>
 
 #include "logger.h"
 
@@ -36,7 +37,7 @@ static PyObject *mav_save(PyObject *self, PyObject *args) {
 	std::cout << datastack.size() << std::endl;
 
 	for (auto const &ent : datastack) {
-		std::cout << "Sending... " << ent.first;
+		std::cout << "Sending... " << ent.first << " => " << ent.second;
 
 		zmq::message_t request(ent.second.length());
 		memcpy(request.data(), ent.second.c_str(), ent.second.length());
@@ -81,16 +82,59 @@ void pyrunner(char *name) {
 	Py_Finalize();
 }
 
+void dsorunner(int argc, char *argv[]) {
+	// open the library
+	std::cout << "Opening hello.so...\n";
+	void *handle = dlopen(argv[1], RTLD_LAZY);
+	if (!handle) {
+		std::cerr << "Cannot open library: " << dlerror() << '\n';
+		return;
+	}
+
+	// load the symbol
+	std::cout << "Loading symbol hello...\n";
+	typedef char *(*main_t)(int, char **);
+
+	// reset errors
+	dlerror();
+	main_t exec_main = (main_t)dlsym(handle, "mav_main");
+	const char *dlsym_error = dlerror();
+	if (dlsym_error) {
+		std::cerr << "Cannot load symbol 'hello': " << dlsym_error << '\n';
+		dlclose(handle);
+		return;
+	}
+
+	// use it to do the calculation
+	std::cout << "Calling hello...\n";
+	char *resp = exec_main(argc, argv);
+
+	std::cout << resp << std::endl;
+
+	// close the library
+	std::cout << "Closing library...\n";
+	dlclose(handle);
+}
+
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
-		std::cerr << "Usage: scrape file [args]" << std::endl;
+		std::cerr << "Usage: scrape <file|library> [args]" << std::endl;
 		return 1;
 	}
 
 	flog << "Connecting to extractor...";
 	socket.connect("tcp://localhost:5577");
 
-	pyrunner(argv[1]);
+	std::string name = std::string(argv[1]);
+	if (name.substr(name.find_last_of(".") + 1) == "py") {
+
+		/* When python file defined */
+		pyrunner(argv[1]);
+	} else if (name.substr(name.find_last_of(".") + 1) == "so") {
+
+		/* When dSO defined */
+		dsorunner(argc, argv);
+	}
 
 	return 0;
 }
