@@ -1,0 +1,24 @@
+# As an example we can store PDF's but also process them
+# to extract text or images
+#for extension '.pdf' do {
+#	send to store;
+#	send to pitch;
+#}
+
+# Anything readable can be send to the
+# object store since it doesn't nee processing
+for mime 'plain/text' do {
+	send to store;
+}
+
+# We want to detect patterns in binary data, so
+# schedule a task for the processing cluster
+for type 'binary' do {
+	send to pitch;
+}
+
+# We want to detect patterns in unknown data, so
+# schedule a task for the processing cluster
+for unknown do {
+	send to pitch;
+}
