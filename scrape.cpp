@@ -86,11 +86,16 @@ void pyrunner(char *name) {
 		},
 		{NULL, NULL, 0, NULL}
 	};
-	Py_InitModule("mavicona", MavMethods);
 
+	Py_InitModule("mavicona", MavMethods);
 	PyRun_SimpleString("import mavicona");
 
 	FILE *py_file = fopen(name, "r");
+	if (!py_file) {
+		flog << "Cannot open python file: " << name;
+		return;
+	}
+
 	PyRun_SimpleFile(py_file, name);
 	fclose(py_file);
 
