@@ -2,6 +2,7 @@ message ScrapeData {
   required string name = 1;
   required int32 id = 2;
   optional string quid = 3;
+  optional string zone = 4;
 
   enum DataType {
     PLAIN = 0;
@@ -10,12 +11,13 @@ message ScrapeData {
     STREAM = 3;
   }
 
-  required DataType type = 4 [default = PLAIN];
+  required DataType type = 5 [default = PLAIN];
 
   message Data {
     required string payload = 1;
     optional uint64 size = 2;
+    optional string extension = 3;
   }
 
-  required Data content = 5;
+  required Data content = 6;
 }

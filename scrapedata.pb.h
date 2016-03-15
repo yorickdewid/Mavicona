@@ -130,12 +130,26 @@ class ScrapeData_Data : public ::google::protobuf::Message {
   inline ::google::protobuf::uint64 size() const;
   inline void set_size(::google::protobuf::uint64 value);
 
+  // optional string extension = 3;
+  inline bool has_extension() const;
+  inline void clear_extension();
+  static const int kExtensionFieldNumber = 3;
+  inline const ::std::string& extension() const;
+  inline void set_extension(const ::std::string& value);
+  inline void set_extension(const char* value);
+  inline void set_extension(const char* value, size_t size);
+  inline ::std::string* mutable_extension();
+  inline ::std::string* release_extension();
+  inline void set_allocated_extension(::std::string* extension);
+
   // @@protoc_insertion_point(class_scope:ScrapeData.Data)
  private:
   inline void set_has_payload();
   inline void clear_has_payload();
   inline void set_has_size();
   inline void clear_has_size();
+  inline void set_has_extension();
+  inline void clear_has_extension();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -143,6 +157,7 @@ class ScrapeData_Data : public ::google::protobuf::Message {
   mutable int _cached_size_;
   ::std::string* payload_;
   ::google::protobuf::uint64 size_;
+  ::std::string* extension_;
   friend void  protobuf_AddDesc_scrapedata_2eproto();
   friend void protobuf_AssignDesc_scrapedata_2eproto();
   friend void protobuf_ShutdownFile_scrapedata_2eproto();
@@ -264,17 +279,29 @@ class ScrapeData : public ::google::protobuf::Message {
   inline ::std::string* release_quid();
   inline void set_allocated_quid(::std::string* quid);
 
-  // required .ScrapeData.DataType type = 4 [default = PLAIN];
+  // optional string zone = 4;
+  inline bool has_zone() const;
+  inline void clear_zone();
+  static const int kZoneFieldNumber = 4;
+  inline const ::std::string& zone() const;
+  inline void set_zone(const ::std::string& value);
+  inline void set_zone(const char* value);
+  inline void set_zone(const char* value, size_t size);
+  inline ::std::string* mutable_zone();
+  inline ::std::string* release_zone();
+  inline void set_allocated_zone(::std::string* zone);
+
+  // required .ScrapeData.DataType type = 5 [default = PLAIN];
   inline bool has_type() const;
   inline void clear_type();
-  static const int kTypeFieldNumber = 4;
+  static const int kTypeFieldNumber = 5;
   inline ::ScrapeData_DataType type() const;
   inline void set_type(::ScrapeData_DataType value);
 
-  // required .ScrapeData.Data content = 5;
+  // required .ScrapeData.Data content = 6;
   inline bool has_content() const;
   inline void clear_content();
-  static const int kContentFieldNumber = 5;
+  static const int kContentFieldNumber = 6;
   inline const ::ScrapeData_Data& content() const;
   inline ::ScrapeData_Data* mutable_content();
   inline ::ScrapeData_Data* release_content();
@@ -288,6 +315,8 @@ class ScrapeData : public ::google::protobuf::Message {
   inline void clear_has_id();
   inline void set_has_quid();
   inline void clear_has_quid();
+  inline void set_has_zone();
+  inline void clear_has_zone();
   inline void set_has_type();
   inline void clear_has_type();
   inline void set_has_content();
@@ -301,6 +330,7 @@ class ScrapeData : public ::google::protobuf::Message {
   ::std::string* quid_;
   ::google::protobuf::int32 id_;
   int type_;
+  ::std::string* zone_;
   ::ScrapeData_Data* content_;
   friend void  protobuf_AddDesc_scrapedata_2eproto();
   friend void protobuf_AssignDesc_scrapedata_2eproto();
@@ -414,6 +444,82 @@ inline void ScrapeData_Data::set_size(::google::protobuf::uint64 value) {
   set_has_size();
   size_ = value;
   // @@protoc_insertion_point(field_set:ScrapeData.Data.size)
+}
+
+// optional string extension = 3;
+inline bool ScrapeData_Data::has_extension() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void ScrapeData_Data::set_has_extension() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void ScrapeData_Data::clear_has_extension() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void ScrapeData_Data::clear_extension() {
+  if (extension_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extension_->clear();
+  }
+  clear_has_extension();
+}
+inline const ::std::string& ScrapeData_Data::extension() const {
+  // @@protoc_insertion_point(field_get:ScrapeData.Data.extension)
+  return *extension_;
+}
+inline void ScrapeData_Data::set_extension(const ::std::string& value) {
+  set_has_extension();
+  if (extension_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extension_ = new ::std::string;
+  }
+  extension_->assign(value);
+  // @@protoc_insertion_point(field_set:ScrapeData.Data.extension)
+}
+inline void ScrapeData_Data::set_extension(const char* value) {
+  set_has_extension();
+  if (extension_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extension_ = new ::std::string;
+  }
+  extension_->assign(value);
+  // @@protoc_insertion_point(field_set_char:ScrapeData.Data.extension)
+}
+inline void ScrapeData_Data::set_extension(const char* value, size_t size) {
+  set_has_extension();
+  if (extension_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extension_ = new ::std::string;
+  }
+  extension_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:ScrapeData.Data.extension)
+}
+inline ::std::string* ScrapeData_Data::mutable_extension() {
+  set_has_extension();
+  if (extension_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extension_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:ScrapeData.Data.extension)
+  return extension_;
+}
+inline ::std::string* ScrapeData_Data::release_extension() {
+  clear_has_extension();
+  if (extension_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = extension_;
+    extension_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ScrapeData_Data::set_allocated_extension(::std::string* extension) {
+  if (extension_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete extension_;
+  }
+  if (extension) {
+    set_has_extension();
+    extension_ = extension;
+  } else {
+    clear_has_extension();
+    extension_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:ScrapeData.Data.extension)
 }
 
 // -------------------------------------------------------------------
@@ -596,15 +702,91 @@ inline void ScrapeData::set_allocated_quid(::std::string* quid) {
   // @@protoc_insertion_point(field_set_allocated:ScrapeData.quid)
 }
 
-// required .ScrapeData.DataType type = 4 [default = PLAIN];
-inline bool ScrapeData::has_type() const {
+// optional string zone = 4;
+inline bool ScrapeData::has_zone() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
-inline void ScrapeData::set_has_type() {
+inline void ScrapeData::set_has_zone() {
   _has_bits_[0] |= 0x00000008u;
 }
-inline void ScrapeData::clear_has_type() {
+inline void ScrapeData::clear_has_zone() {
   _has_bits_[0] &= ~0x00000008u;
+}
+inline void ScrapeData::clear_zone() {
+  if (zone_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    zone_->clear();
+  }
+  clear_has_zone();
+}
+inline const ::std::string& ScrapeData::zone() const {
+  // @@protoc_insertion_point(field_get:ScrapeData.zone)
+  return *zone_;
+}
+inline void ScrapeData::set_zone(const ::std::string& value) {
+  set_has_zone();
+  if (zone_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    zone_ = new ::std::string;
+  }
+  zone_->assign(value);
+  // @@protoc_insertion_point(field_set:ScrapeData.zone)
+}
+inline void ScrapeData::set_zone(const char* value) {
+  set_has_zone();
+  if (zone_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    zone_ = new ::std::string;
+  }
+  zone_->assign(value);
+  // @@protoc_insertion_point(field_set_char:ScrapeData.zone)
+}
+inline void ScrapeData::set_zone(const char* value, size_t size) {
+  set_has_zone();
+  if (zone_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    zone_ = new ::std::string;
+  }
+  zone_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:ScrapeData.zone)
+}
+inline ::std::string* ScrapeData::mutable_zone() {
+  set_has_zone();
+  if (zone_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    zone_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:ScrapeData.zone)
+  return zone_;
+}
+inline ::std::string* ScrapeData::release_zone() {
+  clear_has_zone();
+  if (zone_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = zone_;
+    zone_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ScrapeData::set_allocated_zone(::std::string* zone) {
+  if (zone_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete zone_;
+  }
+  if (zone) {
+    set_has_zone();
+    zone_ = zone;
+  } else {
+    clear_has_zone();
+    zone_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:ScrapeData.zone)
+}
+
+// required .ScrapeData.DataType type = 5 [default = PLAIN];
+inline bool ScrapeData::has_type() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void ScrapeData::set_has_type() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void ScrapeData::clear_has_type() {
+  _has_bits_[0] &= ~0x00000010u;
 }
 inline void ScrapeData::clear_type() {
   type_ = 0;
@@ -621,15 +803,15 @@ inline void ScrapeData::set_type(::ScrapeData_DataType value) {
   // @@protoc_insertion_point(field_set:ScrapeData.type)
 }
 
-// required .ScrapeData.Data content = 5;
+// required .ScrapeData.Data content = 6;
 inline bool ScrapeData::has_content() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
+  return (_has_bits_[0] & 0x00000020u) != 0;
 }
 inline void ScrapeData::set_has_content() {
-  _has_bits_[0] |= 0x00000010u;
+  _has_bits_[0] |= 0x00000020u;
 }
 inline void ScrapeData::clear_has_content() {
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000020u;
 }
 inline void ScrapeData::clear_content() {
   if (content_ != NULL) content_->::ScrapeData_Data::Clear();
