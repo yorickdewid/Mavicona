@@ -2,30 +2,30 @@
 
 # As an example we can store PDF's but also process them
 # to extract text or images
-#for extension '.pdf' do {
+#extension '.pdf' {
 #	then store;
 #	then queue;
 #}
 
 # Anything readable can be send to the
 # object store since it doesn't need processing
-for mime 'plain/text' || type 'plain' do {
+mime 'plain/text' || type 'plain' {
 	then store;
 }
 
 # We can discard any executable types
-for mime 'application/octet-stream' do {
-	then discard && log;
+mime 'application/octet-stream' {
+	then discard with log;
 }
 
 # We want to detect patterns in binary data, so
 # schedule a task for the processing cluster
-for type 'binary' do {
+type 'binary' {
 	then queue;
 }
 
 # We want to detect patterns in unknown data likewise
 # schedule a task for the processing cluster
-for unknown do {
+unknown {
 	then queue;
 }
