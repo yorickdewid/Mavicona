@@ -27,6 +27,8 @@ static PyObject *mav_push(PyObject *self, PyObject *args) {
 	if (!PyArg_ParseTuple(args, "ss", &name, &data))
 		return NULL;
 
+	std::cout << strlen(data) << std::endl;
+
 	datastack.insert(std::pair<std::string, std::string>(name, data));
 
 	return Py_True;
@@ -38,7 +40,7 @@ static PyObject *mav_save(PyObject *self, PyObject *args) {
 		return NULL;
 
 	for (auto const &ent : datastack) {
-		std::cout << "Sending... " << ent.first << " => " << ent.second;
+		// std::cout << "Sending... " << ent.first << " => " << ent.second.size();
 
 		/* Create meta data object */
 		ScrapeData data;
@@ -103,18 +105,15 @@ void pyrunner(char *name) {
 }
 
 void dsorunner(int argc, char *argv[]) {
-	// open the library
 	void *handle = dlopen(argv[1], RTLD_LAZY);
 	if (!handle) {
 		flog << "Cannot open library: " << dlerror();
 		return;
 	}
 
-	// load the symbol
 	flog << "Loading symbol main...";
 	typedef char *(*main_t)(int, char **);
 
-	// reset errors
 	dlerror();
 	main_t exec_main = (main_t)dlsym(handle, "mav_main");
 	const char *dlsym_error = dlerror();
@@ -124,7 +123,6 @@ void dsorunner(int argc, char *argv[]) {
 		return;
 	}
 
-	// use it to do the calculation
 	flog << "Calling module...";
 	char *resp = exec_main(argc, argv);
 

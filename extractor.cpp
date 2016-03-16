@@ -2,8 +2,8 @@
 #include <string>
 #include <iostream>
 
-#include "magic.h"
 #include "logger.h"
+#include "detect.h"
 #include "scrapedata.pb.h"
 
 int main(int argc, char *argv[]) {
@@ -46,13 +46,17 @@ int main(int argc, char *argv[]) {
 		}
 
 		ScrapeData::Data payload = data.content();
-		std::cout << "Item[" << data.id() << "] data: " << payload.payload() << std::endl;
+		// std::cout << "Item[" << data.id() << "] data: " << payload.payload() << std::endl;
 
+		Detect detector(payload.payload());
+
+		/*
 		magic_t myt = magic_open(MAGIC_CONTINUE | MAGIC_ERROR | MAGIC_MIME);
 		magic_load(myt, NULL);
 		const char *rs = magic_buffer(myt, payload.payload().c_str(), payload.payload().size());
 		std::cout << "Item[" << data.id() << "] mime: " << rs << std::endl;
 		magic_close(myt);
+		*/
 
 		//  Send reply back to client
 		zmq::message_t reply(5);
