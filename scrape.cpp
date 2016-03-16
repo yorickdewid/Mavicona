@@ -27,8 +27,6 @@ static PyObject *mav_push(PyObject *self, PyObject *args) {
 	if (!PyArg_ParseTuple(args, "ss", &name, &data))
 		return NULL;
 
-	std::cout << strlen(data) << std::endl;
-
 	datastack.insert(std::pair<std::string, std::string>(name, data));
 
 	return Py_True;
@@ -40,8 +38,6 @@ static PyObject *mav_save(PyObject *self, PyObject *args) {
 		return NULL;
 
 	for (auto const &ent : datastack) {
-		// std::cout << "Sending... " << ent.first << " => " << ent.second.size();
-
 		/* Create meta data object */
 		ScrapeData data;
 		data.set_name(ent.first);

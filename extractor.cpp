@@ -6,6 +6,41 @@
 #include "detect.h"
 #include "scrapedata.pb.h"
 
+void parseData(const ScrapeData& data) {
+	std::cout << "Item[" << data.id() << "] name: " << data.name() << std::endl;
+
+	switch (data.type()) {
+		case ScrapeData::PLAIN:
+			std::cout << "Item[" << data.id() << "] type: PLAIN" << std::endl;
+			break;
+		case ScrapeData::FILE:
+			std::cout << "Item[" << data.id() << "] type: FILE" << std::endl;
+			break;
+		case ScrapeData::BINARY:
+			std::cout << "Item[" << data.id() << "] type: BINARY" << std::endl;
+			break;
+		case ScrapeData::STREAM:
+			std::cout << "Item[" << data.id() << "] type: STREAM" << std::endl;
+			break;
+	}
+
+	ScrapeData::Data payload = data.content();
+
+	Detect detector;
+	detector.mimeFromBuffer(payload.payload().c_str(), payload.payload().size());
+
+	if (detector.found()) {
+		std::cout << "Item[" << data.id() << "] mime name: " << detector.mime()->name() << std::endl;
+		std::cout << "Item[" << data.id() << "] mime category: " << detector.mime()->category() << std::endl;
+	}
+
+	if (!detector.charset().empty())
+		std::cout << "Item[" << data.id() << "] charset: " << detector.charset() << std::endl;
+
+	// detector.mimeFromExtension(payload.extension());
+	std::cout << std::endl;
+}
+
 int main(int argc, char *argv[]) {
 
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -27,38 +62,10 @@ int main(int argc, char *argv[]) {
 		ScrapeData data;
 		data.ParseFromArray(request.data(), request.size());
 
-		std::cout << "Item[" << data.id() << "] received" << std::endl;
-		std::cout << "Item[" << data.id() << "] name: " << data.name() << std::endl;
+		/* Handle incomming data */
+		parseData(data);
 
-		switch (data.type()) {
-			case ScrapeData::PLAIN:
-				std::cout << "Item[" << data.id() << "] type: PLAIN" << std::endl;
-				break;
-			case ScrapeData::FILE:
-				std::cout << "Item[" << data.id() << "] type: FILE" << std::endl;
-				break;
-			case ScrapeData::BINARY:
-				std::cout << "Item[" << data.id() << "] type: BINARY" << std::endl;
-				break;
-			case ScrapeData::STREAM:
-				std::cout << "Item[" << data.id() << "] type: STREAM" << std::endl;
-				break;
-		}
-
-		ScrapeData::Data payload = data.content();
-		// std::cout << "Item[" << data.id() << "] data: " << payload.payload() << std::endl;
-
-		Detect detector(payload.payload());
-
-		/*
-		magic_t myt = magic_open(MAGIC_CONTINUE | MAGIC_ERROR | MAGIC_MIME);
-		magic_load(myt, NULL);
-		const char *rs = magic_buffer(myt, payload.payload().c_str(), payload.payload().size());
-		std::cout << "Item[" << data.id() << "] mime: " << rs << std::endl;
-		magic_close(myt);
-		*/
-
-		//  Send reply back to client
+		/* Send reply back to client */
 		zmq::message_t reply(5);
 		memcpy(reply.data(), "DONE", 5);
 		socket.send(reply);
