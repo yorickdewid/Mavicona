@@ -13,6 +13,8 @@ class Detect {
 		loadMime();
 	}
 
+	~Detect();
+
 	bool found() {
 		if (mimeMatch)
 			return true;
@@ -28,7 +30,7 @@ class Detect {
 	}
 
 	void mimeFromBuffer(const char *buffer, std::size_t sz);
-	void mimeFromExtension(const char *extension);
+	void mimeFromExtension(const std::string& extension);
 
 	Detect(const Detect &) = delete;
 	Detect &operator= (const Detect &) = delete;

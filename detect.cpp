@@ -693,6 +693,13 @@ void Detect::loadMime() {
 	this->mimeList["application/x-empty"] = new Mime("Empty", "application/x-empty");
 }
 
+Detect::~Detect() {
+	for (auto const &item : this->mimeList) {
+		delete item.second;
+		// std::cout << item.second->name() << std::endl;
+	}
+}
+
 void Detect::parseMagic(const char *magicrs) {
 	std::string str(magicrs);
 	std::size_t pos = str.find(';');
@@ -722,4 +729,16 @@ void Detect::mimeFromBuffer(const char *buffer, std::size_t sz) {
 		parseMagic(rs);
 
 	magic_close(myt);
+}
+
+void Detect::mimeFromExtension(const std::string& extension) {
+	// magic_t myt = magic_open(MAGIC_CONTINUE | MAGIC_ERROR | MAGIC_MIME);
+
+	// magic_load(myt, NULL);
+	// const char *rs = magic_buffer(myt, buffer, sz);
+	// if (rs)
+	// 	parseMagic(rs);
+
+	// magic_close(myt);
+	printf("Feeding ext: %s\n", extension.c_str());
 }
