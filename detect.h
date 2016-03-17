@@ -40,7 +40,7 @@ class Detect {
 	void loadMime();
 
 	std::string m_Charset;
-	Mime *mimeMatch;
+	Mime *mimeMatch = nullptr;
 	std::map<std::string, Mime*> mimeList;
 };
 

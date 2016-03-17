@@ -696,7 +696,6 @@ void Detect::loadMime() {
 Detect::~Detect() {
 	for (auto const &item : this->mimeList) {
 		delete item.second;
-		// std::cout << item.second->name() << std::endl;
 	}
 }
 
@@ -732,13 +731,9 @@ void Detect::mimeFromBuffer(const char *buffer, std::size_t sz) {
 }
 
 void Detect::mimeFromExtension(const std::string& extension) {
-	// magic_t myt = magic_open(MAGIC_CONTINUE | MAGIC_ERROR | MAGIC_MIME);
-
-	// magic_load(myt, NULL);
-	// const char *rs = magic_buffer(myt, buffer, sz);
-	// if (rs)
-	// 	parseMagic(rs);
-
-	// magic_close(myt);
-	printf("Feeding ext: %s\n", extension.c_str());
+	for (auto const &item : this->mimeList) {
+		if (extension == item.second->extension()) {
+			this->mimeMatch = item.second;
+		}
+	}
 }

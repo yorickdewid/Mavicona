@@ -29,16 +29,16 @@ void parseData(const ScrapeData& data) {
 	Detect detector;
 	detector.mimeFromBuffer(payload.payload().c_str(), payload.payload().size());
 
+	if (!detector.found() && !payload.extension().empty()) {
+		detector.mimeFromExtension(payload.extension());
+	}
+
 	if (detector.found()) {
 		std::cout << "Item[" << data.id() << "] mime name: " << detector.mime()->name() << std::endl;
 		std::cout << "Item[" << data.id() << "] mime category: " << detector.mime()->category() << std::endl;
 
-
 		if (!detector.charset().empty())
 			std::cout << "Item[" << data.id() << "] charset: " << detector.charset() << std::endl;
-	} else {
-		if (!payload.extension().empty())
-			detector.mimeFromExtension(payload.extension());
 	}
 
 	std::cout << std::endl;
