@@ -37,6 +37,7 @@ static PyObject *mav_save(PyObject *self, PyObject *args) {
 	if (!PyArg_ParseTuple(args, ":numargs"))
 		return NULL;
 
+	int complete = 0;
 	for (auto const &ent : datastack) {
 		/* Create meta data object */
 		ScrapeData data;
@@ -47,6 +48,7 @@ static PyObject *mav_save(PyObject *self, PyObject *args) {
 		ScrapeData::Data *payload = new ScrapeData::Data;
 		payload->set_payload(ent.second);
 		payload->set_size(ent.second.size());
+		payload->set_extension(".zip");
 		data.set_allocated_content(payload);
 
 		std::string serialized;
@@ -59,13 +61,18 @@ static PyObject *mav_save(PyObject *self, PyObject *args) {
 		// Get the reply
 		zmq::message_t reply;
 		socket.recv(&reply);
-		if (!strcmp((const char *)reply.data(), "DONE")) {
-			std::cout << "  [DONE]" << std::endl;
-		}
+
+		if (!strcmp((const char *)reply.data(), "DONE"))
+			complete++;
 	}
 
-	flog << "Sumbitted datastack to dispatch";
-	datastack.clear();
+	if (complete == datastack.size()) {
+		flog << "Sumbitted datastack to dispatch";
+		datastack.clear();
+	} else {
+		flog << "Datastack transaction failure";
+	}
+
 
 	return Py_True;
 }

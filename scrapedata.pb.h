@@ -111,14 +111,14 @@ class ScrapeData_Data : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required string payload = 1;
+  // required bytes payload = 1;
   inline bool has_payload() const;
   inline void clear_payload();
   static const int kPayloadFieldNumber = 1;
   inline const ::std::string& payload() const;
   inline void set_payload(const ::std::string& value);
   inline void set_payload(const char* value);
-  inline void set_payload(const char* value, size_t size);
+  inline void set_payload(const void* value, size_t size);
   inline ::std::string* mutable_payload();
   inline ::std::string* release_payload();
   inline void set_allocated_payload(::std::string* payload);
@@ -346,7 +346,7 @@ class ScrapeData : public ::google::protobuf::Message {
 
 // ScrapeData_Data
 
-// required string payload = 1;
+// required bytes payload = 1;
 inline bool ScrapeData_Data::has_payload() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -382,7 +382,7 @@ inline void ScrapeData_Data::set_payload(const char* value) {
   payload_->assign(value);
   // @@protoc_insertion_point(field_set_char:ScrapeData.Data.payload)
 }
-inline void ScrapeData_Data::set_payload(const char* value, size_t size) {
+inline void ScrapeData_Data::set_payload(const void* value, size_t size) {
   set_has_payload();
   if (payload_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     payload_ = new ::std::string;

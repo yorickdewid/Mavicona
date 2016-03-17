@@ -14,7 +14,7 @@ message ScrapeData {
   required DataType type = 5 [default = PLAIN];
 
   message Data {
-    required string payload = 1;
+    required bytes payload = 1;
     optional uint64 size = 2;
     optional string extension = 3;
   }

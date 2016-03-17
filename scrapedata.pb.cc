@@ -111,7 +111,7 @@ void protobuf_AddDesc_scrapedata_2eproto() {
     "e\030\001 \002(\t\022\n\n\002id\030\002 \002(\005\022\014\n\004quid\030\003 \001(\t\022\014\n\004zon"
     "e\030\004 \001(\t\022)\n\004type\030\005 \002(\0162\024.ScrapeData.DataT"
     "ype:\005PLAIN\022!\n\007content\030\006 \002(\0132\020.ScrapeData"
-    ".Data\0328\n\004Data\022\017\n\007payload\030\001 \002(\t\022\014\n\004size\030\002"
+    ".Data\0328\n\004Data\022\017\n\007payload\030\001 \002(\014\022\014\n\004size\030\002"
     " \001(\004\022\021\n\textension\030\003 \001(\t\"7\n\010DataType\022\t\n\005P"
     "LAIN\020\000\022\010\n\004FILE\020\001\022\n\n\006BINARY\020\002\022\n\n\006STREAM\020\003", 280);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
@@ -253,15 +253,11 @@ bool ScrapeData_Data::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required string payload = 1;
+      // required bytes payload = 1;
       case 1: {
         if (tag == 10) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_payload()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-            this->payload().data(), this->payload().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "payload");
         } else {
           goto handle_unusual;
         }
@@ -326,13 +322,9 @@ failure:
 void ScrapeData_Data::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:ScrapeData.Data)
-  // required string payload = 1;
+  // required bytes payload = 1;
   if (has_payload()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->payload().data(), this->payload().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "payload");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       1, this->payload(), output);
   }
 
@@ -361,14 +353,10 @@ void ScrapeData_Data::SerializeWithCachedSizes(
 ::google::protobuf::uint8* ScrapeData_Data::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // @@protoc_insertion_point(serialize_to_array_start:ScrapeData.Data)
-  // required string payload = 1;
+  // required bytes payload = 1;
   if (has_payload()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->payload().data(), this->payload().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "payload");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         1, this->payload(), target);
   }
 
@@ -400,10 +388,10 @@ int ScrapeData_Data::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required string payload = 1;
+    // required bytes payload = 1;
     if (has_payload()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::StringSize(
+        ::google::protobuf::internal::WireFormatLite::BytesSize(
           this->payload());
     }
 
