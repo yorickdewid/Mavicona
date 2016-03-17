@@ -37,6 +37,7 @@ class Detect {
 
   private:
 	void parseMagic(const char *magicrs);
+	void parseCharset(std::string charset);
 	void loadMime();
 
 	std::string m_Charset;

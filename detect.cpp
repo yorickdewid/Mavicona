@@ -699,6 +699,13 @@ Detect::~Detect() {
 	}
 }
 
+void Detect::parseCharset(std::string charset) {
+	std::size_t pos = charset.find('=');
+	if (pos != std::string::npos) {
+		this->m_Charset = charset.substr(pos + 1);
+	}
+}
+
 void Detect::parseMagic(const char *magicrs) {
 	std::string str(magicrs);
 	std::size_t pos = str.find(';');
@@ -714,7 +721,7 @@ void Detect::parseMagic(const char *magicrs) {
 			++pos;
 		}
 
-		this->m_Charset = str.substr(pos + 1);
+		parseCharset(str.substr(pos + 1));
 	}
 
 }
