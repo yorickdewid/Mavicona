@@ -1,5 +1,3 @@
-extractor
-scrape
 *.o
 *.so
 *.log
