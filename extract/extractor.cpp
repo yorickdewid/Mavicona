@@ -2,11 +2,13 @@
 #include <string>
 #include <iostream>
 
-#include "logger.h"
+#include "common/logger.h"
+#include "protoc/scrapedata.pb.h"
 #include "detect.h"
-#include "scrapedata.pb.h"
 
 void parseData(const ScrapeData& data) {
+	Detect detector;
+
 	std::cout << "Item[" << data.id() << "] name: " << data.name() << std::endl;
 
 	switch (data.type()) {
@@ -26,9 +28,8 @@ void parseData(const ScrapeData& data) {
 
 	ScrapeData::Data payload = data.content();
 
-	Detect detector;
+	/* Try magic on buffer first then match extension since this is less accurate */
 	detector.mimeFromBuffer(payload.payload().c_str(), payload.payload().size());
-
 	if (!detector.found() && !payload.extension().empty()) {
 		detector.mimeFromExtension(payload.extension());
 	}

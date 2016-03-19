@@ -9,19 +9,25 @@
 
 # Anything readable can be send to the
 # object store since it doesn't need processing
-mime 'plain/text' || type 'plain' {
+mime 'plain/text' {
 	then store;
 }
 
 # We can discard any executable types
 mime 'application/octet-stream' {
-	then discard with log;
+	then discard;
 }
 
 # We want to detect patterns in binary data, so
 # schedule a task for the processing cluster
 type 'binary' {
 	then queue;
+}
+
+# We want to detect patterns in binary data, so
+# schedule a task for the processing cluster
+category 'application' {
+	then log;
 }
 
 # We want to detect patterns in unknown data likewise
