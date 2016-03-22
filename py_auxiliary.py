@@ -6,4 +6,5 @@ import time
 
 mavicona.push("hostname", socket.gethostname())
 mavicona.push("datetime", time.strftime("%c"))
+
 mavicona.save()

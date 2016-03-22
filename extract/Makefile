@@ -1,4 +1,4 @@
-OBJS = ../common/config.o ../protoc/scrapedata.pb.o detect.o extractor.o
+OBJS = ../common/config.o ../protoc/scrapedata.pb.o rule_scan.o rule_parse.o ruler.o detect.o extractor.o
 CC = g++
 LEX = flex
 YACC = bison
@@ -7,15 +7,13 @@ LIBS = -lprotobuf -lzmq -lmagic
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. 
 LFLAGS = -Wall $(DEBUG) $(LIBS)
 
-all: $(OBJS)
+all: parse $(OBJS)
 	$(CC) $(LFLAGS) $(OBJS) -o extractor
 
-ruler:
-	$(LEX) -o rule_scan.c rule_scan.l
-	$(YACC) -d rule_parse.y
-	$(CC) rule_scan.c rule_parse.tab.c -o ruler
+parse:
+	$(LEX) -o rule_scan.cpp --header-file=rule_scan.h rule_scan.l
+	$(YACC) -o rule_parse.cpp --defines=rule_parse.h rule_parse.y
 
 clean:
 	$(RM) -rf *.o
 	$(RM) -rf extractor
-	$(RM) -rf ruler
