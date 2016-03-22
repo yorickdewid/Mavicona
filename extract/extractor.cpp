@@ -4,7 +4,10 @@
 
 #include "common/logger.h"
 #include "protoc/scrapedata.pb.h"
+#include "ruler.h"
 #include "detect.h"
+
+Ruler ruler;
 
 void parseData(const ScrapeData& data) {
 	Detect detector;
@@ -49,6 +52,16 @@ int main(int argc, char *argv[]) {
 
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
+	if (argc < 2) {
+		std::cerr << "Usage: extractor <config> [args]" << std::endl;
+		return 1;
+	}
+
+	if (!ruler.setConfig(argv[1])) {
+		std::cerr << "Config error" << std::endl;
+		return 1;
+	}
+
 	//  Prepare our context and socket
 	zmq::context_t context(1);
 	zmq::socket_t socket(context, ZMQ_REP);
@@ -56,6 +69,8 @@ int main(int argc, char *argv[]) {
 	int opt = 1;
 	socket.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
 	socket.bind("tcp://*:5577");
+
+	std::cout << "Waiting for connections " << std::endl;
 
 	while (true) {
 		zmq::message_t request;
