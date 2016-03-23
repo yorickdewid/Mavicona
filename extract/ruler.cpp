@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "rule_scan.h"
 #include "rule_parse.h"
 
@@ -21,5 +23,34 @@ bool Ruler::parseConfigFile(const char *configFile) {
 
 	this->ruleset = getRuleset();
 
+	return verifyRules();
+}
+
+bool Ruler::matchType(const int type) {
+	std::vector<RuleNode *>::iterator it = std::find_if(this->ruleset->begin(), this->ruleset->end(), [type](const RuleNode * rule) -> bool {
+		return rule->nodeType == type;
+	});
+
+	if (it == this->ruleset->end())
+		return false;
+
 	return true;
+}
+
+bool Ruler::verifyRules() {
+	if (!this->size())
+		return false;
+
+	if (!matchType(UNKNOWN))
+		return false;
+
+	return true;
+}
+
+void Ruler::runRule() {
+
+}
+
+void Ruler::runRuleUnknown() {
+
 }

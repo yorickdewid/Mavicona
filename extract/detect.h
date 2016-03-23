@@ -18,6 +18,7 @@ class Detect {
 	bool found() {
 		if (mimeMatch)
 			return true;
+
 		return false;
 	}
 

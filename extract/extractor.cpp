@@ -31,9 +31,11 @@ void parseData(const ScrapeData& data) {
 
 	ScrapeData::Data payload = data.content();
 
-	/* Try magic on buffer first then match extension since this is less accurate */
+	/* Determine type and additional information */
 	detector.mimeFromBuffer(payload.payload().c_str(), payload.payload().size());
 	if (!detector.found() && !payload.extension().empty()) {
+
+		/* We may match an file extension */
 		detector.mimeFromExtension(payload.extension());
 	}
 
@@ -43,6 +45,11 @@ void parseData(const ScrapeData& data) {
 
 		if (!detector.charset().empty())
 			std::cout << "Item[" << data.id() << "] charset: " << detector.charset() << std::endl;
+
+		ruler.runRule(/* payload.payload(), detector.mime() */);
+	} else {
+
+		ruler.runRuleUnknown(/* payload.payload() */);
 	}
 
 	std::cout << std::endl;

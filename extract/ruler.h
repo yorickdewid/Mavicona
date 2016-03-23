@@ -9,6 +9,7 @@
 class Ruler {
 	std::vector<RuleNode *> *ruleset;
 	bool parseConfigFile(const char *configFile);
+	bool matchType(const int type);
 
   public:
 	bool setConfig(const char *fname) {
@@ -21,6 +22,10 @@ class Ruler {
 
 		return ruleset->size();
 	}
+
+	bool verifyRules();
+	void runRule();
+	void runRuleUnknown();
 
 };
 
