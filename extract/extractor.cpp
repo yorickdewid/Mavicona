@@ -7,10 +7,11 @@
 #include "ruler.h"
 #include "detect.h"
 
-Ruler ruler;
+static std::vector<RuleNode *> *commonRuleset = nullptr;
 
 void parseData(const ScrapeData& data) {
 	Detect detector;
+	Ruler ruler(commonRuleset);
 
 	std::cout << "Item[" << data.id() << "] name: " << data.name() << std::endl;
 
@@ -39,18 +40,54 @@ void parseData(const ScrapeData& data) {
 		detector.mimeFromExtension(payload.extension());
 	}
 
+	/* At this point al information is gathered so we need to execute the correct ruleset.
+	 * We first try to match the most accurate information towards the unknown ruleset which
+	 * basically maches anything.
+	 */
 	if (detector.found()) {
 		std::cout << "Item[" << data.id() << "] mime name: " << detector.mime()->name() << std::endl;
 		std::cout << "Item[" << data.id() << "] mime category: " << detector.mime()->category() << std::endl;
 
 		if (!detector.charset().empty())
-			std::cout << "Item[" << data.id() << "] charset: " << detector.charset() << std::endl;
+			std::cout << "Item[" << data.id() << "] (unattended) charset: " << detector.charset() << std::endl;
 
-		ruler.runRule(/* payload.payload(), detector.mime() */);
-	} else {
+		/* Match mime */
+		if (!ruler.matchMimeRule(detector.mime())) {
 
-		ruler.runRuleUnknown(/* payload.payload() */);
+			/* Match category */
+			ruler.matchCategoryRule(detector.mime());
+		}
 	}
+
+	if (!ruler.hasActionList() && !payload.extension().empty()) {
+
+		/* Match extension */
+		ruler.matchExtensionRule(payload.extension());
+	}
+
+	if (!ruler.hasActionList()) {
+
+		/* Match type */
+		switch (data.type()) {
+			case ScrapeData::PLAIN:
+				ruler.matchTypeRule("plain");
+				break;
+			case ScrapeData::FILE:
+				ruler.matchTypeRule("file");
+				break;
+			case ScrapeData::BINARY:
+				ruler.matchTypeRule("binary");
+				break;
+			case ScrapeData::STREAM:
+				ruler.matchTypeRule("stream");
+				break;
+		}
+	}
+
+	// build data profile here
+	// now pass data profile object to ruler
+
+	ruler.runRule();
 
 	std::cout << std::endl;
 }
@@ -64,7 +101,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	if (!ruler.setConfig(argv[1])) {
+	if (!(commonRuleset = Ruler::parseConfigFile(argv[1]))) {
 		std::cerr << "Config error" << std::endl;
 		return 1;
 	}

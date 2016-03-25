@@ -52,7 +52,7 @@
 			}
 
 			if ((*it)->nodeType != UNKNOWN) {
-				std::cout << *(*it)->name();
+				std::cout << (*it)->nodeName;
 			}
  			std::cout << " take action:" << std::endl;
 

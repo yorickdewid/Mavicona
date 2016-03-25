@@ -22,7 +22,7 @@ class RuleNode {
   public:
 	int nodeType;
 	std::string *nodeName;
-	ActionNode *actionList;
+	ActionNode *actionList = nullptr;
 
 	RuleNode(int type, ActionNode *list) {
 		nodeType = type;
@@ -33,12 +33,11 @@ class RuleNode {
 		nodeType = type;
 		nodeName = name;
 		actionList = list;
-	}
 
-	std::string *name() {
-		nodeName->erase(0, 1);
-		nodeName->erase(nodeName->size() - 1, 1);
-		return nodeName;
+		if (nodeName->at(0) == '\'') {
+			nodeName->erase(0, 1);
+			nodeName->erase(nodeName->size() - 1, 1);
+		}
 	}
 
 };
