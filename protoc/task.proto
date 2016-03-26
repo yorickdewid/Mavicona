@@ -1,0 +1,15 @@
+message Task {
+  required string name = 1;
+  required int32 id = 2;
+  optional string quid = 3;
+
+  enum QueuePriority {
+    REALTIME = 0;
+    HIGH = 1;
+    NORMAL = 2;
+    LOW = 3;
+    IDLE = 4;
+  }
+
+  required QueuePriority priority = 4 [default = NORMAL];
+}
