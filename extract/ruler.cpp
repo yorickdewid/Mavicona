@@ -4,6 +4,7 @@
 #include "rule_parse.h"
 
 #include "action_log.h"
+#include "action_discard.h"
 #include "ruler.h"
 
 bool Ruler::verifyRules(std::vector<RuleNode *> *ruleset) {
@@ -102,6 +103,7 @@ void Ruler::runRuleActions() {
 				break;
 			case DISCARD:
 				std::cout << "discard dataprofile" << std::endl;
+				ruleAction = new Discard(this->payload);
 				break;
 			case QUEUE:
 				std::cout << "send dataprofile to queue" << std::endl;

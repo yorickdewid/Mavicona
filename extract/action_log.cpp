@@ -32,7 +32,7 @@ bool Log::run() {
 			for (int j = 0; j < metaMime.meta_size(); j++) {
 				ScrapeData::MetaEntry metaMime2 = metaMime.meta(j);
 
-				m_Logfile << "Item[" << m_Payload->id() << "] \t" << metaMime2.key() << " => " << metaMime2.value() << std::endl;
+				m_Logfile << "Item[" << m_Payload->id() << "]  " << metaMime2.key() << " => " << metaMime2.value() << std::endl;
 			}
 
 		} else {
