@@ -8,6 +8,14 @@
 #include "mime.h"
 
 class Detect {
+	void parseMagic(const char *magicrs);
+	void parseCharset(std::string charset);
+	void loadMime();
+
+	std::string m_Charset;
+	Mime *mimeMatch = nullptr;
+	std::map<std::string, Mime*> mimeList;
+
   public:
 	Detect() {
 		loadMime();
@@ -30,20 +38,20 @@ class Detect {
 		return m_Charset;
 	}
 
+	void notify() {
+		if (!found())
+			return;
+	}
+
+	void attach() {
+
+	}
+
 	void mimeFromBuffer(const char *buffer, std::size_t sz);
 	void mimeFromExtension(const std::string& extension);
 
 	Detect(const Detect &) = delete;
 	Detect &operator= (const Detect &) = delete;
-
-  private:
-	void parseMagic(const char *magicrs);
-	void parseCharset(std::string charset);
-	void loadMime();
-
-	std::string m_Charset;
-	Mime *mimeMatch = nullptr;
-	std::map<std::string, Mime*> mimeList;
 };
 
 #endif // DETECT_H

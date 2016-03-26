@@ -1,6 +1,7 @@
 #include <zmq.hpp>
 #include <string>
 #include <iostream>
+#include <unistd.h>
 
 #include "common/logger.h"
 #include "protoc/scrapedata.pb.h"
@@ -8,6 +9,27 @@
 #include "detect.h"
 
 static std::vector<RuleNode *> *commonRuleset = nullptr;
+// static std::vector<ParseObserver *> parseProcessors;
+
+void parseData(ScrapeData& data);
+
+pid_t handleRequest(ScrapeData& data) {
+	pid_t pid = fork();
+	if (pid == 0) {
+
+		/* Child process */
+		parseData(data);
+
+		return pid;
+	} else if (pid < 0) {
+
+		/* Fork failed */
+		std::cerr << "fork failed" << std::endl;
+		return -1;
+	}
+
+	return pid;
+}
 
 void parseData(ScrapeData& data) {
 	Detect detector;
@@ -40,11 +62,19 @@ void parseData(ScrapeData& data) {
 		detector.mimeFromExtension(payload.extension());
 	}
 
+	/* Notify parse observers */
+	detector.notify();
+
 	/* At this point al information is gathered so we need to execute the correct ruleset.
 	 * We first try to match the most accurate information towards the unknown ruleset which
 	 * basically maches anything.
 	 */
 	if (detector.found()) {
+
+		//for (const ParseObserver &processor : parseProcessors) {
+		//	processor->update();
+		//}
+
 		std::cout << "Item[" << data.id() << "] mime name: " << detector.mime()->name() << std::endl;
 		std::cout << "Item[" << data.id() << "] mime category: " << detector.mime()->category() << std::endl;
 
@@ -147,7 +177,9 @@ int main(int argc, char *argv[]) {
 		data.ParseFromArray(request.data(), request.size());
 
 		/* Handle incomming data */
-		parseData(data);
+		pid_t pid = handleRequest(data);
+		if (pid == 0)
+			exit(1);
 
 		/* Send reply back to client */
 		zmq::message_t reply(5);
