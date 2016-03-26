@@ -1,4 +1,4 @@
-OBJS = ../common/config.o ../protoc/scrapedata.pb.o rule_scan.o rule_parse.o ruler.o detect.o extractor.o
+OBJS = ../common/config.o ../protoc/scrapedata.pb.o rule_scan.o rule_parse.o action_log.o ruler.o detect.o extractor.o
 CC = g++
 LEX = flex
 YACC = bison

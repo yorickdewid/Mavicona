@@ -9,7 +9,7 @@
 
 static std::vector<RuleNode *> *commonRuleset = nullptr;
 
-void parseData(const ScrapeData& data) {
+void parseData(ScrapeData& data) {
 	Detect detector;
 	Ruler ruler(commonRuleset);
 
@@ -48,8 +48,28 @@ void parseData(const ScrapeData& data) {
 		std::cout << "Item[" << data.id() << "] mime name: " << detector.mime()->name() << std::endl;
 		std::cout << "Item[" << data.id() << "] mime category: " << detector.mime()->category() << std::endl;
 
-		if (!detector.charset().empty())
+		ScrapeData::MetaEntry *metaMime = data.add_meta();
+		metaMime->set_key("mime");
+
+		ScrapeData::MetaEntry *metaName = metaMime->add_meta();
+		metaName->set_key("name");
+		metaName->set_value(detector.mime()->name());
+
+		ScrapeData::MetaEntry *metaType = metaMime->add_meta();
+		metaType->set_key("type");
+		metaType->set_value(detector.mime()->type());
+
+		ScrapeData::MetaEntry *metaCategory = metaMime->add_meta();
+		metaCategory->set_key("category");
+		metaCategory->set_value(detector.mime()->category());
+
+		if (!detector.charset().empty()) {
 			std::cout << "Item[" << data.id() << "] (unattended) charset: " << detector.charset() << std::endl;
+
+			ScrapeData::MetaEntry *metaCharset = data.add_meta();
+			metaCharset->set_key("charset");
+			metaCharset->set_value(detector.charset());
+		}
 
 		/* Match mime */
 		if (!ruler.matchMimeRule(detector.mime())) {
@@ -84,10 +104,11 @@ void parseData(const ScrapeData& data) {
 		}
 	}
 
-	// build data profile here
-	// now pass data profile object to ruler
+	// std::string serialized;
+	// data.SerializeToString(&serialized);
 
-	ruler.runRule();
+	ruler.setDataProfile(data);
+	ruler.runRuleActions();
 
 	std::cout << std::endl;
 }
@@ -136,3 +157,4 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
+

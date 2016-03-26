@@ -10,6 +10,7 @@
 class Ruler {
 	std::vector<RuleNode *> *m_Ruleset = nullptr;
 	ActionNode *m_ActionList = nullptr;
+	const ScrapeData *payload = nullptr;
 	bool match(const int type, const std::string& name);
 
   public:
@@ -29,7 +30,8 @@ class Ruler {
 	bool matchCategoryRule(Mime *mime);
 	bool matchExtensionRule(const std::string& extension);
 	bool matchTypeRule(const std::string& typeName);
-	void runRule();
+	void runRuleActions();
+	void setDataProfile(const ScrapeData &data);
 };
 
 #endif // RULER_H

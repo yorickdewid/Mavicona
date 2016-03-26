@@ -3,6 +3,7 @@
 #include "rule_scan.h"
 #include "rule_parse.h"
 
+#include "action_log.h"
 #include "ruler.h"
 
 bool Ruler::verifyRules(std::vector<RuleNode *> *ruleset) {
@@ -65,33 +66,54 @@ bool Ruler::match(const int type, const std::string& name = "") {
 }
 
 bool Ruler::matchMimeRule(Mime *mime) {
-	std::cout << "matching rule mime: " << mime->type() << std::endl;
 	return match(MIME, mime->type());
 }
 
 bool Ruler::matchCategoryRule(Mime *mime) {
-	std::cout << "matching rule category" << std::endl;
 	return match(CATEGORY, mime->category());
 }
 
 bool Ruler::matchExtensionRule(const std::string& extension) {
-	std::cout << "matching rule extension" << std::endl;
 	return match(EXTENSION, extension);
 }
 
 bool Ruler::matchTypeRule(const std::string& typeName) {
-	std::cout << "matching rule type" << std::endl;
 	return match(TYPE, typeName);
 }
 
-void Ruler::runRule() {
-	// Did not match anything, set unknown rule
-	if (!this->m_ActionList) {
-		std::cout << "using unknown" << std::endl;
+void Ruler::runRuleActions() {
+	if (!this->payload)
+		return;
+
+	/* Did not match anything, set unknown rule */
+	if (!this->m_ActionList)
 		match(UNKNOWN);
+
+	for (int action : this->m_ActionList->actions) {
+		Action *ruleAction = nullptr;
+
+		switch (action) {
+			case LOG:
+				std::cout << "log dataprofile to file" << std::endl;
+				ruleAction = new Log("kaas.log", this->payload);
+				break;
+			case STORE:
+				std::cout << "send dataprofile to storage cluster" << std::endl;
+				break;
+			case DISCARD:
+				std::cout << "discard dataprofile" << std::endl;
+				break;
+			case QUEUE:
+				std::cout << "send dataprofile to queue" << std::endl;
+				break;
+		}
+
+		if (ruleAction)
+			ruleAction->run();
 	}
 
-	std::cout << "run actions" << std::endl;
-	std::cout << "actions: " << this->m_ActionList->actions.size() << std::endl;
-	// here we have the actionlist and the dataprofile, send to services
+}
+
+void Ruler::setDataProfile(const ScrapeData &data) {
+	this->payload = &data;
 }
