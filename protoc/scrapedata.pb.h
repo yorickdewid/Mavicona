@@ -34,6 +34,7 @@ void protobuf_ShutdownFile_scrapedata_2eproto();
 
 class ScrapeData;
 class ScrapeData_Data;
+class ScrapeData_MetaEntry;
 
 enum ScrapeData_DataType {
   ScrapeData_DataType_PLAIN = 0,
@@ -167,6 +168,118 @@ class ScrapeData_Data : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
+class ScrapeData_MetaEntry : public ::google::protobuf::Message {
+ public:
+  ScrapeData_MetaEntry();
+  virtual ~ScrapeData_MetaEntry();
+
+  ScrapeData_MetaEntry(const ScrapeData_MetaEntry& from);
+
+  inline ScrapeData_MetaEntry& operator=(const ScrapeData_MetaEntry& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ScrapeData_MetaEntry& default_instance();
+
+  void Swap(ScrapeData_MetaEntry* other);
+
+  // implements Message ----------------------------------------------
+
+  ScrapeData_MetaEntry* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ScrapeData_MetaEntry& from);
+  void MergeFrom(const ScrapeData_MetaEntry& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // required string key = 1;
+  inline bool has_key() const;
+  inline void clear_key();
+  static const int kKeyFieldNumber = 1;
+  inline const ::std::string& key() const;
+  inline void set_key(const ::std::string& value);
+  inline void set_key(const char* value);
+  inline void set_key(const char* value, size_t size);
+  inline ::std::string* mutable_key();
+  inline ::std::string* release_key();
+  inline void set_allocated_key(::std::string* key);
+
+  // optional bytes value = 2;
+  inline bool has_value() const;
+  inline void clear_value();
+  static const int kValueFieldNumber = 2;
+  inline const ::std::string& value() const;
+  inline void set_value(const ::std::string& value);
+  inline void set_value(const char* value);
+  inline void set_value(const void* value, size_t size);
+  inline ::std::string* mutable_value();
+  inline ::std::string* release_value();
+  inline void set_allocated_value(::std::string* value);
+
+  // repeated .ScrapeData.MetaEntry meta = 3;
+  inline int meta_size() const;
+  inline void clear_meta();
+  static const int kMetaFieldNumber = 3;
+  inline const ::ScrapeData_MetaEntry& meta(int index) const;
+  inline ::ScrapeData_MetaEntry* mutable_meta(int index);
+  inline ::ScrapeData_MetaEntry* add_meta();
+  inline const ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry >&
+      meta() const;
+  inline ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry >*
+      mutable_meta();
+
+  // @@protoc_insertion_point(class_scope:ScrapeData.MetaEntry)
+ private:
+  inline void set_has_key();
+  inline void clear_has_key();
+  inline void set_has_value();
+  inline void clear_has_value();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::std::string* key_;
+  ::std::string* value_;
+  ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry > meta_;
+  friend void  protobuf_AddDesc_scrapedata_2eproto();
+  friend void protobuf_AssignDesc_scrapedata_2eproto();
+  friend void protobuf_ShutdownFile_scrapedata_2eproto();
+
+  void InitAsDefaultInstance();
+  static ScrapeData_MetaEntry* default_instance_;
+};
+// -------------------------------------------------------------------
+
 class ScrapeData : public ::google::protobuf::Message {
  public:
   ScrapeData();
@@ -219,6 +332,7 @@ class ScrapeData : public ::google::protobuf::Message {
   // nested types ----------------------------------------------------
 
   typedef ScrapeData_Data Data;
+  typedef ScrapeData_MetaEntry MetaEntry;
 
   typedef ScrapeData_DataType DataType;
   static const DataType PLAIN = ScrapeData_DataType_PLAIN;
@@ -307,6 +421,18 @@ class ScrapeData : public ::google::protobuf::Message {
   inline ::ScrapeData_Data* release_content();
   inline void set_allocated_content(::ScrapeData_Data* content);
 
+  // repeated .ScrapeData.MetaEntry meta = 7;
+  inline int meta_size() const;
+  inline void clear_meta();
+  static const int kMetaFieldNumber = 7;
+  inline const ::ScrapeData_MetaEntry& meta(int index) const;
+  inline ::ScrapeData_MetaEntry* mutable_meta(int index);
+  inline ::ScrapeData_MetaEntry* add_meta();
+  inline const ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry >&
+      meta() const;
+  inline ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry >*
+      mutable_meta();
+
   // @@protoc_insertion_point(class_scope:ScrapeData)
  private:
   inline void set_has_name();
@@ -332,6 +458,7 @@ class ScrapeData : public ::google::protobuf::Message {
   int type_;
   ::std::string* zone_;
   ::ScrapeData_Data* content_;
+  ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry > meta_;
   friend void  protobuf_AddDesc_scrapedata_2eproto();
   friend void protobuf_AssignDesc_scrapedata_2eproto();
   friend void protobuf_ShutdownFile_scrapedata_2eproto();
@@ -520,6 +647,192 @@ inline void ScrapeData_Data::set_allocated_extension(::std::string* extension) {
     extension_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:ScrapeData.Data.extension)
+}
+
+// -------------------------------------------------------------------
+
+// ScrapeData_MetaEntry
+
+// required string key = 1;
+inline bool ScrapeData_MetaEntry::has_key() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ScrapeData_MetaEntry::set_has_key() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ScrapeData_MetaEntry::clear_has_key() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ScrapeData_MetaEntry::clear_key() {
+  if (key_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    key_->clear();
+  }
+  clear_has_key();
+}
+inline const ::std::string& ScrapeData_MetaEntry::key() const {
+  // @@protoc_insertion_point(field_get:ScrapeData.MetaEntry.key)
+  return *key_;
+}
+inline void ScrapeData_MetaEntry::set_key(const ::std::string& value) {
+  set_has_key();
+  if (key_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    key_ = new ::std::string;
+  }
+  key_->assign(value);
+  // @@protoc_insertion_point(field_set:ScrapeData.MetaEntry.key)
+}
+inline void ScrapeData_MetaEntry::set_key(const char* value) {
+  set_has_key();
+  if (key_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    key_ = new ::std::string;
+  }
+  key_->assign(value);
+  // @@protoc_insertion_point(field_set_char:ScrapeData.MetaEntry.key)
+}
+inline void ScrapeData_MetaEntry::set_key(const char* value, size_t size) {
+  set_has_key();
+  if (key_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    key_ = new ::std::string;
+  }
+  key_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:ScrapeData.MetaEntry.key)
+}
+inline ::std::string* ScrapeData_MetaEntry::mutable_key() {
+  set_has_key();
+  if (key_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    key_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:ScrapeData.MetaEntry.key)
+  return key_;
+}
+inline ::std::string* ScrapeData_MetaEntry::release_key() {
+  clear_has_key();
+  if (key_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = key_;
+    key_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ScrapeData_MetaEntry::set_allocated_key(::std::string* key) {
+  if (key_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete key_;
+  }
+  if (key) {
+    set_has_key();
+    key_ = key;
+  } else {
+    clear_has_key();
+    key_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:ScrapeData.MetaEntry.key)
+}
+
+// optional bytes value = 2;
+inline bool ScrapeData_MetaEntry::has_value() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ScrapeData_MetaEntry::set_has_value() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ScrapeData_MetaEntry::clear_has_value() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ScrapeData_MetaEntry::clear_value() {
+  if (value_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    value_->clear();
+  }
+  clear_has_value();
+}
+inline const ::std::string& ScrapeData_MetaEntry::value() const {
+  // @@protoc_insertion_point(field_get:ScrapeData.MetaEntry.value)
+  return *value_;
+}
+inline void ScrapeData_MetaEntry::set_value(const ::std::string& value) {
+  set_has_value();
+  if (value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    value_ = new ::std::string;
+  }
+  value_->assign(value);
+  // @@protoc_insertion_point(field_set:ScrapeData.MetaEntry.value)
+}
+inline void ScrapeData_MetaEntry::set_value(const char* value) {
+  set_has_value();
+  if (value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    value_ = new ::std::string;
+  }
+  value_->assign(value);
+  // @@protoc_insertion_point(field_set_char:ScrapeData.MetaEntry.value)
+}
+inline void ScrapeData_MetaEntry::set_value(const void* value, size_t size) {
+  set_has_value();
+  if (value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    value_ = new ::std::string;
+  }
+  value_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:ScrapeData.MetaEntry.value)
+}
+inline ::std::string* ScrapeData_MetaEntry::mutable_value() {
+  set_has_value();
+  if (value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    value_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:ScrapeData.MetaEntry.value)
+  return value_;
+}
+inline ::std::string* ScrapeData_MetaEntry::release_value() {
+  clear_has_value();
+  if (value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = value_;
+    value_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ScrapeData_MetaEntry::set_allocated_value(::std::string* value) {
+  if (value_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete value_;
+  }
+  if (value) {
+    set_has_value();
+    value_ = value;
+  } else {
+    clear_has_value();
+    value_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:ScrapeData.MetaEntry.value)
+}
+
+// repeated .ScrapeData.MetaEntry meta = 3;
+inline int ScrapeData_MetaEntry::meta_size() const {
+  return meta_.size();
+}
+inline void ScrapeData_MetaEntry::clear_meta() {
+  meta_.Clear();
+}
+inline const ::ScrapeData_MetaEntry& ScrapeData_MetaEntry::meta(int index) const {
+  // @@protoc_insertion_point(field_get:ScrapeData.MetaEntry.meta)
+  return meta_.Get(index);
+}
+inline ::ScrapeData_MetaEntry* ScrapeData_MetaEntry::mutable_meta(int index) {
+  // @@protoc_insertion_point(field_mutable:ScrapeData.MetaEntry.meta)
+  return meta_.Mutable(index);
+}
+inline ::ScrapeData_MetaEntry* ScrapeData_MetaEntry::add_meta() {
+  // @@protoc_insertion_point(field_add:ScrapeData.MetaEntry.meta)
+  return meta_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry >&
+ScrapeData_MetaEntry::meta() const {
+  // @@protoc_insertion_point(field_list:ScrapeData.MetaEntry.meta)
+  return meta_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry >*
+ScrapeData_MetaEntry::mutable_meta() {
+  // @@protoc_insertion_point(field_mutable_list:ScrapeData.MetaEntry.meta)
+  return &meta_;
 }
 
 // -------------------------------------------------------------------
@@ -842,6 +1155,36 @@ inline void ScrapeData::set_allocated_content(::ScrapeData_Data* content) {
     clear_has_content();
   }
   // @@protoc_insertion_point(field_set_allocated:ScrapeData.content)
+}
+
+// repeated .ScrapeData.MetaEntry meta = 7;
+inline int ScrapeData::meta_size() const {
+  return meta_.size();
+}
+inline void ScrapeData::clear_meta() {
+  meta_.Clear();
+}
+inline const ::ScrapeData_MetaEntry& ScrapeData::meta(int index) const {
+  // @@protoc_insertion_point(field_get:ScrapeData.meta)
+  return meta_.Get(index);
+}
+inline ::ScrapeData_MetaEntry* ScrapeData::mutable_meta(int index) {
+  // @@protoc_insertion_point(field_mutable:ScrapeData.meta)
+  return meta_.Mutable(index);
+}
+inline ::ScrapeData_MetaEntry* ScrapeData::add_meta() {
+  // @@protoc_insertion_point(field_add:ScrapeData.meta)
+  return meta_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry >&
+ScrapeData::meta() const {
+  // @@protoc_insertion_point(field_list:ScrapeData.meta)
+  return meta_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry >*
+ScrapeData::mutable_meta() {
+  // @@protoc_insertion_point(field_mutable_list:ScrapeData.meta)
+  return &meta_;
 }
 
 

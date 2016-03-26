@@ -20,4 +20,12 @@ message ScrapeData {
   }
 
   required Data content = 6;
+
+  message MetaEntry {
+    required string key = 1;
+    optional bytes value = 2;
+    repeated MetaEntry meta = 3;
+  }
+
+  repeated MetaEntry meta = 7;
 }

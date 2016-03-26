@@ -24,6 +24,9 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* ScrapeData_Data_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   ScrapeData_Data_reflection_ = NULL;
+const ::google::protobuf::Descriptor* ScrapeData_MetaEntry_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  ScrapeData_MetaEntry_reflection_ = NULL;
 const ::google::protobuf::EnumDescriptor* ScrapeData_DataType_descriptor_ = NULL;
 
 }  // namespace
@@ -36,13 +39,14 @@ void protobuf_AssignDesc_scrapedata_2eproto() {
       "scrapedata.proto");
   GOOGLE_CHECK(file != NULL);
   ScrapeData_descriptor_ = file->message_type(0);
-  static const int ScrapeData_offsets_[6] = {
+  static const int ScrapeData_offsets_[7] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, quid_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, zone_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, content_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, meta_),
   };
   ScrapeData_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -72,6 +76,23 @@ void protobuf_AssignDesc_scrapedata_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(ScrapeData_Data));
+  ScrapeData_MetaEntry_descriptor_ = ScrapeData_descriptor_->nested_type(1);
+  static const int ScrapeData_MetaEntry_offsets_[3] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData_MetaEntry, key_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData_MetaEntry, value_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData_MetaEntry, meta_),
+  };
+  ScrapeData_MetaEntry_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      ScrapeData_MetaEntry_descriptor_,
+      ScrapeData_MetaEntry::default_instance_,
+      ScrapeData_MetaEntry_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData_MetaEntry, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData_MetaEntry, _unknown_fields_),
+      -1,
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(ScrapeData_MetaEntry));
   ScrapeData_DataType_descriptor_ = ScrapeData_descriptor_->enum_type(0);
 }
 
@@ -89,6 +110,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
     ScrapeData_descriptor_, &ScrapeData::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     ScrapeData_Data_descriptor_, &ScrapeData_Data::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    ScrapeData_MetaEntry_descriptor_, &ScrapeData_MetaEntry::default_instance());
 }
 
 }  // namespace
@@ -98,6 +121,8 @@ void protobuf_ShutdownFile_scrapedata_2eproto() {
   delete ScrapeData_reflection_;
   delete ScrapeData_Data::default_instance_;
   delete ScrapeData_Data_reflection_;
+  delete ScrapeData_MetaEntry::default_instance_;
+  delete ScrapeData_MetaEntry_reflection_;
 }
 
 void protobuf_AddDesc_scrapedata_2eproto() {
@@ -107,19 +132,24 @@ void protobuf_AddDesc_scrapedata_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\020scrapedata.proto\"\203\002\n\nScrapeData\022\014\n\004nam"
+    "\n\020scrapedata.proto\"\366\002\n\nScrapeData\022\014\n\004nam"
     "e\030\001 \002(\t\022\n\n\002id\030\002 \002(\005\022\014\n\004quid\030\003 \001(\t\022\014\n\004zon"
     "e\030\004 \001(\t\022)\n\004type\030\005 \002(\0162\024.ScrapeData.DataT"
     "ype:\005PLAIN\022!\n\007content\030\006 \002(\0132\020.ScrapeData"
-    ".Data\0328\n\004Data\022\017\n\007payload\030\001 \002(\014\022\014\n\004size\030\002"
-    " \001(\004\022\021\n\textension\030\003 \001(\t\"7\n\010DataType\022\t\n\005P"
-    "LAIN\020\000\022\010\n\004FILE\020\001\022\n\n\006BINARY\020\002\022\n\n\006STREAM\020\003", 280);
+    ".Data\022#\n\004meta\030\007 \003(\0132\025.ScrapeData.MetaEnt"
+    "ry\0328\n\004Data\022\017\n\007payload\030\001 \002(\014\022\014\n\004size\030\002 \001("
+    "\004\022\021\n\textension\030\003 \001(\t\032L\n\tMetaEntry\022\013\n\003key"
+    "\030\001 \002(\t\022\r\n\005value\030\002 \001(\014\022#\n\004meta\030\003 \003(\0132\025.Sc"
+    "rapeData.MetaEntry\"7\n\010DataType\022\t\n\005PLAIN\020"
+    "\000\022\010\n\004FILE\020\001\022\n\n\006BINARY\020\002\022\n\n\006STREAM\020\003", 395);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "scrapedata.proto", &protobuf_RegisterTypes);
   ScrapeData::default_instance_ = new ScrapeData();
   ScrapeData_Data::default_instance_ = new ScrapeData_Data();
+  ScrapeData_MetaEntry::default_instance_ = new ScrapeData_MetaEntry();
   ScrapeData::default_instance_->InitAsDefaultInstance();
   ScrapeData_Data::default_instance_->InitAsDefaultInstance();
+  ScrapeData_MetaEntry::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_scrapedata_2eproto);
 }
 
@@ -490,12 +520,346 @@ void ScrapeData_Data::Swap(ScrapeData_Data* other) {
 // -------------------------------------------------------------------
 
 #ifndef _MSC_VER
+const int ScrapeData_MetaEntry::kKeyFieldNumber;
+const int ScrapeData_MetaEntry::kValueFieldNumber;
+const int ScrapeData_MetaEntry::kMetaFieldNumber;
+#endif  // !_MSC_VER
+
+ScrapeData_MetaEntry::ScrapeData_MetaEntry()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:ScrapeData.MetaEntry)
+}
+
+void ScrapeData_MetaEntry::InitAsDefaultInstance() {
+}
+
+ScrapeData_MetaEntry::ScrapeData_MetaEntry(const ScrapeData_MetaEntry& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:ScrapeData.MetaEntry)
+}
+
+void ScrapeData_MetaEntry::SharedCtor() {
+  ::google::protobuf::internal::GetEmptyString();
+  _cached_size_ = 0;
+  key_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  value_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+ScrapeData_MetaEntry::~ScrapeData_MetaEntry() {
+  // @@protoc_insertion_point(destructor:ScrapeData.MetaEntry)
+  SharedDtor();
+}
+
+void ScrapeData_MetaEntry::SharedDtor() {
+  if (key_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete key_;
+  }
+  if (value_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete value_;
+  }
+  if (this != default_instance_) {
+  }
+}
+
+void ScrapeData_MetaEntry::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* ScrapeData_MetaEntry::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return ScrapeData_MetaEntry_descriptor_;
+}
+
+const ScrapeData_MetaEntry& ScrapeData_MetaEntry::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_scrapedata_2eproto();
+  return *default_instance_;
+}
+
+ScrapeData_MetaEntry* ScrapeData_MetaEntry::default_instance_ = NULL;
+
+ScrapeData_MetaEntry* ScrapeData_MetaEntry::New() const {
+  return new ScrapeData_MetaEntry;
+}
+
+void ScrapeData_MetaEntry::Clear() {
+  if (_has_bits_[0 / 32] & 3) {
+    if (has_key()) {
+      if (key_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        key_->clear();
+      }
+    }
+    if (has_value()) {
+      if (value_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        value_->clear();
+      }
+    }
+  }
+  meta_.Clear();
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool ScrapeData_MetaEntry::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:ScrapeData.MetaEntry)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // required string key = 1;
+      case 1: {
+        if (tag == 10) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_key()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->key().data(), this->key().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "key");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(18)) goto parse_value;
+        break;
+      }
+
+      // optional bytes value = 2;
+      case 2: {
+        if (tag == 18) {
+         parse_value:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->mutable_value()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(26)) goto parse_meta;
+        break;
+      }
+
+      // repeated .ScrapeData.MetaEntry meta = 3;
+      case 3: {
+        if (tag == 26) {
+         parse_meta:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+                input, add_meta()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(26)) goto parse_meta;
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:ScrapeData.MetaEntry)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:ScrapeData.MetaEntry)
+  return false;
+#undef DO_
+}
+
+void ScrapeData_MetaEntry::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:ScrapeData.MetaEntry)
+  // required string key = 1;
+  if (has_key()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->key().data(), this->key().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "key");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      1, this->key(), output);
+  }
+
+  // optional bytes value = 2;
+  if (has_value()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
+      2, this->value(), output);
+  }
+
+  // repeated .ScrapeData.MetaEntry meta = 3;
+  for (int i = 0; i < this->meta_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      3, this->meta(i), output);
+  }
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:ScrapeData.MetaEntry)
+}
+
+::google::protobuf::uint8* ScrapeData_MetaEntry::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:ScrapeData.MetaEntry)
+  // required string key = 1;
+  if (has_key()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->key().data(), this->key().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "key");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        1, this->key(), target);
+  }
+
+  // optional bytes value = 2;
+  if (has_value()) {
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        2, this->value(), target);
+  }
+
+  // repeated .ScrapeData.MetaEntry meta = 3;
+  for (int i = 0; i < this->meta_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        3, this->meta(i), target);
+  }
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:ScrapeData.MetaEntry)
+  return target;
+}
+
+int ScrapeData_MetaEntry::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // required string key = 1;
+    if (has_key()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->key());
+    }
+
+    // optional bytes value = 2;
+    if (has_value()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::BytesSize(
+          this->value());
+    }
+
+  }
+  // repeated .ScrapeData.MetaEntry meta = 3;
+  total_size += 1 * this->meta_size();
+  for (int i = 0; i < this->meta_size(); i++) {
+    total_size +=
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        this->meta(i));
+  }
+
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void ScrapeData_MetaEntry::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const ScrapeData_MetaEntry* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const ScrapeData_MetaEntry*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void ScrapeData_MetaEntry::MergeFrom(const ScrapeData_MetaEntry& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  meta_.MergeFrom(from.meta_);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_key()) {
+      set_key(from.key());
+    }
+    if (from.has_value()) {
+      set_value(from.value());
+    }
+  }
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void ScrapeData_MetaEntry::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void ScrapeData_MetaEntry::CopyFrom(const ScrapeData_MetaEntry& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ScrapeData_MetaEntry::IsInitialized() const {
+  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
+
+  if (!::google::protobuf::internal::AllAreInitialized(this->meta())) return false;
+  return true;
+}
+
+void ScrapeData_MetaEntry::Swap(ScrapeData_MetaEntry* other) {
+  if (other != this) {
+    std::swap(key_, other->key_);
+    std::swap(value_, other->value_);
+    meta_.Swap(&other->meta_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+  }
+}
+
+::google::protobuf::Metadata ScrapeData_MetaEntry::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = ScrapeData_MetaEntry_descriptor_;
+  metadata.reflection = ScrapeData_MetaEntry_reflection_;
+  return metadata;
+}
+
+
+// -------------------------------------------------------------------
+
+#ifndef _MSC_VER
 const int ScrapeData::kNameFieldNumber;
 const int ScrapeData::kIdFieldNumber;
 const int ScrapeData::kQuidFieldNumber;
 const int ScrapeData::kZoneFieldNumber;
 const int ScrapeData::kTypeFieldNumber;
 const int ScrapeData::kContentFieldNumber;
+const int ScrapeData::kMetaFieldNumber;
 #endif  // !_MSC_VER
 
 ScrapeData::ScrapeData()
@@ -604,6 +968,7 @@ void ScrapeData::Clear() {
 #undef OFFSET_OF_FIELD_
 #undef ZR_
 
+  meta_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -712,6 +1077,20 @@ bool ScrapeData::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(58)) goto parse_meta;
+        break;
+      }
+
+      // repeated .ScrapeData.MetaEntry meta = 7;
+      case 7: {
+        if (tag == 58) {
+         parse_meta:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+                input, add_meta()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(58)) goto parse_meta;
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -788,6 +1167,12 @@ void ScrapeData::SerializeWithCachedSizes(
       6, this->content(), output);
   }
 
+  // repeated .ScrapeData.MetaEntry meta = 7;
+  for (int i = 0; i < this->meta_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      7, this->meta(i), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -849,6 +1234,13 @@ void ScrapeData::SerializeWithCachedSizes(
         6, this->content(), target);
   }
 
+  // repeated .ScrapeData.MetaEntry meta = 7;
+  for (int i = 0; i < this->meta_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        7, this->meta(i), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -903,6 +1295,14 @@ int ScrapeData::ByteSize() const {
     }
 
   }
+  // repeated .ScrapeData.MetaEntry meta = 7;
+  total_size += 1 * this->meta_size();
+  for (int i = 0; i < this->meta_size(); i++) {
+    total_size +=
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        this->meta(i));
+  }
+
   if (!unknown_fields().empty()) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
@@ -928,6 +1328,7 @@ void ScrapeData::MergeFrom(const ::google::protobuf::Message& from) {
 
 void ScrapeData::MergeFrom(const ScrapeData& from) {
   GOOGLE_CHECK_NE(&from, this);
+  meta_.MergeFrom(from.meta_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_name()) {
       set_name(from.name());
@@ -969,6 +1370,7 @@ bool ScrapeData::IsInitialized() const {
   if (has_content()) {
     if (!this->content().IsInitialized()) return false;
   }
+  if (!::google::protobuf::internal::AllAreInitialized(this->meta())) return false;
   return true;
 }
 
@@ -980,6 +1382,7 @@ void ScrapeData::Swap(ScrapeData* other) {
     std::swap(zone_, other->zone_);
     std::swap(type_, other->type_);
     std::swap(content_, other->content_);
+    meta_.Swap(&other->meta_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
