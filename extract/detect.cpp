@@ -4,6 +4,9 @@
 #include "magic.h"
 #include "mime.h"
 
+#include "parse_observer.h"
+#include "plaintext_handler.h"
+
 void Detect::loadMime() {
 	this->mimeList["text/plain"] = new Mime("Text File", "text/plain", ".txt");
 	this->mimeList["application/vnd.hzn-3d-crossword"] = new Mime("3D Crossword Plugin", "application/vnd.hzn-3d-crossword", ".x3d");
@@ -693,6 +696,19 @@ void Detect::loadMime() {
 	this->mimeList["application/x-empty"] = new Mime("Empty", "application/x-empty");
 }
 
+void Detect::notify() {
+	if (!found())
+		return;
+
+	ParseObserver *handler = this->mimeParserList[mimeMatch->type()];
+	if (handler)
+		handler->handle();
+}
+
+void Detect::loadMimeParser() {
+	new PlainTextHandler(this);
+}
+
 Detect::~Detect() {
 	for (auto const &item : this->mimeList) {
 		delete item.second;
@@ -744,3 +760,12 @@ void Detect::mimeFromExtension(const std::string& extension) {
 		}
 	}
 }
+
+void Detect::setDataProfile(const ScrapeData &data) {
+	this->payload = &data;
+}
+
+const ScrapeData *Detect::GetDataProfile() {
+	return this->payload;
+}
+

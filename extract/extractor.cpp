@@ -8,12 +8,14 @@
 #include "ruler.h"
 #include "detect.h"
 
+//#define FORK 	1
+
 static std::vector<RuleNode *> *commonRuleset = nullptr;
-// static std::vector<ParseObserver *> parseProcessors;
 
 void parseData(ScrapeData& data);
 
 pid_t handleRequest(ScrapeData& data) {
+#ifdef FORK
 	pid_t pid = fork();
 	if (pid == 0) {
 
@@ -29,6 +31,11 @@ pid_t handleRequest(ScrapeData& data) {
 	}
 
 	return pid;
+#else
+	parseData(data);
+
+	return 1;
+#endif
 }
 
 void parseData(ScrapeData& data) {
@@ -62,7 +69,10 @@ void parseData(ScrapeData& data) {
 		detector.mimeFromExtension(payload.extension());
 	}
 
-	/* Notify parse observers */
+	/* Notify parse observers
+	 * Handlers can extract metadata from the payload
+	 */
+	detector.setDataProfile(data);
 	detector.notify();
 
 	/* At this point al information is gathered so we need to execute the correct ruleset.
@@ -179,7 +189,7 @@ int main(int argc, char *argv[]) {
 		/* Handle incomming data */
 		pid_t pid = handleRequest(data);
 		if (pid == 0)
-			exit(1);
+			exit(0);
 
 		/* Send reply back to client */
 		zmq::message_t reply(5);
