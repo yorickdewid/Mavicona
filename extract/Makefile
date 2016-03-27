@@ -4,7 +4,7 @@ LEX = flex
 YACC = bison
 DEBUG = -g
 LIBS = -lprotobuf -lzmq -lmagic
-CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. 
+CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I..  -I../external
 LFLAGS = -Wall $(DEBUG) $(LIBS)
 
 all: parse $(OBJS)

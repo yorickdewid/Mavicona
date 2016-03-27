@@ -69,22 +69,11 @@ void parseData(ScrapeData& data) {
 		detector.mimeFromExtension(payload.extension());
 	}
 
-	/* Notify parse observers
-	 * Handlers can extract metadata from the payload
-	 */
-	detector.setDataProfile(data);
-	detector.notify();
-
 	/* At this point al information is gathered so we need to execute the correct ruleset.
 	 * We first try to match the most accurate information towards the unknown ruleset which
 	 * basically maches anything.
 	 */
 	if (detector.found()) {
-
-		//for (const ParseObserver &processor : parseProcessors) {
-		//	processor->update();
-		//}
-
 		std::cout << "Item[" << data.id() << "] mime name: " << detector.mime()->name() << std::endl;
 		std::cout << "Item[" << data.id() << "] mime category: " << detector.mime()->category() << std::endl;
 
@@ -110,6 +99,7 @@ void parseData(ScrapeData& data) {
 			metaCharset->set_key("charset");
 			metaCharset->set_value(detector.charset());
 		}
+
 
 		/* Match mime */
 		if (!ruler.matchMimeRule(detector.mime())) {
@@ -143,6 +133,12 @@ void parseData(ScrapeData& data) {
 				break;
 		}
 	}
+
+	/* Notify parse observers
+	 * Handlers can extract aditional metadata from the payload and append this to the object
+	 */
+	detector.setDataProfile(data);
+	detector.notify();
 
 	// std::string serialized;
 	// data.SerializeToString(&serialized);

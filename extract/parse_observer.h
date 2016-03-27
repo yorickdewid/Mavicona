@@ -19,6 +19,20 @@ class ParseObserver {
 		return m_Model;
 	}
 
+	const ScrapeData::Data *getPayload() {
+		return &getSubject()->GetDataProfile()->content();
+	}
+
+	/*void addMime(const std::string& key, const std::string& value) {
+	    //
+	}*/
+
+	void addMeta(const std::string& key, const std::string& value) {
+		ScrapeData::MetaEntry *meta = getSubject()->GetDataProfile()->add_meta();
+		meta->set_key(key);
+		meta->set_value(value);
+	}
+
 };
 
 #endif // PARSE_OBSERVER_H

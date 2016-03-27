@@ -7,6 +7,8 @@
 #include "action_discard.h"
 #include "ruler.h"
 
+#define LOGFILENAME		"rule_action.log"
+
 bool Ruler::verifyRules(std::vector<RuleNode *> *ruleset) {
 	if (!ruleset)
 		return false;
@@ -96,7 +98,7 @@ void Ruler::runRuleActions() {
 		switch (action) {
 			case LOG:
 				std::cout << "log dataprofile to file" << std::endl;
-				ruleAction = new Log("kaas.log", this->payload);
+				ruleAction = new Log(LOGFILENAME, this->payload);
 				break;
 			case STORE:
 				std::cout << "send dataprofile to storage cluster" << std::endl;

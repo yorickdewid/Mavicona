@@ -761,11 +761,11 @@ void Detect::mimeFromExtension(const std::string& extension) {
 	}
 }
 
-void Detect::setDataProfile(const ScrapeData &data) {
+void Detect::setDataProfile(ScrapeData &data) {
 	this->payload = &data;
 }
 
-const ScrapeData *Detect::GetDataProfile() {
+ScrapeData *Detect::GetDataProfile() {
 	return this->payload;
 }
 

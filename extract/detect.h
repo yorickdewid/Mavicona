@@ -18,7 +18,7 @@ class Detect {
 	Mime *mimeMatch = nullptr;
 	std::map<std::string, Mime*> mimeList;
 	std::map<std::string, class ParseObserver *> mimeParserList;
-	const ScrapeData *payload = nullptr;
+	ScrapeData *payload = nullptr;
 
   public:
 	Detect() {
@@ -51,8 +51,8 @@ class Detect {
 	void notify();
 	void mimeFromBuffer(const char *buffer, std::size_t sz);
 	void mimeFromExtension(const std::string& extension);
-	void setDataProfile(const ScrapeData &data);
-	const ScrapeData *GetDataProfile();
+	void setDataProfile(ScrapeData &data);
+	ScrapeData *GetDataProfile();
 
 	Detect(const Detect &) = delete;
 	Detect &operator= (const Detect &) = delete;

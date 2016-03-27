@@ -28,6 +28,7 @@ bool Log::run() {
 			m_Logfile << " => " << metaMime.value() << std::endl;
 		} else if (metaMime.meta_size()) {
 
+			/* Decending */
 			m_Logfile << " => <...> " << std::endl;;
 			for (int j = 0; j < metaMime.meta_size(); j++) {
 				ScrapeData::MetaEntry metaMime2 = metaMime.meta(j);
