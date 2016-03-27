@@ -506,7 +506,7 @@ int yy_flex_debug = 0;
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
 #line 1 "rule_scan.l"
-#line 2 "rule_scan.l"
+#line 4 "rule_scan.l"
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -575,8 +575,6 @@ extern int yywrap (void );
 #endif
 #endif
 
-    static void yyunput (int c,char *buf_ptr  );
-    
 #ifndef yytext_ptr
 static void yy_flex_strncpy (char *,yyconst char *,int );
 #endif
@@ -730,10 +728,10 @@ YY_DECL
 		}
 
 	{
-#line 13 "rule_scan.l"
+#line 15 "rule_scan.l"
 
 
-#line 737 "rule_scan.cpp"
+#line 735 "rule_scan.cpp"
 
 	while ( 1 )		/* loops until end-of-file is reached */
 		{
@@ -793,95 +791,95 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 15 "rule_scan.l"
+#line 17 "rule_scan.l"
 ; // do nothing on whitespace
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 16 "rule_scan.l"
+#line 18 "rule_scan.l"
 { yylval.str_val = new std::string(yytext); return STRING; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 17 "rule_scan.l"
+#line 19 "rule_scan.l"
 ;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 18 "rule_scan.l"
+#line 20 "rule_scan.l"
 return SEMICOLON;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 19 "rule_scan.l"
+#line 21 "rule_scan.l"
 return LBRACE;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 20 "rule_scan.l"
+#line 22 "rule_scan.l"
 return RBRACE;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 21 "rule_scan.l"
+#line 23 "rule_scan.l"
 return MIME;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 22 "rule_scan.l"
+#line 24 "rule_scan.l"
 return TYPE;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 23 "rule_scan.l"
+#line 25 "rule_scan.l"
 return EXTENSION;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 24 "rule_scan.l"
+#line 26 "rule_scan.l"
 return CATEGORY;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 25 "rule_scan.l"
+#line 27 "rule_scan.l"
 return UNKNOWN;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 26 "rule_scan.l"
+#line 28 "rule_scan.l"
 return THEN;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 27 "rule_scan.l"
+#line 29 "rule_scan.l"
 return STORE;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 28 "rule_scan.l"
+#line 30 "rule_scan.l"
 return DISCARD;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 29 "rule_scan.l"
+#line 31 "rule_scan.l"
 return QUEUE;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 30 "rule_scan.l"
+#line 32 "rule_scan.l"
 return LOG;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 31 "rule_scan.l"
+#line 33 "rule_scan.l"
 { printf("Unknown token"); yyterminate(); };
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 33 "rule_scan.l"
+#line 35 "rule_scan.l"
 ECHO;
 	YY_BREAK
-#line 885 "rule_scan.cpp"
+#line 883 "rule_scan.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1209,43 +1207,6 @@ static int yy_get_next_buffer (void)
 	yy_is_jam = (yy_current_state == 72);
 
 		return yy_is_jam ? 0 : yy_current_state;
-}
-
-    static void yyunput (int c, register char * yy_bp )
-{
-	register char *yy_cp;
-    
-    yy_cp = (yy_c_buf_p);
-
-	/* undo effects of setting up yytext */
-	*yy_cp = (yy_hold_char);
-
-	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
-		{ /* need to shift things up to make room */
-		/* +2 for EOB chars. */
-		register yy_size_t number_to_move = (yy_n_chars) + 2;
-		register char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
-					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
-		register char *source =
-				&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move];
-
-		while ( source > YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
-			*--dest = *--source;
-
-		yy_cp += (int) (dest - source);
-		yy_bp += (int) (dest - source);
-		YY_CURRENT_BUFFER_LVALUE->yy_n_chars =
-			(yy_n_chars) = YY_CURRENT_BUFFER_LVALUE->yy_buf_size;
-
-		if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
-			YY_FATAL_ERROR( "flex scanner push-back overflow" );
-		}
-
-	*--yy_cp = (char) c;
-
-	(yytext_ptr) = yy_bp;
-	(yy_hold_char) = *yy_cp;
-	(yy_c_buf_p) = yy_cp;
 }
 
 #ifndef YY_NO_INPUT
@@ -1876,7 +1837,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 32 "rule_scan.l"
+#line 34 "rule_scan.l"
 
 
 

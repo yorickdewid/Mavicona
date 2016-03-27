@@ -1,3 +1,5 @@
+%option nounput
+
 %{
 #include <cstdio>
 #include <cstdlib>

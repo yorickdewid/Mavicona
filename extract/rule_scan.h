@@ -324,7 +324,7 @@ extern int yylex (void);
 #undef YY_DECL
 #endif
 
-#line 32 "rule_scan.l"
+#line 34 "rule_scan.l"
 
 
 #line 331 "rule_scan.h"
