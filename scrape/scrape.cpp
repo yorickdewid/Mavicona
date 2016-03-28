@@ -22,11 +22,13 @@ std::multimap<std::string, std::string> datastack;
 static PyObject *mav_push(PyObject *self, PyObject *args) {
 	const char *name;
 	const char *data;
+	size_t data_len = 0;
 
-	if (!PyArg_ParseTuple(args, "ss", &name, &data))
+	if (!PyArg_ParseTuple(args, "st#", &name, &data, &data_len))
 		return NULL;
 
-	datastack.insert(std::pair<std::string, std::string>(name, data));
+	std::string bytea(reinterpret_cast<char const*>(data), data_len);
+	datastack.insert(std::pair<std::string, std::string>(name, bytea));
 
 	return Py_True;
 }
@@ -47,14 +49,14 @@ static PyObject *mav_save(PyObject *self, PyObject *args) {
 		ScrapeData::Data *payload = new ScrapeData::Data;
 		payload->set_payload(ent.second);
 		payload->set_size(ent.second.size());
-		payload->set_extension(".zip");
+		// payload->set_extension(".zip");
 		data.set_allocated_content(payload);
 
 		std::string serialized;
 		data.SerializeToString(&serialized);
 
 		zmq::message_t request(serialized.size());
-		memcpy((void *) request.data(), serialized.c_str(), serialized.size());
+		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
 		socket.send(request);
 
 		// Get the reply

@@ -75,6 +75,7 @@ void parseData(ScrapeData& data) {
 	 */
 	if (detector.found()) {
 		std::cout << "Item[" << data.id() << "] mime name: " << detector.mime()->name() << std::endl;
+		std::cout << "Item[" << data.id() << "] mime type: " << detector.mime()->type() << std::endl;
 		std::cout << "Item[" << data.id() << "] mime category: " << detector.mime()->category() << std::endl;
 
 		ScrapeData::MetaEntry *metaMime = data.add_meta();
