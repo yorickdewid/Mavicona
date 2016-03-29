@@ -4,7 +4,6 @@
 #include "parse_observer.h"
 
 class PlainTextHandler: public ParseObserver {
-	const std::string mimeType = "text/plain";
 
   public:
 	PlainTextHandler(Detect *mod) : ParseObserver(mod, "text/plain") {}

@@ -6,6 +6,7 @@
 
 #include "parse_observer.h"
 #include "plaintext_handler.h"
+#include "png_handler.h"
 
 void Detect::loadMime() {
 	this->mimeList["text/plain"] = new Mime("Text File", "text/plain", ".txt");
@@ -707,6 +708,7 @@ void Detect::notify() {
 
 void Detect::loadMimeParser() {
 	new PlainTextHandler(this);
+	new PNGHandler(this);
 }
 
 Detect::~Detect() {
