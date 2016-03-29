@@ -33,6 +33,12 @@ class ParseObserver {
 		meta->set_value(value);
 	}
 
+	void addMeta(const std::string& key, const int value) {
+		ScrapeData::MetaEntry *meta = getSubject()->GetDataProfile()->add_meta();
+		meta->set_key(key);
+		meta->set_value(std::to_string(value));
+	}
+
 };
 
 #endif // PARSE_OBSERVER_H
