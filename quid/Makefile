@@ -1,17 +1,12 @@
+AR = ar
 INCLUDE = include
 UTILDIR = util
-VALGRIND = valgrind
-CPPCHECK = cppcheck
-CPPCHECKFLAGS = --quiet --std=c1x
-VALFLAGS = --leak-check=full --track-origins=yes --show-reachable=yes
 WFLAGS = -pedantic-errors -std=c1x -Wall -Werror -Wextra -Winit-self -Wswitch-default -Wshadow
 CFLAGS = $(WFLAGS) -DX64 -DTN12
-LDFLAGS = -lm
 SOURCES = $(wildcard *.c)
 CLIENT_SOURCES = $(UTILDIR)/qcli.c
 OBJECTS = $(SOURCES:.c=.o)
 CLIENTOBJECTS = $(SOURCES:.c=.o) $(CLIENT_SOURCES:.c=.o)
-EXECUTABLE = quantica
 EXECUTABLECLIENT = qcli
 
 ifeq ($(OS),Windows_NT)
@@ -46,32 +41,20 @@ else
 	endif
 endif
 
-.PHONY: all debug test memcheck cov fixeof genquid verminor genlookup3 qcli clean cleandb cleanutil cleandist
+.PHONY: all fixeof genquid genlookup3 qcli clean cleanutil cleandist
 
 all: module
 
-debug: CFLAGS += -g -O0 -DDEBUG -DRESOLV -DDAEMON
-debug: $(EXECUTABLE)
-
-release: CFLAGS += -O2 -DDAEMON
-release: $(EXECUTABLE)
-
-module: CFLAGS += -g -O0 -DDEBUG -DRESOLV -DMOD
-module: libquant.a
-
-$(EXECUTABLE): $(OBJECTS)
-	$(CC) $(OBJECTS) $(LDFLAGS) -o $(BINDIR)/$@
+module: CFLAGS += -g -O0 -DDEBUG -DMOD
+module: libquid.a
 
 .c.o:
 	$(CC) -I$(INCLUDE) $(CFLAGS) -c $< -o $@
 
-libquant.a: $(OBJECTS)
-	ar rcs $@ $^
+libquid.a: $(OBJECTS)
+	$(AR) rcs $@ $^
 
-memcheck: debug
-	cd $(BINDIR) && $(VALGRIND) $(VALFLAGS) ./$(EXECUTABLE) -f
-
-util: fixeof genquid verminor genlookup3 qcli
+util: fixeof genquid genlookup3 qcli
 
 fixeof:
 	$(CC) $(UTILDIR)/lfeof.c -pedantic-errors -std=c1x -Wall -Werror -Wextra -Winit-self -Wswitch-default -Wshadow -o $(UTILDIR)/lfeof
@@ -79,14 +62,14 @@ fixeof:
 
 genquid:
 	$(CC) $(CFLAGS) -I$(INCLUDE) \
-		$(SRCDIR)/time.c \
-		$(SRCDIR)/log.c \
-		$(SRCDIR)/error.c \
-		$(SRCDIR)/zmalloc.c \
-		$(SRCDIR)/itoa.c \
-		$(SRCDIR)/quid.c \
-		$(SRCDIR)/arc4random.c \
-		$(UTILDIR)/genquid.c $(LDFLAGS) -o $(UTILDIR)/genquid
+		time.c \
+		log.c \
+		error.c \
+		zmalloc.c \
+		itoa.c \
+		quid.c \
+		arc4random.c \
+		$(UTILDIR)/genquid.c $(LDFLAGS) -o genquid
 
 genlookup3:
 	$(CC) $(CFLAGS) -Wswitch-default -Wshadow -I$(INCLUDE) $(SRCDIR)/time.c $(SRCDIR)/log.c $(SRCDIR)/jenhash.c $(SRCDIR)/arc4random.c $(UTILDIR)/genlookup3.c $(LDFLAGS) -o $(UTILDIR)/genlookup3
@@ -95,14 +78,10 @@ qcli: CFLAGS += -DCLIENT
 qcli: $(CLIENTOBJECTS)
 	$(CC) -I$(INCLUDE) $(CFLAGS) $(CLIENTOBJECTS) $(LDFLAGS) -o $(UTILDIR)/$@
 
-cleanall: clean cleandb cleanutil
+cleanall: clean cleanutil
 
 clean:
 	@$(RM) -rf *.o
-	@$(RM) -rf $(TESTDIR)/*.o
-
-cleandb:
-	@$(RM) -rf $(BINDIR)/*
 
 cleanutil:
 	@$(RM) -rf $(UTILDIR)/*.o

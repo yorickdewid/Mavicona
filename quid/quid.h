@@ -4,8 +4,6 @@
 #include <config.h>
 #include <common.h>
 
-#include "marshall.h"
-
 #define QUID_LENGTH 		38
 #define SHORT_QUID_LENGTH	14
 #define QUID_VERSION		3
@@ -39,7 +37,7 @@ typedef struct quid_short quid_short_t;
 void quid_create(quid_t *);
 void quid_short_create(quid_short_t *uid);
 
-marshall_t *quid_decode(quid_t *uid);
+// marshall_t *quid_decode(quid_t *uid);
 
 void quid_shorttostr(char *s, quid_short_t *u);
 

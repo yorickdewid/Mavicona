@@ -12,7 +12,6 @@
 #include <error.h>
 #include "arc4random.h"
 #include "zmalloc.h"
-#include "marshall.h"
 #include "time.h"
 #include "quid.h"
 
@@ -56,6 +55,7 @@ void quid_short_create(quid_short_t *uid) {
 	uid->node[5] = (arc4random() & 0xff);
 }
 
+#ifdef MARSHALL
 marshall_t * quid_decode(quid_t *uid) {
 	marshall_t *marshall = (marshall_t *)tree_zcalloc(1, sizeof(marshall_t), NULL);
 	marshall->child = (marshall_t **)tree_zcalloc(4, sizeof(marshall_t *), marshall);
@@ -128,6 +128,7 @@ marshall_t * quid_decode(quid_t *uid) {
 
 	return marshall;
 }
+#endif
 
 /*
  * Format QUID from the timestamp, clocksequence, and node ID

@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../src/quid.h"
+#include "../quid.h"
 
 int main(int argc, const char *argv[]) {
 	long long int i;
