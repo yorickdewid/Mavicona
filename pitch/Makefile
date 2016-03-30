@@ -1,7 +1,7 @@
-OBJS = pitcher.o
+OBJS = queue.o pitcher.o
 CC = g++
 DEBUG = -g
-LIBS = -lprotobuf -lzmq
+LIBS = -lprotobuf -lzmq -lleveldb
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG)
 LFLAGS = -Wall $(DEBUG) $(LIBS)
 
