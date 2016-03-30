@@ -1,6 +1,8 @@
 #ifndef PNG_HANDLER_H
 #define PNG_HANDLER_H
 
+#include <lodepng/lodepng.h>
+
 #include "parse_observer.h"
 
 class PNGHandler: public ParseObserver {
