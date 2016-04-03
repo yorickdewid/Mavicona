@@ -6,10 +6,31 @@
 #include "provision.h"
 #include "queue.h"
 
-static Queue taskQueue;
+static Queue<Task> taskQueue;
 
 void parseTask(Task& task) {
-
+	switch (task.priority()) {
+		case Task::REALTIME:
+			// std::cout << "Task[" << task.id() << "] priority: REALTIME" << std::endl;
+			taskQueue.push(task, 0);
+			break;
+		case Task::HIGH:
+			// std::cout << "Task[" << task.id() << "] priority: HIGH" << std::endl;
+			taskQueue.push(task, 1);
+			break;
+		case Task::NORMAL:
+			// std::cout << "Task[" << task.id() << "] priority: NORMAL" << std::endl;
+			taskQueue.push(task, 2);
+			break;
+		case Task::LOW:
+			// std::cout << "Task[" << task.id() << "] priority: LOW" << std::endl;
+			taskQueue.push(task, 3);
+			break;
+		case Task::IDLE:
+			// std::cout << "Task[" << task.id() << "] priority: IDLE" << std::endl;
+			taskQueue.push(task, 100);
+			break;
+	}
 }
 
 int main(int argc, char *argv[]) {
@@ -18,7 +39,7 @@ int main(int argc, char *argv[]) {
 
 	Provision event;
 	event.setQueuer(&taskQueue);
-	event.setTimeout(1);
+	event.setTimeout(1); /* 1sec */
 	event.start();
 
 	//  Prepare our context and socket
@@ -31,18 +52,11 @@ int main(int argc, char *argv[]) {
 
 	std::cout << "Waiting for connections " << std::endl;
 
-	taskQueue.push(5, 1);
-	taskQueue.push(7, 1);
-	taskQueue.push(2, 1);
-	taskQueue.push(6, 1);
-	taskQueue.push(12, 1);
-
 	while (true) {
 		zmq::message_t request;
 
-		//  Wait for next request from client
+		/*  Wait for next request from client */
 		socket.recv(&request);
-		std::cout << "Received task" << std::endl;
 
 		Task task;
 		task.ParseFromArray(request.data(), request.size());

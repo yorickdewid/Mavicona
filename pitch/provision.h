@@ -5,13 +5,14 @@
 #include <thread>
 #include <chrono>
 
+#include "protoc/task.pb.h"
 #include "queue.h"
 
 class Provision {
 	std::thread _mainRunner;
 	bool _run = false;
 	bool _active = false;
-	Queue *_queue = nullptr;
+	Queue<Task> *_queue = nullptr;
 	unsigned int _timeout;
 
   public:
@@ -19,7 +20,7 @@ class Provision {
 
 	void runTask();
 
-	inline void setQueuer(Queue *queue) {
+	inline void setQueuer(Queue<Task> *queue) {
 		this->_queue = queue;
 	}
 
