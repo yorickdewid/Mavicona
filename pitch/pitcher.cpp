@@ -11,23 +11,18 @@ static Queue<Task> taskQueue;
 void parseTask(Task& task) {
 	switch (task.priority()) {
 		case Task::REALTIME:
-			// std::cout << "Task[" << task.id() << "] priority: REALTIME" << std::endl;
 			taskQueue.push(task, 0);
 			break;
 		case Task::HIGH:
-			// std::cout << "Task[" << task.id() << "] priority: HIGH" << std::endl;
 			taskQueue.push(task, 1);
 			break;
 		case Task::NORMAL:
-			// std::cout << "Task[" << task.id() << "] priority: NORMAL" << std::endl;
 			taskQueue.push(task, 2);
 			break;
 		case Task::LOW:
-			// std::cout << "Task[" << task.id() << "] priority: LOW" << std::endl;
 			taskQueue.push(task, 3);
 			break;
 		case Task::IDLE:
-			// std::cout << "Task[" << task.id() << "] priority: IDLE" << std::endl;
 			taskQueue.push(task, 100);
 			break;
 	}
@@ -39,7 +34,7 @@ int main(int argc, char *argv[]) {
 
 	Provision event;
 	event.setQueuer(&taskQueue);
-	event.setTimeout(1); /* 1sec */
+	event.setTimeout(2); /* 2sec */
 	event.start();
 
 	//  Prepare our context and socket

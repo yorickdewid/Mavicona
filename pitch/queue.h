@@ -14,10 +14,10 @@ class Queue {
 	leveldb::DB *db = nullptr;
 
   public:
-	Queue() {
+	Queue(const std::string& storeLocation = "qstore") {
 		leveldb::Options options;
 		options.create_if_missing = true;
-		leveldb::Status status = leveldb::DB::Open(options, "qstore", &this->db);
+		leveldb::Status status = leveldb::DB::Open(options, storeLocation, &this->db);
 
 		if (!status.ok())
 			std::cerr << status.ToString() << std::endl;

@@ -10,6 +10,7 @@
 
 //#define FORK 	1
 
+static unsigned int dataCounter = 1000;
 static std::vector<RuleNode *> *commonRuleset = nullptr;
 
 void parseData(ScrapeData& data);
@@ -42,6 +43,10 @@ void parseData(ScrapeData& data) {
 	Detect detector;
 	Ruler ruler(commonRuleset);
 
+	int scrapeId = data.id();
+	data.set_id(++dataCounter);
+
+	std::cout << "Item[" << data.id() << "] scrapeid: " << scrapeId << std::endl;
 	std::cout << "Item[" << data.id() << "] object: " << data.quid() << std::endl;
 	std::cout << "Item[" << data.id() << "] name: " << data.name() << std::endl;
 
@@ -101,7 +106,6 @@ void parseData(ScrapeData& data) {
 			metaCharset->set_key("charset");
 			metaCharset->set_value(detector.charset());
 		}
-
 
 		/* Match mime */
 		if (!ruler.matchMimeRule(detector.mime())) {
