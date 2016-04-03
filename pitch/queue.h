@@ -17,17 +17,22 @@ class Queue {
 	Queue();
 	~Queue();
 
-	size_t totalTaskCount() {
+	inline size_t totalTaskCount() {
 		return taskList.size() + taskListHigh.size() + taskListLow.size();
 	}
 
-	size_t idleTaskCount() {
+	inline size_t idleTaskCount() {
 		return taskListIdle.size();
+	}
+
+	inline void doneTask(int task) {
+		taskList.pop();
 	}
 
 	int getNextTask();
 	int getNextIdleTask();
-	void doneTask(int task);
+
+
 	void push(int task, int prio);
 	void sync();
 };

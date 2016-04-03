@@ -2,14 +2,19 @@
 #include <string>
 #include <iostream>
 
+#include "protoc/task.pb.h"
 #include "provision.h"
 #include "queue.h"
 
 static Queue taskQueue;
 
+void parseTask(Task& task) {
+
+}
+
 int main(int argc, char *argv[]) {
 
-	// GOOGLE_PROTOBUF_VERIFY_VERSION;
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	Provision event;
 	event.setQueuer(&taskQueue);
@@ -39,11 +44,11 @@ int main(int argc, char *argv[]) {
 		socket.recv(&request);
 		std::cout << "Received task" << std::endl;
 
-		// ScrapeData data;
-		// data.ParseFromArray(request.data(), request.size());
+		Task task;
+		task.ParseFromArray(request.data(), request.size());
 
-		/* Handle incomming data */
-		// parseData(data);
+		/* Handle incomming task */
+		parseTask(task);
 
 		/* Send reply back to client */
 		zmq::message_t reply(7);

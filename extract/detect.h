@@ -28,31 +28,37 @@ class Detect {
 
 	~Detect();
 
-	bool found() {
+	inline bool found() {
 		if (mimeMatch)
 			return true;
 
 		return false;
 	}
 
-	Mime *mime() {
+	inline Mime *mime() {
 		return mimeMatch;
 	}
 
-	std::string charset() {
+	inline std::string charset() {
 		return m_Charset;
 	}
 
 
-	void attach(const std::string mimeType, ParseObserver *ob) {
+	inline void attach(const std::string mimeType, ParseObserver *ob) {
 		this->mimeParserList[mimeType] = ob;
 	}
 
 	void notify();
 	void mimeFromBuffer(const char *buffer, std::size_t sz);
 	void mimeFromExtension(const std::string& extension);
-	void setDataProfile(ScrapeData &data);
-	ScrapeData *GetDataProfile();
+
+	inline void setDataProfile(ScrapeData &data) {
+		this->payload = &data;
+	}
+
+	inline ScrapeData *GetDataProfile() {
+		return this->payload;
+	}
 
 	Detect(const Detect &) = delete;
 	Detect &operator= (const Detect &) = delete;

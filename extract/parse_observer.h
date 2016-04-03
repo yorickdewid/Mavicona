@@ -23,17 +23,13 @@ class ParseObserver {
 		return &getSubject()->GetDataProfile()->content();
 	}
 
-	/*void addMime(const std::string& key, const std::string& value) {
-	    //
-	}*/
-
-	void addMeta(const std::string& key, const std::string& value) {
+	inline void addMeta(const std::string& key, const std::string& value) {
 		ScrapeData::MetaEntry *meta = getSubject()->GetDataProfile()->add_meta();
 		meta->set_key(key);
 		meta->set_value(value);
 	}
 
-	void addMeta(const std::string& key, const int value) {
+	inline void addMeta(const std::string& key, const int value) {
 		ScrapeData::MetaEntry *meta = getSubject()->GetDataProfile()->add_meta();
 		meta->set_key(key);
 		meta->set_value(std::to_string(value));

@@ -12,7 +12,7 @@ class ActionNode {
 		actions.push_back(action);
 	}
 
-	void addAction(int action) {
+	inline void addAction(int action) {
 		actions.push_back(action);
 	}
 

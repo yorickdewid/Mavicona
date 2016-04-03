@@ -69,22 +69,6 @@ bool Ruler::match(const int type, const std::string& name = "") {
 	return true;
 }
 
-bool Ruler::matchMimeRule(Mime *mime) {
-	return match(MIME, mime->type());
-}
-
-bool Ruler::matchCategoryRule(Mime *mime) {
-	return match(CATEGORY, mime->category());
-}
-
-bool Ruler::matchExtensionRule(const std::string& extension) {
-	return match(EXTENSION, extension);
-}
-
-bool Ruler::matchTypeRule(const std::string& typeName) {
-	return match(TYPE, typeName);
-}
-
 void Ruler::runRuleActions() {
 	if (!this->payload)
 		return;
@@ -120,8 +104,4 @@ void Ruler::runRuleActions() {
 		}
 	}
 
-}
-
-void Ruler::setDataProfile(const ScrapeData &data) {
-	this->payload = &data;
 }

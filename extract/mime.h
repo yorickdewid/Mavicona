@@ -14,19 +14,19 @@ class Mime {
 		m_Name(name), m_MimeType(type) {
 	}
 
-	std::string name() {
+	inline std::string name() {
 		return m_Name;
 	}
 
-	std::string type() {
+	inline std::string type() {
 		return m_MimeType;
 	}
 
-	std::string extension() {
+	inline std::string extension() {
 		return m_Extension;
 	}
 
-	std::string category() {
+	inline std::string category() {
 		std::size_t pos = m_MimeType.find('/');
 		if (pos != std::string::npos) {
 			return m_MimeType.substr(0, pos);

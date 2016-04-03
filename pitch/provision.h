@@ -19,15 +19,15 @@ class Provision {
 
 	void runTask();
 
-	void setQueuer(Queue *queue) {
+	inline void setQueuer(Queue *queue) {
 		this->_queue = queue;
 	}
 
-	void setTimeout(unsigned int sec) {
+	inline void setTimeout(unsigned int sec) {
 		this->_timeout = sec;
 	}
 
-	void start() {
+	inline void start() {
 		if (_run)
 			return;
 
@@ -37,15 +37,15 @@ class Provision {
 		_active = true;
 	}
 
-	void pause() {
+	inline void pause() {
 		_active = false;
 	}
 
-	void resume() {
+	inline void resume() {
 		_active = true;
 	}
 
-	void stop() {
+	inline void stop() {
 		if (!_run)
 			return;
 

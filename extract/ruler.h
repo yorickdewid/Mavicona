@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 
+#include "rule_parse.h"
+
 #include "mime.h"
 #include "rulenode.h"
 
@@ -19,19 +21,34 @@ class Ruler {
 
 	Ruler(std::vector<RuleNode *> *ruleset) : m_Ruleset(ruleset) {}
 
-	bool hasActionList() {
+	inline bool hasActionList() {
 		if (!this->m_ActionList)
 			return false;
 
 		return true;
 	}
 
-	bool matchMimeRule(Mime *mime);
-	bool matchCategoryRule(Mime *mime);
-	bool matchExtensionRule(const std::string& extension);
-	bool matchTypeRule(const std::string& typeName);
+	inline bool matchMimeRule(Mime *mime) {
+		return match(MIME, mime->type());
+	}
+
+	inline bool matchCategoryRule(Mime *mime) {
+		return match(CATEGORY, mime->category());
+	}
+
+	inline bool matchExtensionRule(const std::string& extension) {
+		return match(EXTENSION, extension);
+	}
+
+	inline bool matchTypeRule(const std::string& typeName) {
+		return match(TYPE, typeName);
+	}
+
+	inline void setDataProfile(const ScrapeData &data) {
+		this->payload = &data;
+	}
+
 	void runRuleActions();
-	void setDataProfile(const ScrapeData &data);
 };
 
 #endif // RULER_H
