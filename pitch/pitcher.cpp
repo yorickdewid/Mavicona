@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
 
 		//  Wait for next request from client
 		socket.recv(&request);
+		std::cout << "Received task" << std::endl;
 
 		// ScrapeData data;
 		// data.ParseFromArray(request.data(), request.size());
@@ -45,8 +46,8 @@ int main(int argc, char *argv[]) {
 		// parseData(data);
 
 		/* Send reply back to client */
-		zmq::message_t reply(6);
-		memcpy(reply.data(), "QUEUED", 6);
+		zmq::message_t reply(7);
+		memcpy(reply.data(), "QUEUED", 7);
 		socket.send(reply);
 	}
 
