@@ -1,6 +1,11 @@
 #ifndef QUID_H_INCLUDED
 #define QUID_H_INCLUDED
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include <config.h>
 #include <common.h>
 
@@ -58,5 +63,9 @@ void quidtostr(char *s, quid_t *u);
 void strtoquid(const char *s, quid_t *u);
 
 char strquid_format(const char *s);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // QUID_H_INCLUDED

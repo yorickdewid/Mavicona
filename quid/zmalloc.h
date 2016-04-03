@@ -1,6 +1,11 @@
 #ifndef ZMALLOC_H_INCLUDED
 #define ZMALLOC_H_INCLUDED
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include <stdlib.h>
 
 #define zmalloc(sz) malloc(sz)
@@ -26,5 +31,9 @@ long *zldup(long const *src, size_t len);
 unsigned long *zludup(unsigned long const *src, size_t len);
 int *zidup(int const *src, size_t len);
 unsigned int *ziudup(unsigned int const *src, size_t len);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ZMALLOC_H_INCLUDED */
