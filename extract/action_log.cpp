@@ -4,6 +4,7 @@
 
 bool Log::run() {
 	m_Logfile << "Item[" << m_Payload->id() << "] -----------ITEM----------" << std::endl;
+	m_Logfile << "Item[" << m_Payload->id() << "] object: " << m_Payload->quid() << std::endl;
 
 	switch (m_Payload->type()) {
 		case ScrapeData::PLAIN:

@@ -42,6 +42,7 @@ void parseData(ScrapeData& data) {
 	Detect detector;
 	Ruler ruler(commonRuleset);
 
+	std::cout << "Item[" << data.id() << "] object: " << data.quid() << std::endl;
 	std::cout << "Item[" << data.id() << "] name: " << data.name() << std::endl;
 
 	switch (data.type()) {
