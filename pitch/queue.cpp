@@ -21,6 +21,12 @@ int Queue::getNextTask() {
 	return task;
 }
 
+int Queue::getNextIdleTask() {
+	int task = taskListIdle.front();
+	taskList.pop();
+	return task;
+}
+
 void Queue::doneTask(int task) {
 	taskList.pop();
 }

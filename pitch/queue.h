@@ -21,7 +21,12 @@ class Queue {
 		return taskList.size() + taskListHigh.size() + taskListLow.size();
 	}
 
+	size_t idleTaskCount() {
+		return taskListIdle.size();
+	}
+
 	int getNextTask();
+	int getNextIdleTask();
 	void doneTask(int task);
 	void push(int task, int prio);
 	void sync();
