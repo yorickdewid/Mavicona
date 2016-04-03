@@ -17,9 +17,13 @@ class Queue {
 	Queue();
 	~Queue();
 
-	int getNextTask();
-	void pushTask(int task, int prio);
+	size_t totalTaskCount() {
+		return taskList.size() + taskListHigh.size() + taskListLow.size();
+	}
 
+	int getNextTask();
+	void doneTask(int task);
+	void push(int task, int prio);
 	void sync();
 };
 

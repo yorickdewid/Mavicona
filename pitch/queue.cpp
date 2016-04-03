@@ -11,6 +11,20 @@ Queue::Queue() {
 		std::cerr << status.ToString() << std::endl;
 }
 
+void Queue::push(int task, int prio) {
+	this->taskList.push(task);
+}
+
+int Queue::getNextTask() {
+	int task = taskList.front();
+	taskList.pop();
+	return task;
+}
+
+void Queue::doneTask(int task) {
+	taskList.pop();
+}
+
 Queue::~Queue() {
 	delete this->db;
 }
