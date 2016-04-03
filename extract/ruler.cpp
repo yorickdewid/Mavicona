@@ -5,6 +5,7 @@
 
 #include "action_log.h"
 #include "action_discard.h"
+#include "action_queue.h"
 #include "ruler.h"
 
 #define LOGFILENAME		"rule_action.log"
@@ -109,11 +110,14 @@ void Ruler::runRuleActions() {
 				break;
 			case QUEUE:
 				std::cout << "send dataprofile to queue" << std::endl;
+				ruleAction = new Queue(this->payload);
 				break;
 		}
 
-		if (ruleAction)
+		if (ruleAction) {
 			ruleAction->run();
+			delete ruleAction;
+		}
 	}
 
 }

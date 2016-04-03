@@ -8,7 +8,7 @@
 class Discard : public Action {
 
   public:
-	Discard(const ScrapeData *payload) : Action(payload) { }
+	Discard(const ScrapeData *payload) : Action(payload) {}
 
 	bool run();
 

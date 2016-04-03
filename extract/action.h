@@ -10,6 +10,8 @@ class Action {
   public:
 	Action(const ScrapeData *payload) : m_Payload(payload) {}
 
+	virtual ~Action() {}
+
 	virtual bool run() = 0;
 };
 
