@@ -4,6 +4,7 @@
 #include <map>
 #include <Python.h>
 #include <dlfcn.h>
+#include <quidpp.h>
 
 #include "common/logger.h"
 #include "protoc/scrapedata.pb.h"
@@ -40,10 +41,13 @@ static PyObject *mav_save(PyObject *self, PyObject *args) {
 
 	unsigned int complete = 0;
 	for (auto const &ent : datastack) {
+		quidpp::Quid quid;
+
 		/* Create meta data object */
 		ScrapeData data;
 		data.set_name(ent.first);
 		data.set_id(itemCount++);
+		data.set_quid(quid.toString());
 		data.set_type(ScrapeData::PLAIN);
 
 		ScrapeData::Data *payload = new ScrapeData::Data;
