@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <common.h>
-#include <error.h>
+#include "common.h"
+#include "error.h"
 #include "zmalloc.h"
 
 #define HEADER_SIZE (sizeof(void*) * 3)

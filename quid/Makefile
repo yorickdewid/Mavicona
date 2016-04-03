@@ -1,5 +1,4 @@
 AR = ar
-INCLUDE = include
 UTILDIR = util
 WFLAGS = -pedantic-errors -std=c1x -Wall -Werror -Wextra -Winit-self -Wswitch-default -Wshadow
 CFLAGS = $(WFLAGS) -DX64 -DTN12
@@ -49,7 +48,7 @@ module: CFLAGS += -g -O0 -DDEBUG -DMOD
 module: libquid.a
 
 .c.o:
-	$(CC) -I$(INCLUDE) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 libquid.a: $(OBJECTS)
 	$(AR) rcs $@ $^
@@ -61,7 +60,7 @@ fixeof:
 	find . -type f -name *.[c\|h] -print -exec $(UTILDIR)/lfeof {} \;
 
 genquid:
-	$(CC) $(CFLAGS) -I$(INCLUDE) \
+	$(CC) $(CFLAGS) \
 		time.c \
 		log.c \
 		error.c \
@@ -70,13 +69,6 @@ genquid:
 		quid.c \
 		arc4random.c \
 		$(UTILDIR)/genquid.c $(LDFLAGS) -o genquid
-
-genlookup3:
-	$(CC) $(CFLAGS) -Wswitch-default -Wshadow -I$(INCLUDE) $(SRCDIR)/time.c $(SRCDIR)/log.c $(SRCDIR)/jenhash.c $(SRCDIR)/arc4random.c $(UTILDIR)/genlookup3.c $(LDFLAGS) -o $(UTILDIR)/genlookup3
-
-qcli: CFLAGS += -DCLIENT
-qcli: $(CLIENTOBJECTS)
-	$(CC) -I$(INCLUDE) $(CFLAGS) $(CLIENTOBJECTS) $(LDFLAGS) -o $(UTILDIR)/$@
 
 cleanall: clean cleanutil
 

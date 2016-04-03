@@ -6,8 +6,7 @@ extern "C"
 {
 #endif
 
-#include <config.h>
-#include <common.h>
+#include "common.h"
 
 #define QUID_LENGTH 		38
 #define SHORT_QUID_LENGTH	14
@@ -55,7 +54,7 @@ int quid_shortcmp(const quid_short_t *a, const quid_short_t *b);
 /*
  * Convert QUID key to string
  */
-void quidtostr(char *s, quid_t *u);
+void quidtostr(char *s, const quid_t *u);
 
 /*
  * Convert string to QUID key

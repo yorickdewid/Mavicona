@@ -5,8 +5,7 @@
 #include <unistd.h>
 #include <math.h>
 
-#include <config.h>
-#include "time.h"
+#include "qtime.h"
 
 #define DAYS45_70 (25 * 365 + 6)
 #define DAYS1601_1970 134774

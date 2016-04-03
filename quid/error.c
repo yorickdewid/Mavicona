@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <config.h>
-#include <common.h>
-#include <log.h>
-
+#include "common.h"
+#include "log.h"
 #include "quid.h"
 #include "zmalloc.h"
 #include "error.h"
@@ -19,7 +17,7 @@ void error_clear() {
 	}
 }
 
-bool iserror() {
+int iserror() {
 	return (stack.description ? TRUE : FALSE);
 }
 

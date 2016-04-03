@@ -1,4 +1,3 @@
-#include <stdver.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,12 +6,11 @@
 #include <ctype.h>
 #include <time.h>
 
-#include <config.h>
-#include <common.h>
-#include <error.h>
+#include "common.h"
+#include "error.h"
 #include "arc4random.h"
 #include "zmalloc.h"
-#include "time.h"
+#include "qtime.h"
 #include "quid.h"
 
 #define UIDS_PER_TICK	1024			/* Generate identifiers per tick interval */
@@ -195,7 +193,7 @@ int quid_shortcmp(const quid_short_t *a, const quid_short_t *b) {
 }
 
 /* Print QUID to string */
-void quidtostr(char *s, quid_t *u) {
+void quidtostr(char *s, const quid_t *u) {
 	snprintf(s, QUID_LENGTH + 1, "{%.8x-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}"
 	         , (unsigned int)u->time_low
 	         , u->time_mid

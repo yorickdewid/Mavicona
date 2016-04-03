@@ -4,10 +4,8 @@
 #include <fcntl.h>
 #include <string.h>
 
-#include <config.h>
-#include <common.h>
-#include <log.h>
-
+#include "common.h"
+#include "log.h"
 #include "arc4random.h"
 
 #ifdef LINUX

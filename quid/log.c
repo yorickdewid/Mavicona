@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <config.h>
-#include <common.h>
-#include <log.h>
-
-#include "time.h"
+#include "common.h"
+#include "log.h"
+#include "qtime.h"
 
 static FILE *fp = NULL;
 
