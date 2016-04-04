@@ -4,11 +4,15 @@
 #include <queue>
 #include <leveldb/db.h>
 
+struct CompareTaskPriority : public std::binary_function<Task, Task, bool> {
+	bool operator()(const Task lhs, const Task rhs) const {
+		return lhs.priority() > rhs.priority();
+	}
+};
+
 template<class T>
 class Queue {
-	std::queue<T> taskList;
-	std::queue<T> taskListHigh;
-	std::queue<T> taskListLow;
+	std::priority_queue<T, std::vector<T>, CompareTaskPriority> taskList;
 	std::queue<T> taskListIdle;
 
 	leveldb::DB *db = nullptr;
@@ -28,7 +32,7 @@ class Queue {
 	}
 
 	inline size_t totalTaskCount() {
-		return taskList.size() + taskListHigh.size() + taskListLow.size();
+		return taskList.size();
 	}
 
 	inline size_t idleTaskCount() {
@@ -39,14 +43,14 @@ class Queue {
 		taskList.pop();
 	}
 
-	T getNextTask() {
-		T task = taskList.front();
+	inline T getNextTask() {
+		T task = taskList.top();
 		taskList.pop();
 		return task;
 	}
 
-	T getNextIdleTask() {
-		T task = taskListIdle.front();
+	inline T getNextIdleTask() {
+		T task = taskListIdle.top();
 		taskList.pop();
 		return task;
 	}
@@ -58,6 +62,7 @@ class Queue {
 			this->taskList.push(task);
 		}
 	}
+
 	void sync();
 };
 

@@ -11,7 +11,8 @@ static Queue<Task> taskQueue;
 void parseTask(Task& task) {
 	switch (task.priority()) {
 		case Task::REALTIME:
-			taskQueue.push(task, 0);
+			// runRealtimeTask()
+			std::cout << "Realtime task ignores all queues" << std::endl;
 			break;
 		case Task::HIGH:
 			taskQueue.push(task, 1);
@@ -34,10 +35,10 @@ int main(int argc, char *argv[]) {
 
 	Provision event;
 	event.setQueuer(&taskQueue);
-	event.setTimeout(2); /* 2sec */
+	event.setTimeout(1); /* 1sec */
 	event.start();
 
-	//  Prepare our context and socket
+	/* Prepare our context and socket */
 	zmq::context_t context(1);
 	zmq::socket_t socket(context, ZMQ_REP);
 
@@ -50,7 +51,7 @@ int main(int argc, char *argv[]) {
 	while (true) {
 		zmq::message_t request;
 
-		/*  Wait for next request from client */
+		/* Wait for next request from client */
 		socket.recv(&request);
 
 		Task task;

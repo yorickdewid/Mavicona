@@ -29,6 +29,16 @@ bool Queue::run() {
 	task.set_quid(m_Payload->quid());
 	task.set_priority(Task::NORMAL);
 
+	if (task.id() == 1004) {
+		puts("Woei");
+		task.set_priority(Task::HIGH);
+	} else 	if (task.id() == 1001) {
+		puts("Woei");
+		task.set_priority(Task::LOW);
+	} else {
+		task.set_priority(Task::NORMAL);
+	}
+
 	std::string serialized;
 	task.SerializeToString(&serialized);
 
