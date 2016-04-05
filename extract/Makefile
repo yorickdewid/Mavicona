@@ -1,10 +1,10 @@
-OBJS = ../common/config.o ../protoc/scrapedata.pb.o ../protoc/task.pb.o ../external/lodepng/lodepng.o rule_scan.o rule_parse.o plaintext_handler.o png_handler.o action_log.o action_queue.o action_discard.o ruler.o detect.o extractor.o
+OBJS = ../common/config.o ../protoc/scrapedata.pb.o ../protoc/task.pb.o ../third_party/lodepng/lodepng.o rule_scan.o rule_parse.o plaintext_handler.o png_handler.o action_log.o action_queue.o action_discard.o ruler.o detect.o extractor.o
 CC = g++
 LEX = flex
 YACC = bison
 DEBUG = -g
 LIBS = -lprotobuf -lzmq -lmagic
-CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I..  -I../external
+CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I..  -I../third_party
 LFLAGS = -Wall $(DEBUG) $(LIBS)
 
 all: parse $(OBJS)
