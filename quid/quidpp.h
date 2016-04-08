@@ -6,12 +6,36 @@ extern "C" {
 }
 
 namespace quidpp {
+
+class InvalidQuid {};
+
 class Quid {
 	quid_t quid;
 
   public:
 	Quid() {
 		quid_create(&this->quid);
+	}
+
+	Quid(const std::string& cquid) : Quid(cquid.c_str()) {}
+
+	Quid(const char *strquid) {
+		char rs = strquid_format(strquid);
+		if (!rs) {
+			throw InvalidQuid();
+		}
+
+		strtoquid(strquid, &this->quid);
+	}
+
+	void uniform(char node[4]) const {
+		memcpy(node, this->quid.node, 4);
+	}
+
+	std::string uniform() const {
+		char u[4];
+		this->uniform(u);
+		return std::string(u, 4);
 	}
 
 	std::string toString() const {
@@ -21,11 +45,11 @@ class Quid {
 		return std::string(s);
 	}
 
-	bool operator==(const Quid &quid2) {
+	bool operator==(const Quid & quid2) {
 		return quidcmp(&this->quid, &quid2.quid) == 0;
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const Quid& qt) {
+	friend std::ostream& operator<<(std::ostream & os, const Quid & qt) {
 		os << qt.toString();
 		return os;
 	}

@@ -1,4 +1,4 @@
-OBJS = cynder.o ../third_party/upscaledb/src/.libs/libupscaledb.a
+OBJS = cynder.o ../third_party/upscaledb/src/.libs/libupscaledb.a  ../quid/libquid.a
 CC = g++
 DEBUG = -g
 LIBS = -lprotobuf -lzmq -lz -lz -ldl -lboost_system -lboost_thread -lcrypto

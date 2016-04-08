@@ -43,6 +43,11 @@ class ServerNode {
 			m_cache.erase(it);
 		}
 	}
+
+	friend std::ostream& operator<<(std::ostream& os, const ServerNode& sn) {
+		os << sn.info();
+		return os;
+	}
 };
 
 #endif // SERVER_NODE_H

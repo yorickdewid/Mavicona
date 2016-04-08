@@ -54,7 +54,7 @@ void quid_short_create(quid_short_t *uid) {
 }
 
 #ifdef MARSHALL
-marshall_t * quid_decode(quid_t *uid) {
+marshall_t *quid_decode(quid_t *uid) {
 	marshall_t *marshall = (marshall_t *)tree_zcalloc(1, sizeof(marshall_t), NULL);
 	marshall->child = (marshall_t **)tree_zcalloc(4, sizeof(marshall_t *), marshall);
 	marshall->type = MTYPE_OBJECT;
