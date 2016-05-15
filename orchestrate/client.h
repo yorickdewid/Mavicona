@@ -70,7 +70,7 @@ class CClient {
 		\param len the data buffer length.
 		\returns true if success, otherwise false.
 	*/
-	bool Send(const void *buffer, size_t len, int reply = REPLY_OK);
+	bool SendHtml(const void *buffer, size_t len, int reply = REPLY_OK);
 
 	/*!
 		Send file to the client.
@@ -79,6 +79,13 @@ class CClient {
 	*/
 	bool SendFile(std::string filepath);
 	bool SendFile(const char *filepath);
+
+	/*!
+		Send file to the client.
+		\param filepath the file to send.
+		\returns true if success, otherwise false.
+	*/
+	bool MatchInternal(std::string filepath);
 
 	/*!
 		Receive request from the client.

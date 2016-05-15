@@ -36,14 +36,16 @@ void *CServer::Handler(void *client) {
 		Header.GetPath(path);
 
 		/* Show request info */
-		CLog::Print("Request type: %s\n"
-		            "Request path: %s", type.c_str(), path.c_str());
+		CLog::Print("Request [%s] :: %s", type.c_str(), path.c_str());
 
 		/* Check request type */
 		if (!type.compare("GET")) {
 			/* Check path */
 			if (!path.compare("/"))
 				path = "/index.html";
+
+			/* Match internal calls */
+			res = Client->MatchInternal(path);
 
 			/* Send file */
 			res = Client->SendFile(path);

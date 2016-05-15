@@ -30,10 +30,10 @@ bool Queue::run() {
 	task.set_priority(Task::NORMAL);
 
 	if (task.id() == 1004) {
-		puts("Woei");
+		puts("Woei"); //REMOVE
 		task.set_priority(Task::HIGH);
 	} else 	if (task.id() == 1001) {
-		puts("Woei");
+		puts("Woei"); //REMOVE
 		task.set_priority(Task::LOW);
 	} else {
 		task.set_priority(Task::NORMAL);

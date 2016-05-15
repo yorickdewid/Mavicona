@@ -3,6 +3,7 @@
 
 #include "client.h"
 #include "error_page.h"
+#include "orchestrator.h"
 #include "file.h"
 
 /* Constants */
@@ -80,7 +81,7 @@ int CClient::ReadLoop(void *buffer, size_t len) {
 	return cnt;
 }
 
-bool CClient::Send(const void *buffer, size_t len, int reply) {
+bool CClient::SendHtml(const void *buffer, size_t len, int reply) {
 	CHeader Header;
 
 	ssize_t res;
@@ -88,6 +89,16 @@ bool CClient::Send(const void *buffer, size_t len, int reply) {
 
 	/* Setup header */
 	Header.AddReply(reply);
+	Header.AddType("text/html; charset=UTF-8");
+	Header.Set("X-Content-Type-Options: nosniff\r\n");
+	Header.Set("X-Frame-Options: deny\r\n");
+	Header.Set("X-XSS-Protection: 1; mode=block\r\n");
+	Header.Set("X-Interface-Subset: html\r\n");
+	Header.Set("X-Webledge: kirama\r\n");
+	Header.Set("X-Webledge-SubId: 325434522\r\n");
+	Header.Set("X-Webledge-Act: contract\r\n");
+	Header.Set("Via: Webledge " APP_VERSION "\r\n");
+
 	Header.AddDate();
 	Header.AddServer();
 	if (len > 0)
@@ -125,11 +136,71 @@ bool CClient::SendHeader(CHeader &Header) {
 	return true;
 }
 
-bool CClient::SendFile(std::string filepath) {
-	const char *s = filepath.c_str();
+bool CClient::MatchInternal(std::string filepath) {
+	if (!filepath.compare("/core::webledge::")) {
+		std::stringstream ss;
+		CHeader 	Header;
+		const char *buffer;
+		size_t      len, res;
 
-	/* Send file */
-	return SendFile(s);
+		/* YAML code */
+		ss << "# sequencer protocols for Laser eye surgery" << std::endl;
+		ss << "---" << std::endl;
+		ss << "- step:  &id001                  # defines anchor label &id001" << std::endl;
+		ss << "    instrument:      Lasik 2000" << std::endl;
+		ss << "    pulseEnergy:     5.4" << std::endl;
+		ss << "    pulseDuration:   12" << std::endl;
+		ss << "    repetition:      1000" << std::endl;
+		ss << "    spotSize:        1mm" << std::endl << std::endl;
+		ss << "- step: &id002" << std::endl;
+		ss << "    instrument:      Lasik 2000" << std::endl;
+		ss << "    pulseEnergy:     5.0" << std::endl;
+		ss << "    pulseDuration:   10" << std::endl;
+		ss << "    repetition:      500" << std::endl;
+		ss << "    spotSize:        2mm" << std::endl;
+		ss << "- step: *id001                   # refers to the first step (with anchor &id001)" << std::endl;
+		ss << "- step: *id002                   # refers to the second step" << std::endl;
+		ss << "- step:" << std::endl;
+		ss << "    <<: *id001" << std::endl;
+		ss << "    spotSize: 2mm                # redefines just this key, refers rest from &id001" << std::endl;
+		ss << "- step: *id002" << std::endl;
+
+		/* Set buffer */
+		buffer = ss.str().c_str();
+		len    = ss.str().length();
+
+		/* Setup header */
+		Header.AddReply(REPLY_OK);
+		// Header.AddType("application/x-yaml");
+		Header.AddDate();
+		Header.AddServer();
+		Header.AddLength(len);
+		Header.Set("Access-Control-Allow-Origin: *\r\n");
+		Header.Set("X-Interface-Subset: yaml\r\n");
+		Header.Set("X-Webledge: kirama\r\n");
+		Header.Set("X-Webledge-SubId: 325434522\r\n");
+		Header.Set("X-Webledge-Act: contract\r\n");
+		Header.Set("Via: Webledge " APP_VERSION "\r\n");
+		Header.AddEnd();
+
+		/* Send header */
+		res = SendHeader(Header);
+		if (!res)
+			return false;
+
+		/* Send data */
+		if (len > 0) {
+			res = Write(buffer, len);
+			if (res <= 0)
+				return false;
+		}
+	}
+
+	return false;
+}
+
+bool CClient::SendFile(std::string filepath) {
+	return SendFile(filepath.c_str());
 }
 
 bool CClient::SendFile(const char *filepath) {
@@ -240,5 +311,5 @@ bool CClient::HandleError(int reply) {
 	len    = data.length();
 
 	/* Send reply */
-	return Send(buffer, len, reply);
+	return SendHtml(buffer, len, reply);
 }

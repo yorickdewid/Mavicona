@@ -18,10 +18,10 @@ class Queue {
 	leveldb::DB *db = nullptr;
 
   public:
-	Queue(const std::string& storeLocation = "qstore") {
+	Queue(const std::string& dbName = "qstore") {
 		leveldb::Options options;
 		options.create_if_missing = true;
-		leveldb::Status status = leveldb::DB::Open(options, storeLocation, &this->db);
+		leveldb::Status status = leveldb::DB::Open(options, dbName, &this->db);
 
 		if (!status.ok())
 			std::cerr << status.ToString() << std::endl;
@@ -56,6 +56,11 @@ class Queue {
 	}
 
 	inline void push(T task, int prio) {
+		// std::string value;
+		// if (s.ok()) {
+		// this->db->Put(leveldb::WriteOptions(), key2, value);
+		// }
+
 		if (prio > 50) {
 			this->taskListIdle.push(task);
 		} else {

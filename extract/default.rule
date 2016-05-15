@@ -2,20 +2,29 @@
 
 # As an example we can store PDF's but also process them
 # to extract text or images
-#extension '.pdf' {
-#	then store;
-#	then queue;
-#}
+extension '.pdf' {
+	then store;
+	then queue;
+}
 
 # Anything readable can be send to the
 # object store since it doesn't need processing
-mime 'plain/text' {
+mime 'text/plain' {
 	then store;
+	then queue;
+	then log;
+	then discard;
 }
 
 # We can discard any executable types
 mime 'application/octet-stream' {
 	then discard;
+	then log;
+}
+
+category 'image' {
+	then queue;
+	then log;
 }
 
 # We want to detect patterns in binary data, so

@@ -12,10 +12,10 @@ class NodeConfig {
 	leveldb::DB *db;
 
   public:
-	NodeConfig(const std::string& storeLocation = "meta") {
+	NodeConfig(const std::string& dbName = "meta") {
 		leveldb::Options options;
 		options.create_if_missing = true;
-		leveldb::Status status = leveldb::DB::Open(options, storeLocation, &this->db);
+		leveldb::Status status = leveldb::DB::Open(options, dbName, &this->db);
 
 		if (!status.ok()) {
 			std::cerr << status.ToString() << std::endl;
@@ -45,6 +45,16 @@ class NodeConfig {
 	inline void setMaster() {
 		db->Put(leveldb::WriteOptions(), "master", "1");
 	}
+
+	/*inline std::string masterAddress() const {
+		std::string value;
+		leveldb::Status status = db->Get(leveldb::ReadOptions(), "masteraddress", &value);
+		if (status.ok() && value.length() > 0) {
+			return value;
+		}
+
+		return "";
+	}*/
 
 	inline quidpp::Quid *id() {
 		return quid;

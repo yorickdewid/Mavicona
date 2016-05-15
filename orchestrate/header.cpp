@@ -88,6 +88,11 @@ void CHeader::AddReply(int reply) {
 	header << "HTTP/1.1 " << reply << " " << CHTTP::GetDescription(reply) << CRLF;
 }
 
+void CHeader::AddType(const std::string& type) {
+	/* Add the content type */
+	header << "Content-type: " << type << CRLF;
+}
+
 void CHeader::AddLength(size_t len) {
 	/* Add the content length */
 	header << "Content-length: " << len << CRLF;

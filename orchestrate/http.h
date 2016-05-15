@@ -8,9 +8,9 @@
 #define HDR_MAXLEN	2048
 
 /* Reply codes */
-#define REPLY_OK	200
+#define REPLY_OK		200
 #define REPLY_BADREQ	400
-#define REPLY_NOENT	404
+#define REPLY_NOENT		404
 #define REPLY_INTERR	500
 #define REPLY_NOTIMP	501
 
