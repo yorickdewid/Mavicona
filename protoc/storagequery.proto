@@ -1,0 +1,16 @@
+message StorageQuery {
+  required string name = 1;
+  required int32 id = 2;
+  optional string quid = 3;
+
+  required bytes content = 4;
+
+  enum Action {
+    SELECT = 0;
+    INSERT = 1;
+    UPDATE = 2;
+    DELETE = 3;
+  }
+
+  required Action queryaction = 5;
+}

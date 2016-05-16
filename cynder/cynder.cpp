@@ -83,9 +83,9 @@ void initMaster() {
 void initSlave() {
 	std::cout << "Slave" << std::endl;
 
-	Engine dbcore;
-	dbcore.put("kaas", "is heel lekker");
-	std::cout << dbcore.get("kaas") << std::endl;
+	//Engine dbcore;
+	//dbcore.put("kaas", "is heel lekker");
+	//	std::cout << dbcore.get("kaas") << std::endl;
 
 	/* Prepare our context and socket */
 	zmq::context_t context(1);
