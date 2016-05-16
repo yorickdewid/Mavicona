@@ -8,6 +8,7 @@
 
 #include "common/sdbm_hash.h"
 #include "common/hdb.h"
+#include "protoc/storagequery.pb.h"
 #include "consistent_hash.h"
 #include "server_node.h"
 #include "node_config.h"
@@ -65,8 +66,18 @@ void initMaster() {
 
 	socket.connect("tcp://localhost:5522");
 
-	zmq::message_t request(5);
-	memcpy(request.data(), "KAAS", 5);
+	StorageQuery query;
+	query.set_name("woei");
+	query.set_id(17);
+	query.set_quid("{28937594-3454}");
+	query.set_content("haha bier");
+	query.set_queryaction(StorageQuery::INSERT);
+
+	std::string serialized;
+	query.SerializeToString(&serialized);
+
+	zmq::message_t request(serialized.size());
+	memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
 	socket.send(request);
 
 	// Get the reply
@@ -83,8 +94,9 @@ void initMaster() {
 void initSlave() {
 	std::cout << "Slave" << std::endl;
 
-	//Engine dbcore;
-	//dbcore.put("kaas", "is heel lekker");
+	Engine quiddb(EngineType::DB_URI);
+	Engine namedb(EngineType::DB_ABI);
+	// dbcore.put("kaas", "is heel lekker");
 	//	std::cout << dbcore.get("kaas") << std::endl;
 
 	/* Prepare our context and socket */
@@ -103,7 +115,10 @@ void initSlave() {
 		//  Wait for next request from client
 		socket.recv(&request);
 
-		std::cout << (const char *)request.data() << std::endl;
+		StorageQuery query;
+		query.ParseFromArray(request.data(), request.size());
+
+		std::cout << "Request: " << query.id() << " " << query.content() << std::endl;
 
 		//ScrapeData data;
 		//data.ParseFromArray(request.data(), request.size());

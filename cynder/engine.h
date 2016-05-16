@@ -8,17 +8,32 @@
 
 constexpr char defaultDataDir[] = "data";
 
+enum EngineType {
+	DB_URI, /* Universal record index */
+	DB_ABI, /* Associated block index */
+};
+
 class Engine {
 	upscaledb::env env;          /* upscaledb environment object */
 	upscaledb::db db;            /* upscaledb database object */
+	EngineType m_Type;
 	unsigned int cmt_counter = 0;
 
 	inline const std::string dbname(const char *dir) {
-		return std::string(dir) + "/abi000" + std::to_string(cmt_counter++) + "cidb";
+		switch (m_Type) {
+			case DB_URI:
+				return std::string(dir) + "/uri000" + std::to_string(cmt_counter++) + "cidb";
+			case DB_ABI:
+				return std::string(dir) + "/abi000" + std::to_string(cmt_counter++) + "cidb";
+			default:
+				break;
+		}
+
+		return "";
 	}
 
   public:
-	Engine(const char *datadir = defaultDataDir) {
+	Engine(EngineType type, const char *datadir = defaultDataDir) : m_Type(type) {
 		mkdir(datadir, 0700);
 
 		ups_parameter_t params[] = {

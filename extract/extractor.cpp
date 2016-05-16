@@ -100,7 +100,7 @@ void parseData(ScrapeData& data) {
 		metaCategory->set_value(detector.mime()->category());
 
 		if (!detector.charset().empty()) {
-			std::cout << "Item[" << data.id() << "] (unattended) charset: " << detector.charset() << std::endl;
+			std::cout << "Item[" << data.id() << "] charset: " << detector.charset() << std::endl;
 
 			ScrapeData::MetaEntry *metaCharset = data.add_meta();
 			metaCharset->set_key("charset");

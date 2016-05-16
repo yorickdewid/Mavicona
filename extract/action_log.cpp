@@ -3,8 +3,9 @@
 #include "action_log.h"
 
 bool Log::run() {
-	m_Logfile << "Item[" << m_Payload->id() << "] -----------ITEM----------" << std::endl;
+	m_Logfile << "Item[" << m_Payload->id() << "] ----------< object >---------" << std::endl;
 	m_Logfile << "Item[" << m_Payload->id() << "] object: " << m_Payload->quid() << std::endl;
+	m_Logfile << "Item[" << m_Payload->id() << "] name: " << m_Payload->name() << std::endl;
 
 	switch (m_Payload->type()) {
 		case ScrapeData::PLAIN:
@@ -21,6 +22,12 @@ bool Log::run() {
 			break;
 	}
 
+	if (!m_Payload->content().extension().empty()) {
+		m_Logfile << "Item[" << m_Payload->id() << "] extension: " << m_Payload->content().extension() << std::endl;
+	}
+
+	m_Logfile << "Item[" << m_Payload->id() << "] size: " << m_Payload->content().payload().size() << std::endl;
+
 	for (int i = 0; i < m_Payload->meta_size(); i++) {
 		ScrapeData::MetaEntry metaMime = m_Payload->meta(i);
 
@@ -30,7 +37,7 @@ bool Log::run() {
 		} else if (metaMime.meta_size()) {
 
 			/* Decending */
-			m_Logfile << " => <...> " << std::endl;;
+			m_Logfile << " =>" << std::endl;;
 			for (int j = 0; j < metaMime.meta_size(); j++) {
 				ScrapeData::MetaEntry metaMime2 = metaMime.meta(j);
 

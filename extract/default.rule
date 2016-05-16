@@ -10,8 +10,8 @@ extension '.pdf' {
 # Anything readable can be send to the
 # object store since it doesn't need processing
 mime 'text/plain' {
-	then store;
-	then queue;
+#	then store;
+#	then queue;
 	then log;
 	then discard;
 }
