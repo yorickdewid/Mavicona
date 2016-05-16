@@ -11,6 +11,7 @@
 #include "consistent_hash.h"
 #include "server_node.h"
 #include "node_config.h"
+#include "engine.h"
 
 #define SHARDING_SPREAD		4
 
@@ -76,11 +77,15 @@ void initMaster() {
 		puts("Yes");
 	}
 
-	exit(0);
+	exit(0); /* Should never reach */
 }
 
 void initSlave() {
 	std::cout << "Slave" << std::endl;
+
+	Engine dbcore;
+	dbcore.put("kaas", "is heel lekker");
+	std::cout << dbcore.get("kaas") << std::endl;
 
 	/* Prepare our context and socket */
 	zmq::context_t context(1);
