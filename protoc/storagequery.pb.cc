@@ -83,8 +83,8 @@ void protobuf_AddDesc_storagequery_2eproto() {
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\022storagequery.proto\"\254\001\n\014StorageQuery\022\014\n"
-    "\004name\030\001 \002(\t\022\n\n\002id\030\002 \002(\005\022\014\n\004quid\030\003 \001(\t\022\017\n"
-    "\007content\030\004 \002(\014\022)\n\013queryaction\030\005 \002(\0162\024.St"
+    "\004name\030\001 \002(\t\022\n\n\002id\030\002 \002(\005\022\014\n\004quid\030\003 \002(\t\022\017\n"
+    "\007content\030\004 \001(\014\022)\n\013queryaction\030\005 \002(\0162\024.St"
     "orageQuery.Action\"8\n\006Action\022\n\n\006SELECT\020\000\022"
     "\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE\020\003", 195);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
@@ -281,7 +281,7 @@ bool StorageQuery::MergePartialFromCodedStream(
         break;
       }
 
-      // optional string quid = 3;
+      // required string quid = 3;
       case 3: {
         if (tag == 26) {
          parse_quid:
@@ -298,7 +298,7 @@ bool StorageQuery::MergePartialFromCodedStream(
         break;
       }
 
-      // required bytes content = 4;
+      // optional bytes content = 4;
       case 4: {
         if (tag == 34) {
          parse_content:
@@ -371,7 +371,7 @@ void StorageQuery::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(2, this->id(), output);
   }
 
-  // optional string quid = 3;
+  // required string quid = 3;
   if (has_quid()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->quid().data(), this->quid().length(),
@@ -381,7 +381,7 @@ void StorageQuery::SerializeWithCachedSizes(
       3, this->quid(), output);
   }
 
-  // required bytes content = 4;
+  // optional bytes content = 4;
   if (has_content()) {
     ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       4, this->content(), output);
@@ -419,7 +419,7 @@ void StorageQuery::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(2, this->id(), target);
   }
 
-  // optional string quid = 3;
+  // required string quid = 3;
   if (has_quid()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->quid().data(), this->quid().length(),
@@ -430,7 +430,7 @@ void StorageQuery::SerializeWithCachedSizes(
         3, this->quid(), target);
   }
 
-  // required bytes content = 4;
+  // optional bytes content = 4;
   if (has_content()) {
     target =
       ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
@@ -469,14 +469,14 @@ int StorageQuery::ByteSize() const {
           this->id());
     }
 
-    // optional string quid = 3;
+    // required string quid = 3;
     if (has_quid()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->quid());
     }
 
-    // required bytes content = 4;
+    // optional bytes content = 4;
     if (has_content()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::BytesSize(
@@ -548,7 +548,7 @@ void StorageQuery::CopyFrom(const StorageQuery& from) {
 }
 
 bool StorageQuery::IsInitialized() const {
-  if ((_has_bits_[0] & 0x0000001b) != 0x0000001b) return false;
+  if ((_has_bits_[0] & 0x00000017) != 0x00000017) return false;
 
   return true;
 }

@@ -3,8 +3,8 @@
 #include <string>
 #include <iostream>
 // #include <quidpp.h>
-#include <ups/upscaledb.hpp>
-// #include <leveldb/db.h>
+//#include <ups/upscaledb.hpp>
+//#include <leveldb/db.h>
 
 #include "common/sdbm_hash.h"
 #include "common/hdb.h"
@@ -20,72 +20,98 @@ static Consistent::HashRing<std::string, quidpp::Quid, SdbmHash> nodeRing(SHARDI
 static std::map<std::string, ServerNode> servers;
 static NodeConfig nc;
 
-void test() {
-	// Create some cache servers
-	servers["cache1.example.com"] = ServerNode("cache1.example.com");
-	servers["cache2.example.com"] = ServerNode("cache2.example.com", "layer3");
-	servers["cache3.example.com"] = ServerNode("cache3.example.com");
-
-	// Add their host names to the hash ring
-	for (std::map<std::string, ServerNode>::const_iterator it = servers.begin(); it != servers.end(); ++it) {
-		std::cout << "Adding " << it->first << " with hash " << nodeRing.addNode(it->first) << std::endl;
-	}
-
-	// Store some data (keys)
-	const quidpp::Quid index[] = {
-		"98b2963a-8df6-a151-9cc3-1d5e122ae010",
-		"98b43990-8df6-a151-ae5b-f281c32a7091",
-		"a01730ca-8df6-a151-b133-a883f23ad02c",
-		"a017e56a-8df6-a151-8bc8-fdc712b75026",
-		"a0187d2c-8df6-a151-b803-aef9e811200c",
-		"a0191750-8df6-a151-9035-8d5ce838e031"
-	};
-	// values
-	const char *colours[] = {"red", "green", "yellow", "orange", "black", "pink"};
-
-	for (unsigned int f = 0; f < 6; f++) {
-		std::string host = nodeRing.getNode(index[f]);
-		std::cout << "Storing key " << index[f] << " on server " << host << std::endl;
-		servers[host].put(index[f].toString(), colours[f]);
-	}
-
-	// Read it back
-	for (unsigned int f = 0; f < 6; f++) {
-		std::string host = nodeRing.getNode(index[f]);
-		std::string colour = servers[host].get(index[f].toString());
-		std::cout << "Found key " << index[f] << " on server " << servers[host].info() << " record=>(" << colour << ")" << std::endl;
-	}
-}
-
 void initMaster() {
 	std::cout << "Master" << std::endl;
+
+	/* Setup node ring */
+	nc.foreachSlaveNode([](const std::string & key, const std::string & value) -> void {
+		nodeRing.addNode(value);
+		std::cout << "Adding '" << value << "' to nodering" << std::endl;
+	});
 
 	/* Prepare our context and socket */
 	zmq::context_t context(1);
 	zmq::socket_t socket(context, ZMQ_REQ);
 
-	socket.connect("tcp://localhost:5522");
+	{
+		StorageQuery query;
+		query.set_name("woei");
+		query.set_id(17);
+		query.set_quid("{a2191750-8df6-a151-9035-8d5ce838e031}");
+		query.set_content("haha bier");
+		query.set_queryaction(StorageQuery::INSERT);
 
-	StorageQuery query;
-	query.set_name("woei");
-	query.set_id(17);
-	query.set_quid("{28937594-3454}");
-	query.set_content("haha bier");
-	query.set_queryaction(StorageQuery::INSERT);
+		// Perform query
+		std::string serialized;
+		query.SerializeToString(&serialized);
 
-	std::string serialized;
-	query.SerializeToString(&serialized);
+		std::string host = nodeRing.getNode(query.quid());
+		socket.connect(("tcp://" + host + ":5522").c_str());
+		std::cout << "Connect to server " << host << std::endl;
 
-	zmq::message_t request(serialized.size());
-	memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-	socket.send(request);
+		zmq::message_t request(serialized.size());
+		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+		socket.send(request);
 
-	// Get the reply
-	zmq::message_t reply;
-	socket.recv(&reply);
+		// Get the reply
+		zmq::message_t reply;
+		socket.recv(&reply);
 
-	if (!strcmp((const char *)reply.data(), "RESULT")) {
-		puts("Yes");
+		query.ParseFromArray(reply.data(), reply.size());
+	}
+
+	{
+		StorageQuery query;
+		query.set_name("kaas");
+		query.set_id(17);
+		query.set_quid("{a0191750-8df6-a151-9035-8d5ce838e028}");
+		query.set_content("woef");
+		query.set_queryaction(StorageQuery::INSERT);
+
+		// Perform query
+		std::string serialized;
+		query.SerializeToString(&serialized);
+
+		std::string host = nodeRing.getNode(query.quid());
+		socket.connect(("tcp://" + host + ":5522").c_str());
+		std::cout << "Connect to server " << host << std::endl;
+
+		zmq::message_t request(serialized.size());
+		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+		socket.send(request);
+
+		// Get the reply
+		zmq::message_t reply;
+		socket.recv(&reply);
+
+		query.ParseFromArray(reply.data(), reply.size());
+	}
+
+	{
+		StorageQuery query;
+		query.set_name("woei");
+		query.set_id(17);
+		query.set_quid("{a2191750-8df6-a151-9035-8d5ce838e031}");
+		query.set_queryaction(StorageQuery::SELECT);
+
+		std::string serialized;
+		query.SerializeToString(&serialized);
+
+		std::string host = nodeRing.getNode(query.quid());
+		socket.connect(("tcp://" + host + ":5522").c_str());
+		std::cout << "Connect to server " << host << std::endl;
+
+		zmq::message_t request(serialized.size());
+		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+		socket.send(request);
+
+		// Get the reply
+		zmq::message_t reply;
+		socket.recv(&reply);
+
+		query.ParseFromArray(reply.data(), reply.size());
+
+		std::cout << "SELECT result " << query.content() << std::endl;
 	}
 
 	exit(0); /* Should never reach */
@@ -94,10 +120,8 @@ void initMaster() {
 void initSlave() {
 	std::cout << "Slave" << std::endl;
 
-	Engine quiddb(EngineType::DB_URI);
-	Engine namedb(EngineType::DB_ABI);
-	// dbcore.put("kaas", "is heel lekker");
-	//	std::cout << dbcore.get("kaas") << std::endl;
+	Engine coredb(EngineType::DB_ABI);
+	Engine metadb(EngineType::DB_ADI);
 
 	/* Prepare our context and socket */
 	zmq::context_t context(1);
@@ -118,21 +142,43 @@ void initSlave() {
 		StorageQuery query;
 		query.ParseFromArray(request.data(), request.size());
 
-		std::cout << "Request: " << query.id() << " " << query.content() << std::endl;
+		switch (query.queryaction()) {
+			case StorageQuery::SELECT:
+				std::cout << "Request " << query.id() << " [SELECT] " << query.quid() << " & " << query.name() << std::endl;
+				query.set_content(coredb.get(query.quid()));
+				break;
+			case StorageQuery::INSERT:
+				std::cout << "Request " << query.id() << " [INSERT] " << query.quid() << " & " << query.name() << std::endl;
+				coredb.put(query.quid(), query.name(), query.content());
+				// insert into meta [ADI]
+				break;
+			case StorageQuery::UPDATE:
+				std::cerr << "NOP" << std::endl;
+				break;
+			case StorageQuery::DELETE:
+				std::cout << "Request " << query.id() << " [DELETE] " << query.quid() << " & " << query.name() << std::endl;
+				coredb.remove(query.quid(), query.name());
+				break;
+		}
 
-		//ScrapeData data;
-		//data.ParseFromArray(request.data(), request.size());
+		// Send back query structure
+		std::string serialized;
+		query.SerializeToString(&serialized);
 
-		/* Send reply back to client */
-		zmq::message_t reply(7);
-		memcpy(reply.data(), "RESULT", 7);
+		zmq::message_t reply(serialized.size());
+		memcpy(reinterpret_cast<void *>(reply.data()), serialized.c_str(), serialized.size());
 		socket.send(reply);
 	}
 }
 
 int main(int argc, char *argv[]) {
 
-	// GOOGLE_PROTOBUF_VERIFY_VERSION;
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+	if (argc > 2 && !strcmp(argv[1], "-a")) {
+		nc.addSlaveNode(argv[2]);
+		return 0;
+	}
 
 	if (argc > 1 && !strcmp(argv[1], "-m"))
 		nc.setMaster();

@@ -7,7 +7,6 @@
 class ServerNode {
 	std::string m_address;
 	std::string m_name;
-	std::map<std::string, std::string> m_cache;
 
   public:
 	ServerNode() {}
@@ -22,26 +21,6 @@ class ServerNode {
 			return m_address;
 
 		return m_address + " (" + m_name + ")";
-	}
-
-	void put(const std::string& key, const std::string& value) {
-		m_cache[key] = value;
-	}
-
-	std::string get(const std::string& key) const {
-		std::string value;
-		std::map<std::string, std::string>::const_iterator it = m_cache.find(key);
-		if (it != m_cache.end()) {
-			value = it->second;
-		}
-		return value;
-	}
-
-	void remove(const std::string& key) {
-		std::map<std::string, std::string>::iterator it = m_cache.find(key);
-		if (it != m_cache.end()) {
-			m_cache.erase(it);
-		}
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const ServerNode& sn) {

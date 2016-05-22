@@ -155,7 +155,7 @@ class StorageQuery : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 id() const;
   inline void set_id(::google::protobuf::int32 value);
 
-  // optional string quid = 3;
+  // required string quid = 3;
   inline bool has_quid() const;
   inline void clear_quid();
   static const int kQuidFieldNumber = 3;
@@ -167,7 +167,7 @@ class StorageQuery : public ::google::protobuf::Message {
   inline ::std::string* release_quid();
   inline void set_allocated_quid(::std::string* quid);
 
-  // required bytes content = 4;
+  // optional bytes content = 4;
   inline bool has_content() const;
   inline void clear_content();
   static const int kContentFieldNumber = 4;
@@ -322,7 +322,7 @@ inline void StorageQuery::set_id(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:StorageQuery.id)
 }
 
-// optional string quid = 3;
+// required string quid = 3;
 inline bool StorageQuery::has_quid() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
@@ -398,7 +398,7 @@ inline void StorageQuery::set_allocated_quid(::std::string* quid) {
   // @@protoc_insertion_point(field_set_allocated:StorageQuery.quid)
 }
 
-// required bytes content = 4;
+// optional bytes content = 4;
 inline bool StorageQuery::has_content() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
