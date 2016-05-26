@@ -1,3 +1,6 @@
+#ifndef CRC32_H
+#define CRC32_H
+
 static const uint32_t kCrc32Table[256] = {
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
 	0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
@@ -66,31 +69,12 @@ static const uint32_t kCrc32Table[256] = {
 }; // kCrc32Table
 
 struct Crc32 {
-  private:
-	uint32_t _crc;
+	size_t operator()(const char *str) const {
+		uint32_t _crc;
 
-  public:
-	/*Crc32() {
-	    Reset();
-	}*/
-	// ~Crc32() throw() {}
-
-	void Reset() {
-		_crc = (uint32_t)~0;
-	}
-
-	/*void AddData(const uint8_t *pData, const uint32_t length) {
-	    uint8_t* pCur = (uint8_t *)pData;
-	    uint32_t remaining = length;
-	    for (; remaining--; ++pCur) {
-	        _crc = (_crc >> 8) ^ kCrc32Table[(_crc ^ *pCur) & 0xff];
-	    }
-	}*/
-
-	size_t operator()(const char *str) {
 		const size_t len = strlen(str);
 
-		Reset();
+		_crc = (uint32_t)~0;
 
 		uint8_t *pCur = (uint8_t *)str;
 		uint32_t remaining = len;
@@ -101,3 +85,5 @@ struct Crc32 {
 		return ~_crc;
 	}
 };
+
+#endif // CRC32_H

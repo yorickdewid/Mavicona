@@ -37,12 +37,16 @@ class EmptyRingException {};
 template <class Node, class Key, class Hash = std::hash<const char *>>
 class HashRing {
 	std::map<size_t, Node> ring_;
-	const unsigned int m_spread;
+	unsigned int m_spread;
 	Hash hash_;
 
   public:
 	HashRing(unsigned int spread) : m_spread(spread), hash_(std::hash<const char*>()) {}
 	HashRing(unsigned int spread, const Hash& hash) : m_spread(spread), hash_(hash) {}
+
+	inline void setSpread(unsigned int spread) {
+		m_spread = spread;
+	}
 
 	size_t addNode(const Node& node) {
 		size_t hash;

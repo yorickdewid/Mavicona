@@ -55,7 +55,7 @@ class Engine {
 		env.close();
 	}
 
-	void put(std::string kquid, std::string kname, std::string v) {
+	void put(std::string kquid, std::string kname, std::string v, bool override = false) {
 		upscaledb::key key_quid;
 		upscaledb::key key_name;
 		upscaledb::record record;
@@ -74,13 +74,13 @@ class Engine {
 		n2q.set_data(const_cast<char *>(kquid.c_str()));
 
 		try {
-			db[DBIDX_QUID].insert(&key_quid, &record, UPS_OVERWRITE);
+			db[DBIDX_QUID].insert(&key_quid, &record, override ? UPS_OVERWRITE : 0);
 		} catch (upscaledb::error &e) {
 			std::cerr << "DBIDX_QUID failed: " << e.get_string() << std::endl;
 		}
 
 		try {
-			db[DBIDX_NAME].insert(&key_name, &n2q, UPS_OVERWRITE);
+			db[DBIDX_NAME].insert(&key_name, &n2q, override ? UPS_OVERWRITE : 0);
 		} catch (upscaledb::error &e) {
 			std::cerr << "DBIDX_NAME failed: " << e.get_string() << std::endl;
 		}
