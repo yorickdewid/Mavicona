@@ -73,17 +73,8 @@ class Engine {
 		n2q.set_size(kquid.size());
 		n2q.set_data(const_cast<char *>(kquid.c_str()));
 
-		try {
-			db[DBIDX_QUID].insert(&key_quid, &record, override ? UPS_OVERWRITE : 0);
-		} catch (upscaledb::error &e) {
-			std::cerr << "DBIDX_QUID failed: " << e.get_string() << std::endl;
-		}
-
-		try {
-			db[DBIDX_NAME].insert(&key_name, &n2q, override ? UPS_OVERWRITE : 0);
-		} catch (upscaledb::error &e) {
-			std::cerr << "DBIDX_NAME failed: " << e.get_string() << std::endl;
-		}
+		db[DBIDX_QUID].insert(&key_quid, &record, override ? UPS_OVERWRITE : 0);
+		db[DBIDX_NAME].insert(&key_name, &n2q, override ? UPS_OVERWRITE : 0);
 	}
 
 	std::string get(std::string k) {

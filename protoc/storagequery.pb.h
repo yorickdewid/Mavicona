@@ -55,6 +55,26 @@ inline bool StorageQuery_Action_Parse(
   return ::google::protobuf::internal::ParseNamedEnum<StorageQuery_Action>(
     StorageQuery_Action_descriptor(), name, value);
 }
+enum StorageQuery_Result {
+  StorageQuery_Result_SUCCESS = 0,
+  StorageQuery_Result_NOTFOUND = 1,
+  StorageQuery_Result_DUPLICATE = 2
+};
+bool StorageQuery_Result_IsValid(int value);
+const StorageQuery_Result StorageQuery_Result_Result_MIN = StorageQuery_Result_SUCCESS;
+const StorageQuery_Result StorageQuery_Result_Result_MAX = StorageQuery_Result_DUPLICATE;
+const int StorageQuery_Result_Result_ARRAYSIZE = StorageQuery_Result_Result_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* StorageQuery_Result_descriptor();
+inline const ::std::string& StorageQuery_Result_Name(StorageQuery_Result value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    StorageQuery_Result_descriptor(), value);
+}
+inline bool StorageQuery_Result_Parse(
+    const ::std::string& name, StorageQuery_Result* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<StorageQuery_Result>(
+    StorageQuery_Result_descriptor(), name, value);
+}
 // ===================================================================
 
 class StorageQuery : public ::google::protobuf::Message {
@@ -134,6 +154,31 @@ class StorageQuery : public ::google::protobuf::Message {
     return StorageQuery_Action_Parse(name, value);
   }
 
+  typedef StorageQuery_Result Result;
+  static const Result SUCCESS = StorageQuery_Result_SUCCESS;
+  static const Result NOTFOUND = StorageQuery_Result_NOTFOUND;
+  static const Result DUPLICATE = StorageQuery_Result_DUPLICATE;
+  static inline bool Result_IsValid(int value) {
+    return StorageQuery_Result_IsValid(value);
+  }
+  static const Result Result_MIN =
+    StorageQuery_Result_Result_MIN;
+  static const Result Result_MAX =
+    StorageQuery_Result_Result_MAX;
+  static const int Result_ARRAYSIZE =
+    StorageQuery_Result_Result_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  Result_descriptor() {
+    return StorageQuery_Result_descriptor();
+  }
+  static inline const ::std::string& Result_Name(Result value) {
+    return StorageQuery_Result_Name(value);
+  }
+  static inline bool Result_Parse(const ::std::string& name,
+      Result* value) {
+    return StorageQuery_Result_Parse(name, value);
+  }
+
   // accessors -------------------------------------------------------
 
   // required string name = 1;
@@ -186,6 +231,13 @@ class StorageQuery : public ::google::protobuf::Message {
   inline ::StorageQuery_Action queryaction() const;
   inline void set_queryaction(::StorageQuery_Action value);
 
+  // required .StorageQuery.Result queryresult = 6;
+  inline bool has_queryresult() const;
+  inline void clear_queryresult();
+  static const int kQueryresultFieldNumber = 6;
+  inline ::StorageQuery_Result queryresult() const;
+  inline void set_queryresult(::StorageQuery_Result value);
+
   // @@protoc_insertion_point(class_scope:StorageQuery)
  private:
   inline void set_has_name();
@@ -198,6 +250,8 @@ class StorageQuery : public ::google::protobuf::Message {
   inline void clear_has_content();
   inline void set_has_queryaction();
   inline void clear_has_queryaction();
+  inline void set_has_queryresult();
+  inline void clear_has_queryresult();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -208,6 +262,7 @@ class StorageQuery : public ::google::protobuf::Message {
   ::google::protobuf::int32 id_;
   int queryaction_;
   ::std::string* content_;
+  int queryresult_;
   friend void  protobuf_AddDesc_storagequery_2eproto();
   friend void protobuf_AssignDesc_storagequery_2eproto();
   friend void protobuf_ShutdownFile_storagequery_2eproto();
@@ -499,6 +554,31 @@ inline void StorageQuery::set_queryaction(::StorageQuery_Action value) {
   // @@protoc_insertion_point(field_set:StorageQuery.queryaction)
 }
 
+// required .StorageQuery.Result queryresult = 6;
+inline bool StorageQuery::has_queryresult() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void StorageQuery::set_has_queryresult() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void StorageQuery::clear_has_queryresult() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void StorageQuery::clear_queryresult() {
+  queryresult_ = 0;
+  clear_has_queryresult();
+}
+inline ::StorageQuery_Result StorageQuery::queryresult() const {
+  // @@protoc_insertion_point(field_get:StorageQuery.queryresult)
+  return static_cast< ::StorageQuery_Result >(queryresult_);
+}
+inline void StorageQuery::set_queryresult(::StorageQuery_Result value) {
+  assert(::StorageQuery_Result_IsValid(value));
+  set_has_queryresult();
+  queryresult_ = value;
+  // @@protoc_insertion_point(field_set:StorageQuery.queryresult)
+}
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -510,6 +590,11 @@ template <> struct is_proto_enum< ::StorageQuery_Action> : ::google::protobuf::i
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::StorageQuery_Action>() {
   return ::StorageQuery_Action_descriptor();
+}
+template <> struct is_proto_enum< ::StorageQuery_Result> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::StorageQuery_Result>() {
+  return ::StorageQuery_Result_descriptor();
 }
 
 }  // namespace google

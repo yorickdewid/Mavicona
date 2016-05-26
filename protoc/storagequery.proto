@@ -13,4 +13,12 @@ message StorageQuery {
   }
 
   required Action queryaction = 5;
+
+  enum Result {
+    SUCCESS = 0;
+    NOTFOUND = 1;
+    DUPLICATE = 2;
+  }
+
+  required Result queryresult = 6;
 }
