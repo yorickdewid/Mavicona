@@ -41,6 +41,7 @@ void initMaster() {
 		query.set_quid("{8ca9e93a-59ad-4564-b677-5dc59c2f0250}");
 		query.set_content("haha bier");
 		query.set_queryaction(StorageQuery::INSERT);
+		query.set_queryresult(StorageQuery::SUCCESS);
 
 		// Perform query
 		std::string serialized;
@@ -60,6 +61,8 @@ void initMaster() {
 		socket.disconnect(("tcp://" + host + ":5522").c_str());
 
 		query.ParseFromArray(reply.data(), reply.size());
+
+		std::cout << "RS: " << query.queryresult() << std::endl;
 	}
 
 	{
@@ -69,6 +72,7 @@ void initMaster() {
 		query.set_quid("{42ec500a-c0af-40b6-a1f0-37121d6777f7}");
 		query.set_content("woef");
 		query.set_queryaction(StorageQuery::INSERT);
+		query.set_queryresult(StorageQuery::SUCCESS);
 
 		// Perform query
 		std::string serialized;
@@ -88,6 +92,8 @@ void initMaster() {
 		socket.disconnect(("tcp://" + host + ":5522").c_str());
 
 		query.ParseFromArray(reply.data(), reply.size());
+
+		std::cout << "RS: " << query.queryresult() << std::endl;
 	}
 
 	{
@@ -97,6 +103,7 @@ void initMaster() {
 		query.set_quid("{a24521f5-2cb8-4c41-aa98-1366a439024e}");
 		query.set_content("is ook erg grappig enzo");
 		query.set_queryaction(StorageQuery::INSERT);
+		query.set_queryresult(StorageQuery::SUCCESS);
 
 		// Perform query
 		std::string serialized;
@@ -116,6 +123,8 @@ void initMaster() {
 		socket.disconnect(("tcp://" + host + ":5522").c_str());
 
 		query.ParseFromArray(reply.data(), reply.size());
+
+		std::cout << "RS: " << query.queryresult() << std::endl;
 	}
 
 	{
@@ -125,6 +134,7 @@ void initMaster() {
 		query.set_quid("{5a875b54-b167-4b28-8cfd-7b994598a455}");
 		query.set_content("hoort er ook bij");
 		query.set_queryaction(StorageQuery::INSERT);
+		query.set_queryresult(StorageQuery::SUCCESS);
 
 		// Perform query
 		std::string serialized;
@@ -144,6 +154,8 @@ void initMaster() {
 		socket.disconnect(("tcp://" + host + ":5522").c_str());
 
 		query.ParseFromArray(reply.data(), reply.size());
+
+		std::cout << "RS: " << query.queryresult() << std::endl;
 	}
 
 	{
@@ -151,7 +163,9 @@ void initMaster() {
 		query.set_name("woei");
 		query.set_id(id++);
 		query.set_quid("{8ca9e93a-59ad-4564-b677-5dc59c2f0250}");
-		query.set_queryaction(StorageQuery::SELECT);
+		query.set_content("haha bier, en nog meer");
+		query.set_queryaction(StorageQuery::UPDATE);
+		query.set_queryresult(StorageQuery::SUCCESS);
 
 		std::string serialized;
 		query.SerializeToString(&serialized);
@@ -172,6 +186,95 @@ void initMaster() {
 		query.ParseFromArray(reply.data(), reply.size());
 
 		std::cout << "SELECT result " << query.content() << std::endl;
+		std::cout << "RS: " << query.queryresult() << std::endl;
+	}
+
+	{
+		StorageQuery query;
+		query.set_name("woei");
+		query.set_id(id++);
+		query.set_quid("{8ca9e93a-59ad-4564-b677-5dc59c2f0250}");
+		query.set_queryaction(StorageQuery::SELECT);
+		query.set_queryresult(StorageQuery::SUCCESS);
+
+		std::string serialized;
+		query.SerializeToString(&serialized);
+
+		std::string host = nodeRing.getNode(query.quid());
+		socket.connect(("tcp://" + host + ":5522").c_str());
+		std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
+
+		zmq::message_t request(serialized.size());
+		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+		socket.send(request);
+
+		// Get the reply
+		zmq::message_t reply;
+		socket.recv(&reply);
+		socket.disconnect(("tcp://" + host + ":5522").c_str());
+
+		query.ParseFromArray(reply.data(), reply.size());
+
+		std::cout << "SELECT result " << query.content() << std::endl;
+		std::cout << "RS: " << query.queryresult() << std::endl;
+	}
+
+	{
+		StorageQuery query;
+		query.set_name("woei");
+		query.set_id(id);
+		query.set_quid("{8ca9e93a-59ad-4564-b677-5dc59c2f0250}");
+		query.set_queryaction(StorageQuery::DELETE);
+		query.set_queryresult(StorageQuery::SUCCESS);
+
+		std::string serialized;
+		query.SerializeToString(&serialized);
+
+		std::string host = nodeRing.getNode(query.quid());
+		socket.connect(("tcp://" + host + ":5522").c_str());
+		std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
+
+		zmq::message_t request(serialized.size());
+		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+		socket.send(request);
+
+		// Get the reply
+		zmq::message_t reply;
+		socket.recv(&reply);
+		socket.disconnect(("tcp://" + host + ":5522").c_str());
+
+		query.ParseFromArray(reply.data(), reply.size());
+
+		std::cout << "RS: " << query.queryresult() << std::endl;
+	}
+
+	{
+		StorageQuery query;
+		query.set_name("woei");
+		query.set_id(id++);
+		query.set_quid("{8ca9e93a-59ad-4564-b677-5dc59c2f0250}");
+		query.set_queryaction(StorageQuery::SELECT);
+		query.set_queryresult(StorageQuery::SUCCESS);
+
+		std::string serialized;
+		query.SerializeToString(&serialized);
+
+		std::string host = nodeRing.getNode(query.quid());
+		socket.connect(("tcp://" + host + ":5522").c_str());
+		std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
+
+		zmq::message_t request(serialized.size());
+		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+		socket.send(request);
+
+		// Get the reply
+		zmq::message_t reply;
+		socket.recv(&reply);
+		socket.disconnect(("tcp://" + host + ":5522").c_str());
+
+		query.ParseFromArray(reply.data(), reply.size());
+
+		std::cout << "RS: " << query.queryresult() << std::endl;
 	}
 
 	exit(0); /* Should never reach */
@@ -201,25 +304,40 @@ void initSlave() {
 
 		StorageQuery query;
 		query.ParseFromArray(request.data(), request.size());
+		query.set_queryresult(StorageQuery::SUCCESS);
 
-		switch (query.queryaction()) {
-			case StorageQuery::SELECT:
-				std::cout << "Request " << query.id() << " [SELECT] " << query.quid() << " & " << query.name() << std::endl;
-				query.set_content(coredb.get(query.quid()));
-				break;
-			case StorageQuery::INSERT:
-				std::cout << "Request " << query.id() << " [INSERT] " << query.quid() << " & " << query.name() << std::endl;
-				coredb.put(query.quid(), query.name(), query.content());
-				// insert into meta [ADI]
-				break;
-			case StorageQuery::UPDATE:
-				std::cout << "Request " << query.id() << " [UPDATE] " << query.quid() << " & " << query.name() << std::endl;
-				coredb.put(query.quid(), query.name(), query.content(), true);
-				break;
-			case StorageQuery::DELETE:
-				std::cout << "Request " << query.id() << " [DELETE] " << query.quid() << " & " << query.name() << std::endl;
-				coredb.remove(query.quid(), query.name());
-				break;
+		try {
+			switch (query.queryaction()) {
+				case StorageQuery::SELECT:
+					std::cout << "Request " << query.id() << " [SELECT] " << query.quid() << " named '" << query.name() << "'" << std::endl;
+					query.set_content(coredb.get(query.quid()));
+					break;
+				case StorageQuery::INSERT:
+					std::cout << "Request " << query.id() << " [INSERT] " << query.quid() << " named '" << query.name() << "'" << std::endl;
+					coredb.put(query.quid(), query.name(), query.content());
+					// insert into meta [ADI]
+					break;
+				case StorageQuery::UPDATE:
+					std::cout << "Request " << query.id() << " [UPDATE] " << query.quid() << " named '" << query.name() << "'" << std::endl;
+					coredb.put(query.quid(), query.name(), query.content(), true);
+					break;
+				case StorageQuery::DELETE:
+					std::cout << "Request " << query.id() << " [DELETE] " << query.quid() << " named '" << query.name() << "'" << std::endl;
+					coredb.remove(query.quid(), query.name());
+					break;
+			}
+		} catch (upscaledb::error &e) {
+			switch (e.get_errno()) {
+				case UPS_KEY_NOT_FOUND:
+					query.set_queryresult(StorageQuery::NOTFOUND);
+					break;
+				case UPS_DUPLICATE_KEY:
+					query.set_queryresult(StorageQuery::DUPLICATE);
+					break;
+				default:
+					std::cerr << "Operation failed: " << e.get_string() << " :: " << e.get_errno() << std::endl;
+					break;
+			}
 		}
 
 		// Send back query structure
