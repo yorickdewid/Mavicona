@@ -22,6 +22,29 @@ static Consistent::HashRing<std::string, quidpp::Quid, Crc32> nodeRing(SHARDING_
 static std::map<std::string, ServerNode> servers;
 static NodeConfig nc;
 
+void performQueryRequest(StorageQuery& query) {
+	zmq::context_t context(1);
+	zmq::socket_t socket(context, ZMQ_REQ);
+
+	std::string serialized;
+	query.SerializeToString(&serialized);
+
+	std::string host = nodeRing.getNode(query.quid());
+	socket.connect(("tcp://" + host + ":5522").c_str());
+	std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
+
+	zmq::message_t request(serialized.size());
+	memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+	socket.send(request);
+
+	// Get the reply
+	zmq::message_t reply;
+	socket.recv(&reply);
+	socket.disconnect(("tcp://" + host + ":5522").c_str());
+
+	query.ParseFromArray(reply.data(), reply.size());
+}
+
 void initMaster() {
 	std::cout << "Master" << std::endl;
 
@@ -32,7 +55,7 @@ void initMaster() {
 
 	/* Prepare our context and socket */
 	zmq::context_t context(1);
-	zmq::socket_t socket(context, ZMQ_REQ);
+	zmq::socket_t socket(context, ZMQ_REP);
 
 	int opt = 1;
 	socket.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
@@ -57,261 +80,13 @@ void initMaster() {
 		query.set_queryaction(StorageQuery::INSERT);
 		query.set_queryresult(StorageQuery::SUCCESS);
 
-		// Perform query
-		std::string serialized;
-		query.SerializeToString(&serialized);
+		performQueryRequest(query);
 
 		/* Send reply back to client */
 		zmq::message_t reply(5);
 		memcpy(reply.data(), "DONE", 5);
 		socket.send(reply);
 	}
-
-	/*
-	int id = 17;
-	{
-		StorageQuery query;
-		query.set_name("woei");
-		query.set_id(id++);
-		query.set_quid("{8ca9e93a-59ad-4564-b677-5dc59c2f0250}");
-		query.set_content("haha bier");
-		query.set_queryaction(StorageQuery::INSERT);
-		query.set_queryresult(StorageQuery::SUCCESS);
-
-		// Perform query
-		std::string serialized;
-		query.SerializeToString(&serialized);
-
-		std::string host = nodeRing.getNode(query.quid());
-		socket.connect(("tcp://" + host + ":5522").c_str());
-		std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
-
-		zmq::message_t request(serialized.size());
-		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		socket.send(request);
-
-		// Get the reply
-		zmq::message_t reply;
-		socket.recv(&reply);
-		socket.disconnect(("tcp://" + host + ":5522").c_str());
-
-		query.ParseFromArray(reply.data(), reply.size());
-
-		std::cout << "RS: " << query.queryresult() << std::endl;
-	}
-
-	{
-		StorageQuery query;
-		query.set_name("kaas");
-		query.set_id(id++);
-		query.set_quid("{42ec500a-c0af-40b6-a1f0-37121d6777f7}");
-		query.set_content("woef");
-		query.set_queryaction(StorageQuery::INSERT);
-		query.set_queryresult(StorageQuery::SUCCESS);
-
-		// Perform query
-		std::string serialized;
-		query.SerializeToString(&serialized);
-
-		std::string host = nodeRing.getNode(query.quid());
-		socket.connect(("tcp://" + host + ":5522").c_str());
-		std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
-
-		zmq::message_t request(serialized.size());
-		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		socket.send(request);
-
-		// Get the reply
-		zmq::message_t reply;
-		socket.recv(&reply);
-		socket.disconnect(("tcp://" + host + ":5522").c_str());
-
-		query.ParseFromArray(reply.data(), reply.size());
-
-		std::cout << "RS: " << query.queryresult() << std::endl;
-	}
-
-	{
-		StorageQuery query;
-		query.set_name("blub");
-		query.set_id(id++);
-		query.set_quid("{a24521f5-2cb8-4c41-aa98-1366a439024e}");
-		query.set_content("is ook erg grappig enzo");
-		query.set_queryaction(StorageQuery::INSERT);
-		query.set_queryresult(StorageQuery::SUCCESS);
-
-		// Perform query
-		std::string serialized;
-		query.SerializeToString(&serialized);
-
-		std::string host = nodeRing.getNode(query.quid());
-		socket.connect(("tcp://" + host + ":5522").c_str());
-		std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
-
-		zmq::message_t request(serialized.size());
-		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		socket.send(request);
-
-		// Get the reply
-		zmq::message_t reply;
-		socket.recv(&reply);
-		socket.disconnect(("tcp://" + host + ":5522").c_str());
-
-		query.ParseFromArray(reply.data(), reply.size());
-
-		std::cout << "RS: " << query.queryresult() << std::endl;
-	}
-
-	{
-		StorageQuery query;
-		query.set_name("worst");
-		query.set_id(id++);
-		query.set_quid("{5a875b54-b167-4b28-8cfd-7b994598a455}");
-		query.set_content("hoort er ook bij");
-		query.set_queryaction(StorageQuery::INSERT);
-		query.set_queryresult(StorageQuery::SUCCESS);
-
-		// Perform query
-		std::string serialized;
-		query.SerializeToString(&serialized);
-
-		std::string host = nodeRing.getNode(query.quid());
-		socket.connect(("tcp://" + host + ":5522").c_str());
-		std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
-
-		zmq::message_t request(serialized.size());
-		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		socket.send(request);
-
-		// Get the reply
-		zmq::message_t reply;
-		socket.recv(&reply);
-		socket.disconnect(("tcp://" + host + ":5522").c_str());
-
-		query.ParseFromArray(reply.data(), reply.size());
-
-		std::cout << "RS: " << query.queryresult() << std::endl;
-	}
-
-	{
-		StorageQuery query;
-		query.set_name("woei");
-		query.set_id(id++);
-		query.set_quid("{8ca9e93a-59ad-4564-b677-5dc59c2f0250}");
-		query.set_content("haha bier, en nog meer");
-		query.set_queryaction(StorageQuery::UPDATE);
-		query.set_queryresult(StorageQuery::SUCCESS);
-
-		std::string serialized;
-		query.SerializeToString(&serialized);
-
-		std::string host = nodeRing.getNode(query.quid());
-		socket.connect(("tcp://" + host + ":5522").c_str());
-		std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
-
-		zmq::message_t request(serialized.size());
-		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		socket.send(request);
-
-		// Get the reply
-		zmq::message_t reply;
-		socket.recv(&reply);
-		socket.disconnect(("tcp://" + host + ":5522").c_str());
-
-		query.ParseFromArray(reply.data(), reply.size());
-
-		std::cout << "SELECT result " << query.content() << std::endl;
-		std::cout << "RS: " << query.queryresult() << std::endl;
-	}
-
-	{
-		StorageQuery query;
-		query.set_name("woei");
-		query.set_id(id++);
-		query.set_quid("{8ca9e93a-59ad-4564-b677-5dc59c2f0250}");
-		query.set_queryaction(StorageQuery::SELECT);
-		query.set_queryresult(StorageQuery::SUCCESS);
-
-		std::string serialized;
-		query.SerializeToString(&serialized);
-
-		std::string host = nodeRing.getNode(query.quid());
-		socket.connect(("tcp://" + host + ":5522").c_str());
-		std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
-
-		zmq::message_t request(serialized.size());
-		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		socket.send(request);
-
-		// Get the reply
-		zmq::message_t reply;
-		socket.recv(&reply);
-		socket.disconnect(("tcp://" + host + ":5522").c_str());
-
-		query.ParseFromArray(reply.data(), reply.size());
-
-		std::cout << "SELECT result " << query.content() << std::endl;
-		std::cout << "RS: " << query.queryresult() << std::endl;
-	}
-
-	{
-		StorageQuery query;
-		query.set_name("woei");
-		query.set_id(id);
-		query.set_quid("{8ca9e93a-59ad-4564-b677-5dc59c2f0250}");
-		query.set_queryaction(StorageQuery::DELETE);
-		query.set_queryresult(StorageQuery::SUCCESS);
-
-		std::string serialized;
-		query.SerializeToString(&serialized);
-
-		std::string host = nodeRing.getNode(query.quid());
-		socket.connect(("tcp://" + host + ":5522").c_str());
-		std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
-
-		zmq::message_t request(serialized.size());
-		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		socket.send(request);
-
-		// Get the reply
-		zmq::message_t reply;
-		socket.recv(&reply);
-		socket.disconnect(("tcp://" + host + ":5522").c_str());
-
-		query.ParseFromArray(reply.data(), reply.size());
-
-		std::cout << "RS: " << query.queryresult() << std::endl;
-	}
-
-	{
-		StorageQuery query;
-		query.set_name("woei");
-		query.set_id(id++);
-		query.set_quid("{8ca9e93a-59ad-4564-b677-5dc59c2f0250}");
-		query.set_queryaction(StorageQuery::SELECT);
-		query.set_queryresult(StorageQuery::SUCCESS);
-
-		std::string serialized;
-		query.SerializeToString(&serialized);
-
-		std::string host = nodeRing.getNode(query.quid());
-		socket.connect(("tcp://" + host + ":5522").c_str());
-		std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
-
-		zmq::message_t request(serialized.size());
-		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		socket.send(request);
-
-		// Get the reply
-		zmq::message_t reply;
-		socket.recv(&reply);
-		socket.disconnect(("tcp://" + host + ":5522").c_str());
-
-		query.ParseFromArray(reply.data(), reply.size());
-
-		std::cout << "RS: " << query.queryresult() << std::endl;
-	}
-	*/
 
 	exit(0); /* Should never reach */
 }

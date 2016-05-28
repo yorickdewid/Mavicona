@@ -8,7 +8,7 @@
 #include "ruler.h"
 #include "detect.h"
 
-//#define FORK 	1
+#define FORK 	1
 
 static unsigned int dataCounter = 1000;
 static std::vector<RuleNode *> *commonRuleset = nullptr;
@@ -151,8 +151,6 @@ void parseData(ScrapeData& data) {
 
 	ruler.setDataProfile(data);
 	ruler.runRuleActions();
-
-	std::cout << std::endl;
 }
 
 int main(int argc, char *argv[]) {

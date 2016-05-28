@@ -24,31 +24,31 @@ std::string timestampToString(const time_t rawtime) {
 }
 
 void PlainTextHandler::handle() {
-	std::cout << "Plain text handler called" << std::endl;
+	const ScrapeData::Data *data = getPayload();
 
-	const ScrapeData::Data *x = getPayload();
+	std::cout << "Item[" << 17 << "] " << "\t* handler [plaintxt]" << std::endl;
 
-	switch (x->payload().size()) {
+	switch (data->payload().size()) {
 		case 32:
 			/* This may indicate an MD5 sum */
-			if (x->payload().find_first_not_of("0123456789abcdefABCDEF", 2) == std::string::npos) {
+			if (data->payload().find_first_not_of("0123456789abcdefABCDEF", 2) == std::string::npos) {
 				addMeta("hash", "md5");
 			}
 			break;
 
 		case 40:
 			/* This may indicate an SHA1 sum */
-			if (x->payload().find_first_not_of("0123456789abcdefABCDEF", 2) == std::string::npos) {
+			if (data->payload().find_first_not_of("0123456789abcdefABCDEF", 2) == std::string::npos) {
 				addMeta("hash", "sha");
 			}
 			break;
 	}
 
-	if (isNumber(x->payload())) {
-		int iDec = std::stoi(x->payload());
+	if (isNumber(data->payload())) {
+		int iDec = std::stoi(data->payload());
 
 		/* This could pass as timstamp */
-		if (x->payload().size() > 4 && x->payload().size() < 11) {
+		if (data->payload().size() > 4 && data->payload().size() < 11) {
 			std::time_t result = (int)iDec;
 			addMeta("timestamp", timestampToString(result));
 		}
