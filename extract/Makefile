@@ -1,4 +1,4 @@
-OBJS = ../common/config.o ../protoc/scrapedata.pb.o ../protoc/task.pb.o ../third_party/lodepng/lodepng.o rule_scan.o rule_parse.o plaintext_handler.o png_handler.o action_log.o action_queue.o action_discard.o ruler.o detect.o extractor.o
+OBJS = ../common/config.o ../protoc/scrapedata.pb.o ../protoc/task.pb.o ../third_party/lodepng/lodepng.o rule_scan.o rule_parse.o plaintext_handler.o png_handler.o action_log.o action_queue.o action_store.o action_discard.o ruler.o detect.o extractor.o
 CC = g++
 LEX = flex
 YACC = bison

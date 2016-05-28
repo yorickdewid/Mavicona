@@ -143,13 +143,13 @@ int main(int argc, char *argv[]) {
 
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-	if (argc < 2) {
-		std::cerr << "Usage: scrape <file|library> [args]" << std::endl;
+	if (argc < 3) {
+		std::cerr << "Usage: " << argv[0] << " <file|library> <host>" << std::endl;
 		return 1;
 	}
 
 	flog << "Connecting to extractor...";
-	socket.connect("tcp://localhost:5577");
+	socket.connect(("tcp://" + std::string(argv[2]) + ":5577").c_str());
 
 	/* Item counter */
 	srand(time(NULL));

@@ -326,8 +326,8 @@ void initSlave() {
 					coredb.remove(query.quid(), query.name());
 					break;
 			}
-		} catch (upscaledb::error &e) {
-			switch (e.get_errno()) {
+		} catch (upscaledb::error &error) {
+			switch (error.get_errno()) {
 				case UPS_KEY_NOT_FOUND:
 					query.set_queryresult(StorageQuery::NOTFOUND);
 					break;
@@ -335,7 +335,7 @@ void initSlave() {
 					query.set_queryresult(StorageQuery::DUPLICATE);
 					break;
 				default:
-					std::cerr << "Operation failed: " << e.get_string() << " :: " << e.get_errno() << std::endl;
+					std::cerr << "Operation failed: " << error.get_string() << " :: " << error.get_errno() << std::endl;
 					break;
 			}
 		}
