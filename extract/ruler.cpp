@@ -6,6 +6,7 @@
 #include "action_log.h"
 #include "action_discard.h"
 #include "action_queue.h"
+#include "action_store.h"
 #include "ruler.h"
 
 #define LOGFILENAME		"rule_action.log"
@@ -87,6 +88,7 @@ void Ruler::runRuleActions() {
 				break;
 			case STORE:
 				std::cout << "send dataprofile to storage cluster" << std::endl;
+				ruleAction = new Store(this->payload);
 				break;
 			case DISCARD:
 				std::cout << "discard dataprofile" << std::endl;
@@ -98,10 +100,8 @@ void Ruler::runRuleActions() {
 				break;
 		}
 
-		if (ruleAction) {
-			ruleAction->run();
-			delete ruleAction;
-		}
+		ruleAction->run();
+		delete ruleAction;
 	}
 
 }

@@ -9,6 +9,7 @@
 #include "common/sdbm_hash.h"
 #include "common/crc32.h"
 #include "common/hdb.h"
+#include "protoc/scrapedata.pb.h"
 #include "protoc/storagequery.pb.h"
 #include "consistent_hash.h"
 #include "server_node.h"
@@ -33,6 +34,40 @@ void initMaster() {
 	zmq::context_t context(1);
 	zmq::socket_t socket(context, ZMQ_REQ);
 
+	int opt = 1;
+	socket.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
+	socket.bind("tcp://*:5533");
+
+	std::cout << "Waiting for connections " << std::endl;
+
+	while (true) {
+		zmq::message_t request;
+
+		//  Wait for next request from client
+		socket.recv(&request);
+
+		ScrapeData data;
+		data.ParseFromArray(request.data(), request.size());
+
+		StorageQuery query;
+		query.set_name(data.name());
+		query.set_id(data.id());
+		query.set_quid(data.quid());
+		query.set_content(data.content().payload());
+		query.set_queryaction(StorageQuery::INSERT);
+		query.set_queryresult(StorageQuery::SUCCESS);
+
+		// Perform query
+		std::string serialized;
+		query.SerializeToString(&serialized);
+
+		/* Send reply back to client */
+		zmq::message_t reply(5);
+		memcpy(reply.data(), "DONE", 5);
+		socket.send(reply);
+	}
+
+	/*
 	int id = 17;
 	{
 		StorageQuery query;
@@ -276,6 +311,7 @@ void initMaster() {
 
 		std::cout << "RS: " << query.queryresult() << std::endl;
 	}
+	*/
 
 	exit(0); /* Should never reach */
 }
