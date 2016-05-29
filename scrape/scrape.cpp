@@ -15,7 +15,7 @@ static int itemCount = 0;
 zmq::context_t context(1);
 zmq::socket_t socket(context, ZMQ_REQ);
 
-FileLogger logger("scrape", true);
+FileLogger logger("scrape");
 
 std::multimap<std::string, std::string> datastack;
 
@@ -72,10 +72,10 @@ static PyObject *mav_save(PyObject *self, PyObject *args) {
 	}
 
 	if (complete == datastack.size()) {
-		logger << "Sumbitted datastack to dispatch";
+		logger << "Sumbitted datastack to dispatch" << FileLogger::endl();
 		datastack.clear();
 	} else {
-		logger << "Datastack transaction failure";
+		logger << "Datastack transaction failure" << FileLogger::endl();
 	}
 
 
@@ -102,7 +102,7 @@ void pyrunner(char *name) {
 
 	FILE *py_file = fopen(name, "r");
 	if (!py_file) {
-		logger << "Cannot open python file: " << name;
+		logger << FileLogger::error() << "Cannot open python file: " << name << FileLogger::endl();
 		return;
 	}
 
@@ -115,23 +115,23 @@ void pyrunner(char *name) {
 void dsorunner(int argc, char *argv[]) {
 	void *handle = dlopen(argv[1], RTLD_LAZY);
 	if (!handle) {
-		logger << "Cannot open library: " << dlerror();
+		logger << FileLogger::error() << "Cannot open library: " << dlerror() << FileLogger::endl();
 		return;
 	}
 
-	logger << "Loading symbol main...";
+	logger << "Loading symbol main..." << FileLogger::endl();
 	typedef char *(*main_t)(int, char **);
 
 	dlerror();
 	main_t exec_main = (main_t)dlsym(handle, "mav_main");
 	const char *dlsym_error = dlerror();
 	if (dlsym_error) {
-		logger << "Cannot load symbol 'mav_main': " << dlsym_error;
+		logger << FileLogger::error() << "Cannot load symbol 'mav_main': " << dlsym_error << FileLogger::endl();
 		dlclose(handle);
 		return;
 	}
 
-	logger << "Calling module...";
+	logger << "Calling module..." << FileLogger::endl();
 	char *resp = exec_main(argc, argv);
 
 	std::cout << resp << std::endl;
@@ -148,8 +148,11 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	logger << "Connecting to extractor...";
+	logger << "Connecting to extractor..." << FileLogger::endl();
 	socket.connect(("tcp://" + std::string(argv[2]) + ":5577").c_str());
+
+	int linger = 0;
+	socket.setsockopt(ZMQ_LINGER, &linger, sizeof(int));
 
 	/* Item counter */
 	srand(time(NULL));

@@ -2,69 +2,22 @@
 #define LOGGER_H
 
 #include <ctime>
+#include <cstring>
 #include <fstream>
 #include <sstream>
 
 class FileLogger {
-  public:
 	enum class logType {
-		LOG_ERROR,
+		LOG_INFO,
 		LOG_WARNING,
-		LOG_INFO
+		LOG_ERROR,
+		LOG_DEBUG1,
+		LOG_DEBUG2,
 	};
 
-	explicit FileLogger(const char *module, bool debug = false) {
-		char filename[128];
-		strncpy(filename, module, 128);
-		strncat(filename, "_debug.log", 128);
-
-		logFile.open(filename, std::ofstream::out | std::ofstream::app);
-
-		if (logFile.is_open()) {
-			logFile << getTimesamp() << "Log started" << std::endl;
-		}
-	}
-
-	~FileLogger() {
-		if (logFile.is_open()) {
-			logFile << getTimesamp() << "Log stopped" << std::endl;
-			logFile.close();
-		}
-	}
-
-	friend FileLogger &operator << (FileLogger &logger, const logType l_type) {
-		switch (l_type) {
-			case FileLogger::logType::LOG_ERROR:
-				logger.logFile << "[ERROR]: ";
-				std::cout << "[ERROR]: " << std::endl;
-				break;
-
-			case FileLogger::logType::LOG_WARNING:
-				logger.logFile << "[WARNING]: ";
-				std::cout << "[WARNING]: " << std::endl;
-				break;
-
-			default:
-				logger.logFile << "[INFO]: ";
-				std::cout << "[INFO]: " << std::endl;
-				break;
-		}
-
-		return logger;
-	}
-
-	friend FileLogger &operator << (FileLogger &logger, const char *text) {
-		logger.logFile << FileLogger::getTimesamp() << text << std::endl;
-		std::cout << text << std::endl;
-		return logger;
-
-	}
-
-	FileLogger(const FileLogger &) = delete;
-	FileLogger &operator= (const FileLogger &) = delete;
-
-  private:
 	std::ofstream logFile;
+	std::stringstream buffer;
+	logType type = logType::LOG_INFO;
 
 	static std::string getTimesamp() {
 		time_t rawtime;
@@ -79,6 +32,107 @@ class FileLogger {
 
 		return datetime;
 	}
+
+	std::string getType() {
+		switch (this->type) {
+			case logType::LOG_ERROR:
+				return "[error] ";
+
+			case logType::LOG_WARNING:
+				return "[warning] ";
+
+			case logType::LOG_DEBUG1:
+				return "[debug 1] ";
+
+			case logType::LOG_DEBUG2:
+				return "[debug 2] ";
+
+			default:
+				return "[info] ";
+		}
+
+		return "";
+	}
+
+  public:
+	struct debug {
+		int level;
+		debug(int l) : level(l) {}
+	};
+	struct warning {};
+	struct error {};
+	struct endl {};
+
+	explicit FileLogger(const std::string & module) {
+		FileLogger(module.c_str());
+	}
+
+	explicit FileLogger(const char *module) {
+		char filename[128];
+		strncpy(filename, module, 128);
+		strncat(filename, "_module.log", 128);
+
+		logFile.open(filename, std::ios::out | std::ios::app);
+
+		if (logFile.is_open()) {
+			logFile << getTimesamp() << getType() << "Module started" << std::endl;
+		} else {
+			std::cerr << "Cannot start logger" << std::endl;
+		}
+	}
+
+	void flush() {
+		std::string line;
+
+		while (std::getline(buffer, line, '\n')) {
+			logFile << getTimesamp() << getType() << line << std::endl;
+		}
+
+		buffer.clear();
+		buffer.str(std::string());
+		type = logType::LOG_INFO;
+	}
+
+	~FileLogger() {
+		flush();
+		logFile << getTimesamp() << getType() << "Module stopped" << std::endl;
+		logFile.close();
+	}
+
+	template<typename T>
+	FileLogger &operator << (const T &t) {
+		this->buffer << t;
+		std::cout << t;
+		return *this;
+	}
+
+	FileLogger &operator << (const error e) {
+		type = logType::LOG_ERROR;
+		return *this;
+	}
+
+	FileLogger &operator << (const warning w) {
+		type = logType::LOG_WARNING;
+		return *this;
+	}
+
+	FileLogger &operator << (const debug d) {
+		if (d.level == 1)
+			type = logType::LOG_DEBUG1;
+		if (d.level == 2)
+			type = logType::LOG_DEBUG2;
+		return *this;
+	}
+
+	FileLogger &operator << (const endl e) {
+		this->buffer << std::endl;
+		std::cout << std::endl;
+		flush();
+		return *this;
+	}
+
+	FileLogger(const FileLogger &) = delete;
+	FileLogger &operator= (const FileLogger &) = delete;
 };
 
 #endif // LOGGER_H

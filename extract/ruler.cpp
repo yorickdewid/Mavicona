@@ -9,7 +9,7 @@
 #include "action_store.h"
 #include "ruler.h"
 
-#define LOGFILENAME		"rule_action.log"
+#define LOGFILENAME		"rule_action"
 
 bool Ruler::verifyRules(std::vector<RuleNode *> *ruleset) {
 	if (!ruleset)

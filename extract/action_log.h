@@ -3,18 +3,19 @@
 
 #include <fstream>
 
+#include "common/logger.h"
 #include "action.h"
 
 class Log : public Action {
-	std::ofstream m_Logfile;
+	FileLogger *m_Logfile = nullptr;
 
   public:
 	Log(const std::string& logFileName, const ScrapeData *payload) : Action(payload) {
-		m_Logfile.open(logFileName, std::ios::out | std::ios::app);
+		m_Logfile = new FileLogger(logFileName);
 	}
 
 	~Log() {
-		m_Logfile.close();
+		delete m_Logfile;
 	}
 
 	bool run();
