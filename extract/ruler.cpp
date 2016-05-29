@@ -83,19 +83,19 @@ void Ruler::runRuleActions() {
 
 		switch (action) {
 			case LOG:
-				std::cout << "Item[" << this->payload->id() << "] " << "\t* action [log]" << std::endl;
+				std::cout << "Item[" << this->payload->id() << "] action [log]" << std::endl;
 				ruleAction = new Log(LOGFILENAME, this->payload);
 				break;
 			case STORE:
-				std::cout << "Item[" << this->payload->id() << "] " << "\t* action [store]" << std::endl;
+				std::cout << "Item[" << this->payload->id() << "] action [store]" << std::endl;
 				ruleAction = new Store(this->payload);
 				break;
 			case DISCARD:
-				std::cout << "Item[" << this->payload->id() << "] " << "\t* action [discard]" << std::endl;
+				std::cout << "Item[" << this->payload->id() << "] action [discard]" << std::endl;
 				ruleAction = new Discard(this->payload);
 				break;
 			case QUEUE:
-				std::cout << "Item[" << this->payload->id() << "] " << "\t* action [queue]" << std::endl;
+				std::cout << "Item[" << this->payload->id() << "] action [queue]" << std::endl;
 				ruleAction = new Queue(this->payload);
 				break;
 		}

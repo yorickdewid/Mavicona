@@ -13,15 +13,17 @@
 static unsigned int dataCounter = 1000;
 static std::vector<RuleNode *> *commonRuleset = nullptr;
 
-void parseData(ScrapeData& data);
+void parseData(ScrapeData& data, unsigned int counter);
 
 pid_t handleRequest(ScrapeData& data) {
+	dataCounter++;
 #ifdef FORK
+
 	pid_t pid = fork();
 	if (pid == 0) {
 
 		/* Child process */
-		parseData(data);
+		parseData(data, dataCounter);
 
 		return pid;
 	} else if (pid < 0) {
@@ -33,18 +35,18 @@ pid_t handleRequest(ScrapeData& data) {
 
 	return pid;
 #else
-	parseData(data);
+	parseData(data, dataCounter);
 
 	return 1;
 #endif
 }
 
-void parseData(ScrapeData& data) {
+void parseData(ScrapeData& data, unsigned int counter) {
 	Detect detector;
 	Ruler ruler(commonRuleset);
 
 	int scrapeId = data.id();
-	data.set_id(++dataCounter);
+	data.set_id(counter);
 
 	std::cout << "Item[" << data.id() << "] scrapeid: " << scrapeId << std::endl;
 	std::cout << "Item[" << data.id() << "] object: " << data.quid() << std::endl;

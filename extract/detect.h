@@ -56,7 +56,7 @@ class Detect {
 		this->payload = &data;
 	}
 
-	inline ScrapeData *GetDataProfile() {
+	inline ScrapeData *getDataProfile() {
 		return this->payload;
 	}
 

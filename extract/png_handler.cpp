@@ -113,7 +113,7 @@ void PNGHandler::displayPNGInfo(const LodePNGInfo& info) {
 void PNGHandler::handle() {
 	const ScrapeData::Data *data = getPayload();
 
-	std::cout << "Item[" << 17 << "] " << "\t* handler [png]" << std::endl;
+	std::cout << "Item[" << getId() << "] handler [png]" << std::endl;
 
 	lodepng::State state;
 	std::vector<unsigned char> image;

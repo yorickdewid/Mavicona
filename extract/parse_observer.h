@@ -19,18 +19,22 @@ class ParseObserver {
 		return m_Model;
 	}
 
+	int getId() {
+		return getSubject()->getDataProfile()->id();
+	}
+
 	const ScrapeData::Data *getPayload() {
-		return &getSubject()->GetDataProfile()->content();
+		return &getSubject()->getDataProfile()->content();
 	}
 
 	inline void addMeta(const std::string& key, const std::string& value) {
-		ScrapeData::MetaEntry *meta = getSubject()->GetDataProfile()->add_meta();
+		ScrapeData::MetaEntry *meta = getSubject()->getDataProfile()->add_meta();
 		meta->set_key(key);
 		meta->set_value(value);
 	}
 
 	inline void addMeta(const std::string& key, const int value) {
-		ScrapeData::MetaEntry *meta = getSubject()->GetDataProfile()->add_meta();
+		ScrapeData::MetaEntry *meta = getSubject()->getDataProfile()->add_meta();
 		meta->set_key(key);
 		meta->set_value(std::to_string(value));
 	}
