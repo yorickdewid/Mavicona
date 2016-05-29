@@ -13,18 +13,21 @@ class FileLogger {
 		LOG_INFO
 	};
 
-	explicit FileLogger(const char *engine_version, const char *fname = "mavicona_main.log") {
-		logFile.open(fname);
+	explicit FileLogger(const char *module, bool debug = false) {
+		char filename[128];
+		strncpy(filename, module, 128);
+		strncat(filename, "_debug.log", 128);
+
+		logFile.open(filename, std::ofstream::out | std::ofstream::app);
 
 		if (logFile.is_open()) {
-			logFile << getTimesamp() << "Logger started" << std::endl;
-			logFile << getTimesamp() << "Version " << engine_version << std::endl;
+			logFile << getTimesamp() << "Log started" << std::endl;
 		}
 	}
 
 	~FileLogger() {
 		if (logFile.is_open()) {
-			logFile << getTimesamp() << "Logger stopped" << std::endl;
+			logFile << getTimesamp() << "Log stopped" << std::endl;
 			logFile.close();
 		}
 	}
@@ -64,14 +67,17 @@ class FileLogger {
 	std::ofstream logFile;
 
 	static std::string getTimesamp() {
-		std::stringstream ss;
-		time_t t = time(0);
-		struct tm * now = localtime(& t);
-		ss << (now->tm_year + 1900) << '-'
-		   << (now->tm_mon + 1) << '-'
-		   <<  now->tm_mday << ' ';
+		time_t rawtime;
+		char datetime[32];
 
-		return ss.str();
+		/* Get date */
+		time(&rawtime);
+		struct tm *timeinfo = localtime(&rawtime);
+
+		/* Generate message */
+		strftime(datetime, sizeof(datetime), "[%x - %X] ", timeinfo);
+
+		return datetime;
 	}
 };
 

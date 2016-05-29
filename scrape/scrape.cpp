@@ -15,7 +15,7 @@ static int itemCount = 0;
 zmq::context_t context(1);
 zmq::socket_t socket(context, ZMQ_REQ);
 
-FileLogger flog("0.1", "scrape_main.log");
+FileLogger logger("scrape", true);
 
 std::multimap<std::string, std::string> datastack;
 
@@ -72,10 +72,10 @@ static PyObject *mav_save(PyObject *self, PyObject *args) {
 	}
 
 	if (complete == datastack.size()) {
-		flog << "Sumbitted datastack to dispatch";
+		logger << "Sumbitted datastack to dispatch";
 		datastack.clear();
 	} else {
-		flog << "Datastack transaction failure";
+		logger << "Datastack transaction failure";
 	}
 
 
@@ -102,7 +102,7 @@ void pyrunner(char *name) {
 
 	FILE *py_file = fopen(name, "r");
 	if (!py_file) {
-		flog << "Cannot open python file: " << name;
+		logger << "Cannot open python file: " << name;
 		return;
 	}
 
@@ -115,23 +115,23 @@ void pyrunner(char *name) {
 void dsorunner(int argc, char *argv[]) {
 	void *handle = dlopen(argv[1], RTLD_LAZY);
 	if (!handle) {
-		flog << "Cannot open library: " << dlerror();
+		logger << "Cannot open library: " << dlerror();
 		return;
 	}
 
-	flog << "Loading symbol main...";
+	logger << "Loading symbol main...";
 	typedef char *(*main_t)(int, char **);
 
 	dlerror();
 	main_t exec_main = (main_t)dlsym(handle, "mav_main");
 	const char *dlsym_error = dlerror();
 	if (dlsym_error) {
-		flog << "Cannot load symbol 'mav_main': " << dlsym_error;
+		logger << "Cannot load symbol 'mav_main': " << dlsym_error;
 		dlclose(handle);
 		return;
 	}
 
-	flog << "Calling module...";
+	logger << "Calling module...";
 	char *resp = exec_main(argc, argv);
 
 	std::cout << resp << std::endl;
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	flog << "Connecting to extractor...";
+	logger << "Connecting to extractor...";
 	socket.connect(("tcp://" + std::string(argv[2]) + ":5577").c_str());
 
 	/* Item counter */
