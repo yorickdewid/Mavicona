@@ -7,9 +7,12 @@
 #include <quidpp.h>
 
 #include "common/util.h"
+#include "common/config.h"
 #include "common/logger.h"
 #include "common/cxxopts.h"
 #include "protoc/scrapedata.pb.h"
+
+#define DEFAULT_EXTRACTOR_HOST  "localhost:5577"
 
 static int itemCount = 0;
 
@@ -173,16 +176,33 @@ int main(int argc, char *argv[]) {
 	}
 
 	std::string name = options["positional"].as<std::string>();
-	
 	if (!file_exist(name)) {
 		std::cerr << "error: " << name << ": No such file or directory" << std::endl;
 		return 1;
 	}
 
+	std::string host = DEFAULT_EXTRACTOR_HOST;
+    if (options.count("hbs")) {
+        std::string configfile = options["hbs"].as<std::string>();
+        if (!file_exist(configfile)) {
+            std::cerr << "error: " << configfile << ": No such file or directory" << std::endl;
+            return 1;
+        }
+
+        ConfigFile config(configfile);
+	    if (!config.exist("extract")){
+	        std::cerr << "Must be at least 1 extractor listed" << std::endl;
+	        return 1;
+	    } else {
+	        host = config.get<std::string>("extract", DEFAULT_EXTRACTOR_HOST);
+	    }
+    } else {
+
+    }
+
 	int linger = 0;
 	logger << "Connecting to extractor..." << FileLogger::endl();
-	//socket.connect(("tcp://" + std::string(argv[2]) + ":5577").c_str());
-	socket.connect("tcp://localhost:5577");
+	socket.connect(("tcp://" + host).c_str());
 	socket.setsockopt(ZMQ_LINGER, &linger, sizeof(int));
 
 	/* Item counter */
