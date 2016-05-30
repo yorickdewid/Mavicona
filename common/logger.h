@@ -75,7 +75,7 @@ class FileLogger {
 		logFile.open(filename, std::ios::out | std::ios::app);
 
 		if (logFile.is_open()) {
-			logFile << getTimesamp() << getType() << "Module started" << std::endl;
+			//logFile << getTimesamp() << getType() << "Module started" << std::endl;
 		} else {
 			std::cerr << "Cannot start logger" << std::endl;
 		}
@@ -90,33 +90,48 @@ class FileLogger {
 
 		buffer.clear();
 		buffer.str(std::string());
+		logFile.flush();
 		type = logType::LOG_INFO;
 	}
 
-	~FileLogger() {
+	void close() {
 		flush();
-		logFile << getTimesamp() << getType() << "Module stopped" << std::endl;
+		//logFile << getTimesamp() << getType() << "Module stopped" << std::endl;
 		logFile.close();
 	}
 
+	inline bool is_open() {
+		return logFile.is_open();
+	}
+
+	FileLogger &write(const char *s, size_t n) {
+		this->buffer << s;
+		std::cout << s;
+		return *this;
+	}
+
+	~FileLogger() {
+		close();
+	}
+
 	template<typename T>
-	FileLogger &operator << (const T &t) {
+	FileLogger &operator <<(const T &t) {
 		this->buffer << t;
 		std::cout << t;
 		return *this;
 	}
 
-	FileLogger &operator << (const error e) {
+	FileLogger &operator <<(const error e) {
 		type = logType::LOG_ERROR;
 		return *this;
 	}
 
-	FileLogger &operator << (const warning w) {
+	FileLogger &operator <<(const warning w) {
 		type = logType::LOG_WARNING;
 		return *this;
 	}
 
-	FileLogger &operator << (const debug d) {
+	FileLogger &operator <<(const debug d) {
 		if (d.level == 1)
 			type = logType::LOG_DEBUG1;
 		if (d.level == 2)
@@ -124,7 +139,7 @@ class FileLogger {
 		return *this;
 	}
 
-	FileLogger &operator << (const endl e) {
+	FileLogger &operator <<(const endl e) {
 		this->buffer << std::endl;
 		std::cout << std::endl;
 		flush();
