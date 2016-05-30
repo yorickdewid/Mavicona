@@ -15,8 +15,8 @@ enum ConfigErrors {
 };
 
 class error: public std::exception {
-	int line;
 	enum ConfigErrors errorCode;
+	int line;
 
   public:
 	error(enum ConfigErrors err, int errline = 0) : errorCode(err), line(errline) {}
@@ -32,6 +32,8 @@ class error: public std::exception {
 			case FILE_NOT_FOUND:
 				return "Config file not found";
 		}
+
+		return "";
 	}
 
 };
@@ -171,7 +173,7 @@ class ConfigFile {
 	}
 
 	range find(const std::string& key) {
-		contents.equal_range(key);
+		return contents.equal_range(key);
 	}
 
 	iterator begin() {
