@@ -8,7 +8,7 @@
 #include "common/util.h"
 #include "common/config.h"
 #include "common/cxxopts.h"
-#include "cyndr.h"
+#include "cynder.h"
 
 struct UnknownCommand : public std::exception {
     const char *what() const throw () {
@@ -29,7 +29,7 @@ void runModuleCommand(const std::string& command) {
     Module *mod = NULL;
     switch (activeMod) {
         case CYNDR:
-            mod = new Cyndr();
+            mod = new Cynder();
             break;
         case CHELLA:
         case PITCHER:

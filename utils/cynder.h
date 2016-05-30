@@ -1,18 +1,18 @@
-#ifndef CYNDR_H
-#define CYNDR_H
+#ifndef CYNDER_H
+#define CYNDER_H
 
 #include "module.h"
 
-class Cyndr : public Module
+class Cynder : public Module
 {
   public:
-    Cyndr() {}
+    Cynder() {}
 
     inline std::string name() {
-        return "Cyndr";
+        return "Cynder";
     }
 
     bool runCommand(const std::string& command);
 };
 
-#endif // CYNDR_H
+#endif // CYNDER_H

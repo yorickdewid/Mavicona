@@ -1,4 +1,4 @@
-OBJS = cyndr.o main.o
+OBJS = cynder.o main.o
 CC = g++
 DEBUG = -g
 LIBS = 
