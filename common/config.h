@@ -5,14 +5,36 @@
 #include <map>
 #include <fstream>
 #include <typeinfo>
+#include <exception>
 
-void exitWithError(const std::string &error) {
-	std::cout << error;
-	std::cin.ignore();
-	std::cin.get();
+enum ConfigErrors {
+	KEY_NOT_EXIST = 10,
+	INVALID_SYNTAX,
+	INVALID_CAST,
+	FILE_NOT_FOUND,
+};
 
-	exit(1);
-}
+class error: public std::exception {
+	int line;
+	enum ConfigErrors errorCode;
+
+  public:
+	error(enum ConfigErrors err, int errline = 0) : errorCode(err), line(errline) {}
+
+	virtual const char *what() const throw() {
+		switch(errorCode) {
+			case KEY_NOT_EXIST:
+				return "Key does not exist";
+			case INVALID_SYNTAX:
+				return ("Invalid syntax on line " + std::to_string(line)).c_str();
+			case INVALID_CAST:
+				return "Cannot convert type";
+			case FILE_NOT_FOUND:
+				return "Config file not found";
+		}
+	}
+
+};
 
 class Convert {
   public:
@@ -29,25 +51,27 @@ class Convert {
 		std::istringstream istr(val);
 		T returnVal;
 		if (!(istr >> returnVal))
-			exitWithError("config: Not a valid " + (std::string)typeid(T).name() + " received!\n");
+			throw error(INVALID_CAST);
 
 		return returnVal;
 	}
 };
 
 class ConfigFile {
-  private:
-	std::map<std::string, std::string> contents;
-	std::string fName;
+	std::multimap<std::string, std::string> contents;
 
 	void removeComment(std::string &line) const {
 		if (line.find(';') != line.npos)
 			line.erase(line.find(';'));
+
+		if (line.find('#') != line.npos)
+			line.erase(line.find('#'));
 	}
 
 	bool onlyWhitespace(const std::string &line) const {
 		return (line.find_first_not_of(' ') == line.npos);
 	}
+
 	bool validLine(const std::string &line) const {
 		std::string temp = line;
 		temp.erase(0, temp.find_first_not_of("\t "));
@@ -81,27 +105,24 @@ class ConfigFile {
 		extractKey(key, sepPos, temp);
 		extractValue(value, sepPos, temp);
 
-		if (!keyExists(key))
-			contents.insert(std::pair<std::string, std::string>(key, value));
-		else
-			exitWithError("CFG: Can only have unique key names!\n");
+		contents.insert(std::pair<std::string, std::string>(key, value));
 	}
 
 	void parseLine(const std::string &line, size_t const lineNo) {
 		if (line.find('=') == line.npos)
-			exitWithError("CFG: Couldn't find separator on line: " + Convert::T_to_string(lineNo) + "\n");
+			throw error(INVALID_SYNTAX, lineNo);
 
 		if (!validLine(line))
-			exitWithError("CFG: Bad format for line: " + Convert::T_to_string(lineNo) + "\n");
+			throw error(INVALID_SYNTAX, lineNo);
 
 		extractContents(line);
 	}
 
-	void ExtractKeys() {
+	void extractKeys(const std::string& filename) {
 		std::ifstream file;
-		file.open(fName.c_str());
+		file.open(filename.c_str());
 		if (!file)
-			exitWithError("CFG: File " + fName + " couldn't be found!\n");
+			throw error(FILE_NOT_FOUND);
 
 		std::string line;
 		size_t lineNo = 0;
@@ -122,40 +143,55 @@ class ConfigFile {
 		file.close();
 	}
   public:
-	ConfigFile(const std::string &fName) {
-		this->fName = fName;
-		ExtractKeys();
+	ConfigFile(const std::string& filename) {
+		extractKeys(filename);
 	}
 
-	bool keyExists(const std::string &key) const {
+	ConfigFile(const char *filename) : ConfigFile(std::string(filename)) {}
+
+	typedef size_t size_type;
+	typedef std::multimap<std::string, std::string>::iterator iterator;
+	typedef std::multimap<std::string, std::string>::const_iterator const_iterator;
+	typedef std::pair<iterator, iterator> range;
+
+	bool exist(const std::string &key) const {
 		return contents.find(key) != contents.end();
 	}
 
-	template <typename ValueType>
-	ValueType getValueOfKey(const std::string &key, ValueType const &defaultValue = ValueType()) const {
-		if (!keyExists(key))
+	template <typename T>
+	T get(const std::string& key, T const &defaultValue = T()) const {
+		if (!exist(key))
 			return defaultValue;
 
-		return Convert::string_to_T<ValueType>(contents.find(key)->second);
+		return Convert::string_to_T<T>(contents.find(key)->second);
+	}
+
+	inline size_type size() const {
+		return contents.size();
+	}
+
+	range find(const std::string& key) {
+		contents.equal_range(key);
+	}
+
+	iterator begin() {
+		return contents.begin();
+	}
+
+	iterator end() {
+		return contents.end();
+	}
+
+	const_iterator begin() const {
+		return contents.begin();
+	}
+
+	const_iterator end() const {
+		return contents.end();
+	}
+
+	template <typename T>
+	T operator[](const std::string& key) {
+		return get<T>(key);
 	}
 };
-
-#ifdef TEST_CFG
-int main() {
-	ConfigFile cfg("test.conf");
-
-	bool exists = cfg.keyExists("car");
-	std::cout << "car key: " << std::boolalpha << exists << "\n";
-	exists = cfg.keyExists("fruits");
-	std::cout << "fruits key: " << exists << "\n";
-
-	std::string someValue = cfg.getValueOfKey<std::string>("mykey", "Unknown");
-	std::cout << "value of key mykey: " << someValue << "\n";
-	std::string carValue = cfg.getValueOfKey<std::string>("car");
-	std::cout << "value of key car: " << carValue << "\n";
-	double doubleVal = cfg.getValueOfKey<double>("double");
-	std::cout << "value of key double: " << doubleVal << "\n\n";
-
-	return 0;
-}
-#endif

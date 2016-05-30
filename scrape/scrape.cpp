@@ -6,7 +6,9 @@
 #include <dlfcn.h>
 #include <quidpp.h>
 
+#include "common/util.h"
 #include "common/logger.h"
+#include "common/cxxopts.h"
 #include "protoc/scrapedata.pb.h"
 
 static int itemCount = 0;
@@ -82,7 +84,7 @@ static PyObject *mav_save(PyObject *self, PyObject *args) {
 	return Py_True;
 }
 
-void pyrunner(char *name) {
+void pyrunner(const char *name) {
 	Py_Initialize();
 
 	static PyMethodDef MavMethods[] = {
@@ -143,30 +145,59 @@ int main(int argc, char *argv[]) {
 
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-	if (argc < 3) {
-		std::cerr << "Usage: " << argv[0] << " <file|library> <host>" << std::endl;
+	cxxopts::Options options(argv[0], " [FILE]");
+
+	options.add_options("Help")
+		("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
+		("h,help", "Print this help");
+
+	options.add_options()
+		("positional", "&", cxxopts::value<std::string>());
+
+	try {
+		options.parse_positional("positional");
+			options.parse(argc, argv);
+	} catch (const cxxopts::OptionException& e) {
+		std::cerr << "error parsing options: " << e.what() << std::endl;
 		return 1;
 	}
 
-	logger << "Connecting to extractor..." << FileLogger::endl();
-	socket.connect(("tcp://" + std::string(argv[2]) + ":5577").c_str());
+	if (options.count("help")) {
+		std::cerr << options.help({"Help"}) << std::endl;
+		return 0;
+	}
+
+	if (!options.count("positional")) {
+		std::cerr << options.help({"Help"}) << std::endl;
+		return 1;
+	}
+
+	std::string name = options["positional"].as<std::string>();
+	
+	if (!file_exist(name)) {
+		std::cerr << "error: " << name << ": No such file or directory" << std::endl;
+		return 1;
+	}
 
 	int linger = 0;
+	logger << "Connecting to extractor..." << FileLogger::endl();
+	//socket.connect(("tcp://" + std::string(argv[2]) + ":5577").c_str());
+	socket.connect("tcp://localhost:5577");
 	socket.setsockopt(ZMQ_LINGER, &linger, sizeof(int));
 
 	/* Item counter */
 	srand(time(NULL));
 	itemCount = rand() % 10000;
 
-	std::string name = std::string(argv[1]);
+	//std::string name = std::string(argv[1]);
 	if (name.substr(name.find_last_of(".") + 1) == "py") {
 
 		/* When python file defined */
-		pyrunner(argv[1]);
-	} else if (name.substr(name.find_last_of(".") + 1) == "so") {
+		pyrunner(name.c_str());
+	} else if (name.substr(name.find_last_of(".") + 1) == "so" || name.substr(name.find_last_of(".") + 1) == "dll") {
 
 		/* When dSO defined */
-		dsorunner(argc, argv);
+		// dsorunner(argc, argv);
 	}
 
 	return 0;
