@@ -18,6 +18,9 @@ class Ruler {
   public:
 	static bool verifyRules(std::vector<RuleNode *> *ruleset);
 	static std::vector<RuleNode *> *parseConfigFile(const char *configFile);
+	static std::vector<RuleNode *> *parseConfigFile(const std::string& configFile) {
+		return Ruler::parseConfigFile(configFile.c_str());
+	}
 
 	Ruler(std::vector<RuleNode *> *ruleset) : m_Ruleset(ruleset) {}
 

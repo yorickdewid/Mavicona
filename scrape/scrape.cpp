@@ -182,23 +182,23 @@ int main(int argc, char *argv[]) {
 	}
 
 	std::string host = DEFAULT_EXTRACTOR_HOST;
-    if (options.count("hbs")) {
-        std::string configfile = options["hbs"].as<std::string>();
-        if (!file_exist(configfile)) {
-            std::cerr << "error: " << configfile << ": No such file or directory" << std::endl;
-            return 1;
-        }
+	if (options.count("hbs")) {
+		std::string configfile = options["hbs"].as<std::string>();
+		if (!file_exist(configfile)) {
+			std::cerr << "error: " << configfile << ": No such file or directory" << std::endl;
+			return 1;
+		}
 
-        ConfigFile config(configfile);
-	    if (!config.exist("extract")){
-	        std::cerr << "Must be at least 1 extractor listed" << std::endl;
-	        return 1;
-	    } else {
-	        host = config.get<std::string>("extract", DEFAULT_EXTRACTOR_HOST);
-	    }
-    } else {
+		ConfigFile config(configfile);
+		if (!config.exist("extract")){
+			std::cerr << "Must be at least 1 extractor listed" << std::endl;
+			return 1;
+		} else {
+			host = config.get<std::string>("extract", DEFAULT_EXTRACTOR_HOST);
+		}
+	} else {
 
-    }
+	}
 
 	int linger = 0;
 	logger << "Connecting to extractor..." << FileLogger::endl();

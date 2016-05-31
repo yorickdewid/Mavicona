@@ -3,21 +3,30 @@
 #include <iostream>
 #include <unistd.h>
 
+#include "common/util.h"
+#include "common/config.h"
 #include "common/logger.h"
+#include "common/cxxopts.h"
 #include "protoc/scrapedata.pb.h"
 #include "ruler.h"
 #include "detect.h"
 
 #define FORK 	1
+#define DEFAULT_PITCHER_HOST	"localhost:5599"
 
 static unsigned int dataCounter = 1000;
 static std::vector<RuleNode *> *commonRuleset = nullptr;
+static bool doFork = true;
 
 void parseData(ScrapeData& data, unsigned int counter);
 
 pid_t handleRequest(ScrapeData& data) {
 	dataCounter++;
 #ifdef FORK
+	if (!doFork) {
+		parseData(data, dataCounter);
+		return 1;
+	}
 
 	pid_t pid = fork();
 	if (pid == 0) {
@@ -45,14 +54,14 @@ void parseData(ScrapeData& data, unsigned int counter) {
 	Detect detector;
 	Ruler ruler(commonRuleset);
 
-	int scrapeId = data.id();
+	//int scrapeId = data.id();
 	data.set_id(counter);
 
-	std::cout << "Item[" << data.id() << "] scrapeid: " << scrapeId << std::endl;
-	std::cout << "Item[" << data.id() << "] object: " << data.quid() << std::endl;
-	std::cout << "Item[" << data.id() << "] name: " << data.name() << std::endl;
+	//std::cout << "Item[" << data.id() << "] scrapeid: " << scrapeId << std::endl;
+	//std::cout << "Item[" << data.id() << "] object: " << data.quid() << std::endl;
+	//std::cout << "Item[" << data.id() << "] name: " << data.name() << std::endl;
 
-	switch (data.type()) {
+	/*switch (data.type()) {
 		case ScrapeData::PLAIN:
 			std::cout << "Item[" << data.id() << "] type: PLAIN" << std::endl;
 			break;
@@ -65,7 +74,7 @@ void parseData(ScrapeData& data, unsigned int counter) {
 		case ScrapeData::STREAM:
 			std::cout << "Item[" << data.id() << "] type: STREAM" << std::endl;
 			break;
-	}
+	}*/
 
 	ScrapeData::Data payload = data.content();
 
@@ -82,9 +91,9 @@ void parseData(ScrapeData& data, unsigned int counter) {
 	 * basically maches anything.
 	 */
 	if (detector.found()) {
-		std::cout << "Item[" << data.id() << "] mime name: " << detector.mime()->name() << std::endl;
-		std::cout << "Item[" << data.id() << "] mime type: " << detector.mime()->type() << std::endl;
-		std::cout << "Item[" << data.id() << "] mime category: " << detector.mime()->category() << std::endl;
+		//std::cout << "Item[" << data.id() << "] mime name: " << detector.mime()->name() << std::endl;
+		//std::cout << "Item[" << data.id() << "] mime type: " << detector.mime()->type() << std::endl;
+		//std::cout << "Item[" << data.id() << "] mime category: " << detector.mime()->category() << std::endl;
 
 		ScrapeData::MetaEntry *metaMime = data.add_meta();
 		metaMime->set_key("mime");
@@ -102,7 +111,7 @@ void parseData(ScrapeData& data, unsigned int counter) {
 		metaCategory->set_value(detector.mime()->category());
 
 		if (!detector.charset().empty()) {
-			std::cout << "Item[" << data.id() << "] charset: " << detector.charset() << std::endl;
+			//std::cout << "Item[" << data.id() << "] charset: " << detector.charset() << std::endl;
 
 			ScrapeData::MetaEntry *metaCharset = data.add_meta();
 			metaCharset->set_key("charset");
@@ -148,9 +157,6 @@ void parseData(ScrapeData& data, unsigned int counter) {
 	detector.setDataProfile(data);
 	detector.notify();
 
-	// std::string serialized;
-	// data.SerializeToString(&serialized);
-
 	ruler.setDataProfile(data);
 	ruler.runRuleActions();
 }
@@ -159,12 +165,73 @@ int main(int argc, char *argv[]) {
 
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-	if (argc < 2) {
-		std::cerr << "Usage: extractor <config> [args]" << std::endl;
+	cxxopts::Options options(argv[0], " [FILE]");
+
+	options.add_options("Help")
+		("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
+#ifdef FORK
+		("o,inorder", "Parse requests in order (default: parallel)")
+#endif
+		("h,help", "Print this help");
+
+	options.add_options()
+		("positional", "&", cxxopts::value<std::string>());
+
+	try {
+		options.parse_positional("positional");
+			options.parse(argc, argv);
+	} catch (const cxxopts::OptionException& e) {
+		std::cerr << "error parsing options: " << e.what() << std::endl;
 		return 1;
 	}
 
-	if (!(commonRuleset = Ruler::parseConfigFile(argv[1]))) {
+	if (options.count("help")) {
+		std::cerr << options.help({"Help"}) << std::endl;
+		return 0;
+	}
+
+	if (!options.count("positional")) {
+		std::cerr << options.help({"Help"}) << std::endl;
+		return 1;
+	}
+
+	if (options.count("inorder")) {
+		doFork = false;
+		std::cout << "Running operations in order" << std::endl;
+	}
+
+	std::string name = options["positional"].as<std::string>();
+	if (!file_exist(name)) {
+		std::cerr << "error: " << name << ": No such file or directory" << std::endl;
+		return 1;
+	}
+
+	/* Make sure we have an pitcher and cynder host even if the ruleset ignores this action */
+	if (options.count("hbs")) {
+		std::string configfile = options["hbs"].as<std::string>();
+		if (!file_exist(configfile)) {
+			std::cerr << "error: " << configfile << ": No such file or directory" << std::endl;
+			return 1;
+		}
+
+		ConfigFile config(configfile);
+		if (!config.exist("pitch")){
+			std::cerr << "Must be at least 1 pitcher listed" << std::endl;
+			return 1;
+		}
+
+		if (!config.exist("cynder-master")){
+			std::cerr << "Must be at least 1 pitcher listed" << std::endl;
+			return 1;
+		}
+
+		if (!config.exist("cynder-master")) {
+			std::cerr << "Must be at least 1 cynder master listed" << std::endl;
+			return 1;
+		}
+	}
+
+	if (!(commonRuleset = Ruler::parseConfigFile(name))) {
 		std::cerr << "Config error" << std::endl;
 		return 1;
 	}
@@ -201,4 +268,3 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
-
