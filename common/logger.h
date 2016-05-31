@@ -63,9 +63,7 @@ class FileLogger {
 	struct error {};
 	struct endl {};
 
-	explicit FileLogger(const std::string & module) {
-		FileLogger(module.c_str());
-	}
+	explicit FileLogger(const std::string & module) : FileLogger(module.c_str()) {}
 
 	explicit FileLogger(const char *module) {
 		char filename[128];
@@ -88,9 +86,9 @@ class FileLogger {
 			logFile << getTimesamp() << getType() << line << std::endl;
 		}
 
+		logFile.flush();
 		buffer.clear();
 		buffer.str(std::string());
-		logFile.flush();
 		type = logType::LOG_INFO;
 	}
 
@@ -104,11 +102,11 @@ class FileLogger {
 		return logFile.is_open();
 	}
 
-	FileLogger &write(const char *s, size_t n) {
+	/*FileLogger &write(const char *s, size_t n) {
 		this->buffer << s;
 		std::cout << s;
 		return *this;
-	}
+	}*/
 
 	~FileLogger() {
 		close();

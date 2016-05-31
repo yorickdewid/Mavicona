@@ -5,9 +5,10 @@
 
 #include "common/logger.h"
 #include "action.h"
-
+	
 class Log : public Action {
 	FileLogger *m_Logfile = nullptr;
+		FileLogger *kaas = NULL;
 
   public:
 	Log(const std::string& logFileName, const ScrapeData *payload) : Action(payload) {

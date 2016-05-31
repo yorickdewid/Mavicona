@@ -49,7 +49,8 @@ bool Log::run() {
 		}
 	}
 
-	m_Logfile->flush();
+	//m_Logfile->flush();
+	//m_Logfile->close();
 
 	return true;
 }
