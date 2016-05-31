@@ -34,7 +34,7 @@ class RuleNode {
 		nodeName = name;
 		actionList = list;
 
-		if (nodeName->at(0) == '\'') {
+		if (nodeName->at(0) == '\'' || nodeName->at(0) == '"') {
 			nodeName->erase(0, 1);
 			nodeName->erase(nodeName->size() - 1, 1);
 		}

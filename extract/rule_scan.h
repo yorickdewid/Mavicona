@@ -209,6 +209,9 @@ void yyfree (void *  );
 
 /* Begin user sect3 */
 
+#define yywrap() 1
+#define YY_SKIP_YYWRAP
+
 extern int yylineno;
 
 extern char *yytext;
@@ -216,6 +219,7 @@ extern char *yytext;
 
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0
+#define include_ruleset 1
 
 #endif
 
@@ -324,9 +328,9 @@ extern int yylex (void);
 #undef YY_DECL
 #endif
 
-#line 34 "rule_scan.l"
+#line 57 "rule_scan.l"
 
 
-#line 331 "rule_scan.h"
+#line 335 "rule_scan.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */

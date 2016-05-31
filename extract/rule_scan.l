@@ -1,4 +1,4 @@
-%option nounput
+%option nounput noyywrap
 
 %{
 #include <cstdio>
@@ -8,15 +8,17 @@
 
 #include "rule_parse.h"
 
-void yyerror(const char *); // we need to forward declare these functions ,
-int yyparse(void); // don ’t worry about them
+void yyerror(const char *); // Forward declare these functions
+int yyparse(void);
 %}
 
-%%
+%x include_ruleset
 
-[ \t\n]+       ; // do nothing on whitespace
-'\.?[a-zA-Z0-9\/\-\.\+]*'   { yylval.str_val = new std::string(yytext); return STRING; }
-"#".*          ;
+%%
+include[ \t]*["'<]  BEGIN include_ruleset;
+[ \t\n]+       ; // Do nothing on whitespace
+['"][a-zA-Z0-9\/\-\.\+]*['"]   { yylval.str_val = new std::string(yytext); return STRING; }
+"#".*          ; // Ignore whitespace
 ";"            return SEMICOLON;
 "{"            return LBRACE;
 "}"            return RBRACE;
@@ -32,6 +34,27 @@ int yyparse(void); // don ’t worry about them
 "log"          return LOG;
 .              { printf("Unknown token"); yyterminate(); };
 
+<include_ruleset>[ \t]*  // eat the whitespace
+<include_ruleset>[^ \t\n]+["'>] { // got the include file name
+   yytext[strlen(yytext)-1] = '\0';
+   yyin = fopen(yytext, "r");
+   if (!yyin) {
+      fprintf(stderr, "Cannot read include %s", yytext);
+      return 0;
+   }
+
+   yypush_buffer_state(yy_create_buffer( yyin, YY_BUF_SIZE ));
+   BEGIN INITIAL;
+}
+
+<<EOF>> {
+   yypop_buffer_state();
+
+   if (!YY_CURRENT_BUFFER) {
+      yyterminate();
+   }
+}
+
 %%
 
 void yyerror(const char *s) {
@@ -39,11 +62,10 @@ void yyerror(const char *s) {
    exit(1);
 }
 
-int yywrap(void) { return 1; }
-
 #ifdef RULER
 int main(int argc, char *argv[]) {
    extern FILE * yyin;
+   extern void print_tree();
 
    if(argc != 2) {
       printf("usage : ./ruler filename \n");
@@ -58,11 +80,12 @@ int main(int argc, char *argv[]) {
 
    yyin = file; // now flex reads from file
 
-   // parse through the input until there is no more:
+   /* parse through the input until there is no more: */
    do {
       yyparse();
-   } while (!feof(yyin));
+   } while(!feof(yyin));
 
+   print_tree();
 
    fclose(file);
 }

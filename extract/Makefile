@@ -14,6 +14,10 @@ parse:
 	$(LEX) -o rule_scan.cpp --header-file=rule_scan.h rule_scan.l
 	$(YACC) -o rule_parse.cpp --defines=rule_parse.h rule_parse.y
 
+ruler: parse
+	$(CC) -std=c++11 -DRULER rule_parse.cpp rule_scan.cpp -o ruler
+
 clean:
 	$(RM) -rf *.o
+	$(RM) -rf ruler
 	$(RM) -rf extractor
