@@ -5,6 +5,7 @@
 #include <thread>
 #include <chrono>
 
+#include "common/logger.h"
 #include "protoc/task.pb.h"
 #include "queue.h"
 
@@ -14,9 +15,12 @@ class Provision {
 	bool _active = false;
 	Queue<Task> *_queue = nullptr;
 	unsigned int _timeout;
+	FileLogger *_logger = nullptr;
 
   public:
-	Provision() : _timeout(1) {}
+	Provision() : _timeout(1) {
+		this->_logger = new FileLogger("pitcher");
+	}
 
 	void runTask();
 

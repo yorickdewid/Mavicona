@@ -17,6 +17,37 @@ class Queue {
 
 	leveldb::DB *db = nullptr;
 
+	void queuCache() {
+		T task;
+
+		leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
+		for (it->SeekToFirst(); it->Valid(); it->Next()) {
+			task.ParseFromArray(it->value().data(), it->value().size());
+
+			switch (task.priority()) {
+				case Task::REALTIME:
+					// runRealtimeTask()
+					//std::cout << "Realtime task; ignores all queues" << std::endl;
+					break;
+				case Task::HIGH:
+					push(task, 1, false);
+					break;
+				case Task::NORMAL:
+					push(task, 2, false);
+					break;
+				case Task::LOW:
+					push(task, 3, false);
+					break;
+				case Task::IDLE:
+					push(task, 100, false);
+					break;
+			}
+		}
+
+		assert(it->status().ok());  // Check for any errors found during the scan
+		delete it;
+	}
+
   public:
 	Queue(const std::string& dbName = "qstore") {
 		leveldb::Options options;
@@ -25,6 +56,9 @@ class Queue {
 
 		if (!status.ok())
 			std::cerr << status.ToString() << std::endl;
+
+		/* Retrieve cached tasks an put them back on the queue */
+		queuCache();
 	}
 
 	~Queue() {
@@ -40,7 +74,7 @@ class Queue {
 	}
 
 	inline void doneTask(T task) {
-		taskList.pop();
+		db->Delete(leveldb::WriteOptions(), std::to_string(task.id()));
 	}
 
 	inline T getNextTask() {
@@ -50,16 +84,18 @@ class Queue {
 	}
 
 	inline T getNextIdleTask() {
-		T task = taskListIdle.top();
-		taskList.pop();
+		T task = taskListIdle.front();
+		taskListIdle.pop();
 		return task;
 	}
 
-	inline void push(T task, int prio) {
-		// std::string value;
-		// if (s.ok()) {
-		// this->db->Put(leveldb::WriteOptions(), key2, value);
-		// }
+	inline void push(T task, int prio, bool cache = true) {
+		if (cache) {
+			std::string serialized;
+			task.SerializeToString(&serialized);
+
+			db->Put(leveldb::WriteOptions(), std::to_string(task.id()), serialized);
+		}
 
 		if (prio > 50) {
 			this->taskListIdle.push(task);

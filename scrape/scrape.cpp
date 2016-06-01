@@ -151,15 +151,15 @@ int main(int argc, char *argv[]) {
 	cxxopts::Options options(argv[0], " [FILE]");
 
 	options.add_options("Help")
-		("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
-		("h,help", "Print this help");
+	("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
+	("h,help", "Print this help");
 
 	options.add_options()
-		("positional", "&", cxxopts::value<std::string>());
+	("positional", "&", cxxopts::value<std::string>());
 
 	try {
 		options.parse_positional("positional");
-			options.parse(argc, argv);
+		options.parse(argc, argv);
 	} catch (const cxxopts::OptionException& e) {
 		std::cerr << "error parsing options: " << e.what() << std::endl;
 		return 1;
@@ -190,14 +190,12 @@ int main(int argc, char *argv[]) {
 		}
 
 		ConfigFile config(configfile);
-		if (!config.exist("extract")){
+		if (!config.exist("extract")) {
 			std::cerr << "Must be at least 1 extractor listed" << std::endl;
 			return 1;
 		} else {
 			host = config.get<std::string>("extract", DEFAULT_EXTRACTOR_HOST);
 		}
-	} else {
-
 	}
 
 	int linger = 0;
