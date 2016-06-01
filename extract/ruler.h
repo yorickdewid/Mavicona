@@ -13,6 +13,7 @@ class Ruler {
 	std::vector<RuleNode *> *m_Ruleset = nullptr;
 	ActionNode *m_ActionList = nullptr;
 	const ScrapeData *payload = nullptr;
+	std::string configfile;
 	bool match(const int type, const std::string& name);
 
   public:
@@ -49,6 +50,10 @@ class Ruler {
 
 	inline void setDataProfile(const ScrapeData &data) {
 		this->payload = &data;
+	}
+
+	inline void setConfigFile(const std::string& file) {
+		this->configfile = file;
 	}
 
 	void runRuleActions();

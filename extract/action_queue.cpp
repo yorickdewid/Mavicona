@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "common/config.h"
 #include "action_queue.h"
 
 void Queue::send(const std::string& data) {
@@ -20,7 +21,7 @@ void Queue::send(const std::string& data) {
 
 bool Queue::run() {
 	std::cout << "Connecting to pitcher..." << std::endl;
-	socket->connect("tcp://localhost:5599");
+	socket->connect(("tcp://" + host).c_str());
 
 	/* Create meta data object */
 	Task task;
@@ -30,10 +31,8 @@ bool Queue::run() {
 	task.set_priority(Task::NORMAL);
 
 	if (task.id() == 1004) {
-		puts("Woei"); //REMOVE
 		task.set_priority(Task::HIGH);
 	} else 	if (task.id() == 1001) {
-		puts("Woei"); //REMOVE
 		task.set_priority(Task::LOW);
 	} else {
 		task.set_priority(Task::NORMAL);
@@ -46,3 +45,16 @@ bool Queue::run() {
 
 	return true;
 }
+
+bool Queue::config(const std::string& configfile) {
+	ConfigFile config(configfile);
+	if (!config.exist("pitch")) {
+		std::cerr << "Must be at least 1 pitcher listed" << std::endl;
+		return false;
+	}
+
+	host = config.get<std::string>("pitch", "");
+
+	return true;
+}
+

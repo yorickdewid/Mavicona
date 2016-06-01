@@ -12,11 +12,12 @@
 #include "detect.h"
 
 #define FORK 	1
-#define DEFAULT_PITCHER_HOST	"localhost:5599"
 
 static unsigned int dataCounter = 1000;
 static std::vector<RuleNode *> *commonRuleset = nullptr;
 static bool doFork = true;
+
+std::string configfile;
 
 void parseData(ScrapeData& data, unsigned int counter);
 
@@ -157,6 +158,7 @@ void parseData(ScrapeData& data, unsigned int counter) {
 	detector.setDataProfile(data);
 	detector.notify();
 
+	ruler.setConfigFile(configfile);
 	ruler.setDataProfile(data);
 	ruler.runRuleActions();
 }
@@ -168,18 +170,18 @@ int main(int argc, char *argv[]) {
 	cxxopts::Options options(argv[0], " [FILE]");
 
 	options.add_options("Help")
-		("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
+	("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
 #ifdef FORK
-		("o,inorder", "Parse requests in order (default: parallel)")
+	("o,inorder", "Parse requests in order (default: parallel)")
 #endif
-		("h,help", "Print this help");
+	("h,help", "Print this help");
 
 	options.add_options()
-		("positional", "&", cxxopts::value<std::string>());
+	("positional", "&", cxxopts::value<std::string>());
 
 	try {
 		options.parse_positional("positional");
-			options.parse(argc, argv);
+		options.parse(argc, argv);
 	} catch (const cxxopts::OptionException& e) {
 		std::cerr << "error parsing options: " << e.what() << std::endl;
 		return 1;
@@ -208,19 +210,14 @@ int main(int argc, char *argv[]) {
 
 	/* Make sure we have an pitcher and cynder host even if the ruleset ignores this action */
 	if (options.count("hbs")) {
-		std::string configfile = options["hbs"].as<std::string>();
+		configfile = options["hbs"].as<std::string>();
 		if (!file_exist(configfile)) {
 			std::cerr << "error: " << configfile << ": No such file or directory" << std::endl;
 			return 1;
 		}
 
 		ConfigFile config(configfile);
-		if (!config.exist("pitch")){
-			std::cerr << "Must be at least 1 pitcher listed" << std::endl;
-			return 1;
-		}
-
-		if (!config.exist("cynder-master")){
+		if (!config.exist("pitch")) {
 			std::cerr << "Must be at least 1 pitcher listed" << std::endl;
 			return 1;
 		}

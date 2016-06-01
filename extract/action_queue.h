@@ -10,6 +10,7 @@
 class Queue : public Action {
 	zmq::context_t context;
 	zmq::socket_t *socket;
+	std::string host;
 
   public:
 	Queue(const ScrapeData *payload) : Action(payload), context(1) {
@@ -21,6 +22,7 @@ class Queue : public Action {
 	}
 
 	void send(const std::string& serialized);
+	bool config(const std::string& configfile);
 	bool run();
 
 };

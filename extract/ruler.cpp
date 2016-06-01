@@ -100,6 +100,7 @@ void Ruler::runRuleActions() {
 				break;
 		}
 
+		ruleAction->config(this->configfile);
 		ruleAction->run();
 		delete ruleAction;
 	}

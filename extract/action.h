@@ -12,6 +12,10 @@ class Action {
 
 	virtual ~Action() {}
 
+	virtual bool config(const std::string& configfile) {
+		return true;
+	}
+
 	virtual bool run() = 0;
 };
 

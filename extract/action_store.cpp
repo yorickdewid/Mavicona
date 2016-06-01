@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "common/config.h"
 #include "action_store.h"
 
 void Store::send(const std::string& data) {
@@ -20,13 +21,25 @@ void Store::send(const std::string& data) {
 
 bool Store::run() {
 	std::cout << "Connecting to cynder..." << std::endl;
-	socket->connect("tcp://localhost:5533");
+	socket->connect(("tcp://" + host).c_str());
 
 	// Perform query
 	std::string serialized;
 	m_Payload->SerializeToString(&serialized);
 
 	send(serialized);
+
+	return true;
+}
+
+bool Store::config(const std::string& configfile) {
+	ConfigFile config(configfile);
+	if (!config.exist("cynder-master")) {
+		std::cerr << "Must be at least 1 cynder master listed" << std::endl;
+		return false;
+	}
+
+	host = config.get<std::string>("cynder-master", "");
 
 	return true;
 }
