@@ -9,6 +9,8 @@
 
 /* Reply codes */
 #define REPLY_OK		200
+#define REPLY_REDIR_PER	301
+#define REPLY_REDIR_TMP	302
 #define REPLY_BADREQ	400
 #define REPLY_NOENT		404
 #define REPLY_INTERR	500

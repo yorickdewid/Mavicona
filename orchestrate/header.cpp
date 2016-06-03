@@ -93,6 +93,11 @@ void CHeader::AddType(const std::string& type) {
 	header << "Content-type: " << type << CRLF;
 }
 
+void CHeader::AddLocation(const std::string& location) {
+	/* Add the content type */
+	header << "location: " << location << CRLF;
+}
+
 void CHeader::AddLength(size_t len) {
 	/* Add the content length */
 	header << "Content-length: " << len << CRLF;

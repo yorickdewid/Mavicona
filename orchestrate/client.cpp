@@ -120,6 +120,35 @@ bool CClient::SendHtml(const void *buffer, size_t len, int reply) {
 	return true;
 }
 
+bool CClient::SendRedirect(const std::string& location) {
+	CHeader Header;
+
+	bool    ret;
+
+	/* Setup header */
+	Header.AddReply(REPLY_REDIR_PER);
+	Header.AddLocation(location);
+	Header.Set("X-Content-Type-Options: nosniff\r\n");
+	Header.Set("X-Frame-Options: deny\r\n");
+	Header.Set("X-XSS-Protection: 1; mode=block\r\n");
+	Header.Set("X-Interface-Subset: html\r\n");
+	Header.Set("X-Webledge: kirama\r\n");
+	Header.Set("X-Webledge-SubId: 325434522\r\n");
+	Header.Set("X-Webledge-Act: contract\r\n");
+	Header.Set("Via: Webledge " APP_VERSION "\r\n");
+
+	Header.AddDate();
+	Header.AddServer();
+	Header.AddEnd();
+
+	/* Send header */
+	ret = SendHeader(Header);
+	if (!ret)
+		return false;
+
+	return true;
+}
+
 bool CClient::SendHeader(CHeader &Header) {
 	std::string  hdr;
 	int len, res;
@@ -313,3 +342,4 @@ bool CClient::HandleError(int reply) {
 	/* Send reply */
 	return SendHtml(buffer, len, reply);
 }
+

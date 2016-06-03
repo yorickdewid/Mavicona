@@ -72,6 +72,8 @@ class CClient {
 	*/
 	bool SendHtml(const void *buffer, size_t len, int reply = REPLY_OK);
 
+
+	bool SendRedirect(const std::string& location);
 	/*!
 		Send file to the client.
 		\param filepath the file to send.

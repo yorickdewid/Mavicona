@@ -7,6 +7,8 @@ std::map<int, const char *> CHTTP::replyMap;
 void CHTTP::Init(void) {
 	/* Fill the HTTP reply array */
 	replyMap[REPLY_OK]     = "OK";
+	replyMap[REPLY_REDIR_PER] = "Moved Permanently";
+	replyMap[REPLY_REDIR_TMP] = "Found";
 	replyMap[REPLY_BADREQ] = "Bad Request";
 	replyMap[REPLY_NOENT]  = "Not Found";
 	replyMap[REPLY_INTERR] = "Internal Error";

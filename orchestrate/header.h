@@ -68,6 +68,12 @@ class CHeader {
 	void AddType(const std::string& type);
 
 	/*!
+		Add the HTTP reply.
+		\param reply the reply number.
+	*/
+	void AddLocation(const std::string& location);
+
+	/*!
 		Add the content length string.
 		\param len the content length.
 	*/
