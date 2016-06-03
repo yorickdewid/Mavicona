@@ -36,13 +36,17 @@ void *CServer::Handler(void *client) {
 		Header.GetPath(path);
 
 		/* Show request info */
-		CLog::Print("Request [%s] :: %s", type.c_str(), path.c_str());
+		CLog::Print("Request [%s] %s", type.c_str(), path.c_str());
 
 		/* Check request type */
 		if (!type.compare("GET")) {
 			/* Check path */
-			if (!path.compare("/"))
-				path = "/index.html";
+			if (!path.compare("/")) {
+				// path = "/index.html";
+
+				res = Client->SendRedirect("/core::webledge::");
+				continue;
+			}
 
 			/* Match internal calls */
 			res = Client->MatchInternal(path);
@@ -152,8 +156,6 @@ bool CServer::CreateThread(CSocket *Socket) {
 
 bool CServer::Accept(void) {
 	CSocket *Client;
-
-	CLog::Print("Waiting for incoming connection...");
 
 	/* Accept incoming connection */
 	Client = Socket.Accept();

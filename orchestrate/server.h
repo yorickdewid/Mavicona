@@ -13,7 +13,7 @@
 class CServer {
 	CSocket Socket;			//!< Socket object.
 
-	std::vector <CThread *> threads;	//!< Thread array.
+	std::vector<CThread *> threads;	//!< Thread array.
 	unsigned short port;		//!< Server port number.
 
   private:
