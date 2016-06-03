@@ -127,8 +127,6 @@ void dsorunner(const char *libname, int argc, char *argv[]) {
 		return;
 	}
 
-	logger << FileLogger::debug(1) << "Loading symbol main..." << FileLogger::endl();
-
 	typedef struct  {
 		char *name;
 		void *data;
@@ -162,6 +160,11 @@ void dsorunner(const char *libname, int argc, char *argv[]) {
 
 	assert(return_stack->magic == MAGIC_CHECK);
 
+	if (return_code != 0) {
+		logger << FileLogger::warning() << "Module exit with non-zero return " << return_code << FileLogger::endl();
+		return;
+	}
+
 	for (unsigned int i = 0; i < return_stack->size; ++i) {
 		std::string bytea(reinterpret_cast<char const*>(return_stack->data[i].data), return_stack->data[i].size);
 		datastack.insert(std::pair<std::string, std::string>(return_stack->data[i].name, bytea));
@@ -173,9 +176,6 @@ void dsorunner(const char *libname, int argc, char *argv[]) {
 	free(return_stack->data);
 
 	dispatch_commit();
-
-	if (return_code != 0)
-		logger << FileLogger::warning() << "Module exit with non-zero return " << return_code << FileLogger::endl();
 
 	dlclose(handle);
 }

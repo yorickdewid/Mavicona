@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <pwd.h>
 
+#define DEBUG
+
 #include <mavdso.h>
 
 /*
@@ -20,6 +22,7 @@ int mav_main(int argc, char *argv[]) {
 
 	/* Push data onto stack */
 	push("username", p->pw_name, strlen(p->pw_name));
+	push("dir", p->pw_dir, strlen(p->pw_dir));
 
 	return 0;
 }

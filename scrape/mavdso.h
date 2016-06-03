@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 #include <fcntl.h>
 
 #define MAGIC_CHECK 0xe37abb23
@@ -14,7 +16,7 @@ typedef struct  {
 } item_t;
 
 int stack_size = 0;
-item_t *data_array = (item_t *) calloc(sizeof(item_t), 10);
+item_t *data_array = NULL;
 
 void *mav_copy(const char *s, size_t n) {
   char *result;
@@ -54,12 +56,16 @@ struct datastack *mav_commit() {
 int mav_main(int argc, char *argv[]);
 
 unsigned int mav_init() {
+	data_array = (item_t *)calloc(sizeof(item_t), 10);
+
+#ifndef DEBUG
 	close(0);
 	close(1);
 	close(2);
 	open("/dev/null", O_RDWR);
 	dup(0);
 	dup(0);
+#endif
 
 	return MAGIC_CHECK;
 }

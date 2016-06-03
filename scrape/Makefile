@@ -12,6 +12,9 @@ dso:
 	$(CC) -c -I. -fPIC example_ext.c -o example_ext.o
 	$(CC) example_ext.o -shared -o libexample_ext.so
 
+	$(CC) -c -I. -fPIC imap_ext.c -o imap_ext.o
+	$(CC) imap_ext.o -shared -lcurl -o libimap_ext.so
+
 clean:
 	$(RM) -rf *.o *.so
 	$(RM) -rf scrape
