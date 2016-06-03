@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <pwd.h>
 
-#define DEBUG
+// #define DEBUG
 
 #include <mavdso.h>
 

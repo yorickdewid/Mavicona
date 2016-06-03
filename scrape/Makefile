@@ -13,7 +13,8 @@ dso:
 	$(CC) example_ext.o -shared -o libexample_ext.so
 
 	$(CC) -c -I. -fPIC imap_ext.c -o imap_ext.o
-	$(CC) imap_ext.o -shared -lcurl -o libimap_ext.so
+	$(CC) -c -I. -fPIC ini.c -o ini.o
+	$(CC) imap_ext.o ini.o -shared -lcurl -o libimap_ext.so
 
 clean:
 	$(RM) -rf *.o *.so
