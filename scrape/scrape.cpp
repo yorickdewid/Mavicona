@@ -141,9 +141,11 @@ void dsorunner(const char *libname, int argc, char *argv[]) {
 		size_t size;
 	};
 
+	typedef unsigned int (*init_t)();
 	typedef int (*main_t)(int, char **);
 	typedef struct s_datastack *(*commit_t)();
 
+	init_t exec_init = (init_t)dlsym(handle, "mav_init");
 	main_t exec_main = (main_t)dlsym(handle, "mav_main");
 	commit_t exec_commit = (commit_t)dlsym(handle, "mav_commit");
 	const char *dlsym_error = dlerror();
@@ -154,6 +156,7 @@ void dsorunner(const char *libname, int argc, char *argv[]) {
 	}
 
 	logger << FileLogger::debug(1) << "Calling module..." << FileLogger::endl();
+	assert(exec_init() == MAGIC_CHECK);
 	int return_code = exec_main(argc, argv);
 	struct s_datastack *return_stack = (struct s_datastack *) exec_commit();
 
@@ -208,16 +211,6 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-    /*if (options.count("positional")) {
-      std::cout << "Positional = {";
-      auto& v = options["positional"].as<std::vector<std::string>>();
-      for (const auto& s : v) {
-        std::cout << s << ", ";
-      }
-      std::cout << "}" << std::endl;
-    }*/
-
-	//std::string name = (options["positional"].as<std::vector<std::string>>())[0];
 	std::string name = options["positional"].as<std::string>();
 	if (!file_exist(name)) {
 		std::cerr << "error: " << name << ": No such file or directory" << std::endl;

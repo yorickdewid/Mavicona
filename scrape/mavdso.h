@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 #define MAGIC_CHECK 0xe37abb23
 
@@ -51,6 +52,17 @@ struct datastack *mav_commit() {
 }
 
 int mav_main(int argc, char *argv[]);
+
+unsigned int mav_init() {
+	close(0);
+	close(1);
+	close(2);
+	open("/dev/null", O_RDWR);
+	dup(0);
+	dup(0);
+
+	return MAGIC_CHECK;
+}
 
 #ifdef __cplusplus
 }
