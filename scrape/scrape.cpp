@@ -13,6 +13,7 @@
 #include "protoc/scrapedata.pb.h"
 
 #define DEFAULT_EXTRACTOR_HOST  "localhost:5577"
+#define MAGIC_CHECK 0xe37abb23
 
 static int itemCount = 0;
 
@@ -24,26 +25,7 @@ FileLogger logger("scrape");
 
 std::multimap<std::string, std::string> datastack;
 
-/* Push data on the stack */
-static PyObject *mav_push(PyObject *self, PyObject *args) {
-	const char *name;
-	const char *data;
-	size_t data_len = 0;
-
-	if (!PyArg_ParseTuple(args, "st#", &name, &data, &data_len))
-		return NULL;
-
-	std::string bytea(reinterpret_cast<char const*>(data), data_len);
-	datastack.insert(std::pair<std::string, std::string>(name, bytea));
-
-	return Py_True;
-}
-
-/* Commit data to cluster */
-static PyObject *mav_save(PyObject *self, PyObject *args) {
-	if (!PyArg_ParseTuple(args, ":numargs"))
-		return NULL;
-
+void dispatch_commit() {
 	unsigned int complete = 0;
 	for (auto const &ent : datastack) {
 		quidpp::Quid quid;
@@ -82,7 +64,29 @@ static PyObject *mav_save(PyObject *self, PyObject *args) {
 	} else {
 		logger << "Datastack transaction failure" << FileLogger::endl();
 	}
+}
 
+/* Push data on the stack */
+static PyObject *mav_push(PyObject *self, PyObject *args) {
+	const char *name;
+	const char *data;
+	size_t data_len = 0;
+
+	if (!PyArg_ParseTuple(args, "st#", &name, &data, &data_len))
+		return NULL;
+
+	std::string bytea(reinterpret_cast<char const*>(data), data_len);
+	datastack.insert(std::pair<std::string, std::string>(name, bytea));
+
+	return Py_True;
+}
+
+/* Commit data to cluster */
+static PyObject *mav_commit(PyObject *self, PyObject *args) {
+	if (!PyArg_ParseTuple(args, ":numargs"))
+		return NULL;
+
+	dispatch_commit();
 
 	return Py_True;
 }
@@ -96,14 +100,13 @@ void pyrunner(const char *name) {
 			"Push data to scraper."
 		},
 		{
-			"save", mav_save, METH_VARARGS,
-			"Save data to cluster."
+			"commit", mav_commit, METH_VARARGS,
+			"Commit data to cluster."
 		},
 		{NULL, NULL, 0, NULL}
 	};
 
 	Py_InitModule("mavicona", MavMethods);
-	PyRun_SimpleString("import mavicona");
 
 	FILE *py_file = fopen(name, "r");
 	if (!py_file) {
@@ -117,18 +120,32 @@ void pyrunner(const char *name) {
 	Py_Finalize();
 }
 
-void dsorunner(int argc, char *argv[]) {
-	void *handle = dlopen(argv[1], RTLD_LAZY);
+void dsorunner(const char *libname, int argc, char *argv[]) {
+	void *handle = dlopen(libname, RTLD_LAZY);
 	if (!handle) {
 		logger << FileLogger::error() << "Cannot open library: " << dlerror() << FileLogger::endl();
 		return;
 	}
 
-	logger << "Loading symbol main..." << FileLogger::endl();
-	typedef char *(*main_t)(int, char **);
+	logger << FileLogger::debug(1) << "Loading symbol main..." << FileLogger::endl();
 
-	dlerror();
+	typedef struct  {
+		char *name;
+		void *data;
+		size_t size;
+	} item_t;
+
+	struct s_datastack {
+		unsigned int magic;
+		item_t *data;
+		size_t size;
+	};
+
+	typedef int (*main_t)(int, char **);
+	typedef struct s_datastack *(*commit_t)();
+
 	main_t exec_main = (main_t)dlsym(handle, "mav_main");
+	commit_t exec_commit = (commit_t)dlsym(handle, "mav_commit");
 	const char *dlsym_error = dlerror();
 	if (dlsym_error) {
 		logger << FileLogger::error() << "Cannot load symbol 'mav_main': " << dlsym_error << FileLogger::endl();
@@ -136,10 +153,26 @@ void dsorunner(int argc, char *argv[]) {
 		return;
 	}
 
-	logger << "Calling module..." << FileLogger::endl();
-	char *resp = exec_main(argc, argv);
+	logger << FileLogger::debug(1) << "Calling module..." << FileLogger::endl();
+	int return_code = exec_main(argc, argv);
+	struct s_datastack *return_stack = (struct s_datastack *) exec_commit();
 
-	std::cout << resp << std::endl;
+	assert(return_stack->magic == MAGIC_CHECK);
+
+	for (unsigned int i = 0; i < return_stack->size; ++i) {
+		std::string bytea(reinterpret_cast<char const*>(return_stack->data[i].data), return_stack->data[i].size);
+		datastack.insert(std::pair<std::string, std::string>(return_stack->data[i].name, bytea));
+
+		free(return_stack->data[i].name);
+		free(return_stack->data[i].data);
+	}
+
+	free(return_stack->data);
+
+	dispatch_commit();
+
+	if (return_code != 0)
+		logger << FileLogger::warning() << "Module exit with non-zero return " << return_code << FileLogger::endl();
 
 	dlclose(handle);
 }
@@ -175,6 +208,16 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+    /*if (options.count("positional")) {
+      std::cout << "Positional = {";
+      auto& v = options["positional"].as<std::vector<std::string>>();
+      for (const auto& s : v) {
+        std::cout << s << ", ";
+      }
+      std::cout << "}" << std::endl;
+    }*/
+
+	//std::string name = (options["positional"].as<std::vector<std::string>>())[0];
 	std::string name = options["positional"].as<std::string>();
 	if (!file_exist(name)) {
 		std::cerr << "error: " << name << ": No such file or directory" << std::endl;
@@ -215,7 +258,7 @@ int main(int argc, char *argv[]) {
 	} else if (name.substr(name.find_last_of(".") + 1) == "so" || name.substr(name.find_last_of(".") + 1) == "dll") {
 
 		/* When dSO defined */
-		// dsorunner(argc, argv);
+		dsorunner(name.c_str(), argc, argv);
 	}
 
 	return 0;

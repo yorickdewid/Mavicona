@@ -9,7 +9,7 @@ all: $(OBJS)
 	$(CC) $(LFLAGS) $(OBJS) -o scrape
 
 dso:
-	$(CC) -c -fPIC example_ext.c -o example_ext.o
+	$(CC) -c -I. -fPIC example_ext.c -o example_ext.o
 	$(CC) example_ext.o -shared -o libexample_ext.so
 
 clean:
