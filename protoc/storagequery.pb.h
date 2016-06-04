@@ -33,6 +33,7 @@ void protobuf_AssignDesc_storagequery_2eproto();
 void protobuf_ShutdownFile_storagequery_2eproto();
 
 class StorageQuery;
+class StorageQuery_MetaEntry;
 
 enum StorageQuery_Action {
   StorageQuery_Action_SELECT = 0,
@@ -76,6 +77,118 @@ inline bool StorageQuery_Result_Parse(
     StorageQuery_Result_descriptor(), name, value);
 }
 // ===================================================================
+
+class StorageQuery_MetaEntry : public ::google::protobuf::Message {
+ public:
+  StorageQuery_MetaEntry();
+  virtual ~StorageQuery_MetaEntry();
+
+  StorageQuery_MetaEntry(const StorageQuery_MetaEntry& from);
+
+  inline StorageQuery_MetaEntry& operator=(const StorageQuery_MetaEntry& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const StorageQuery_MetaEntry& default_instance();
+
+  void Swap(StorageQuery_MetaEntry* other);
+
+  // implements Message ----------------------------------------------
+
+  StorageQuery_MetaEntry* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const StorageQuery_MetaEntry& from);
+  void MergeFrom(const StorageQuery_MetaEntry& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // required string key = 1;
+  inline bool has_key() const;
+  inline void clear_key();
+  static const int kKeyFieldNumber = 1;
+  inline const ::std::string& key() const;
+  inline void set_key(const ::std::string& value);
+  inline void set_key(const char* value);
+  inline void set_key(const char* value, size_t size);
+  inline ::std::string* mutable_key();
+  inline ::std::string* release_key();
+  inline void set_allocated_key(::std::string* key);
+
+  // optional bytes value = 2;
+  inline bool has_value() const;
+  inline void clear_value();
+  static const int kValueFieldNumber = 2;
+  inline const ::std::string& value() const;
+  inline void set_value(const ::std::string& value);
+  inline void set_value(const char* value);
+  inline void set_value(const void* value, size_t size);
+  inline ::std::string* mutable_value();
+  inline ::std::string* release_value();
+  inline void set_allocated_value(::std::string* value);
+
+  // repeated .StorageQuery.MetaEntry meta = 3;
+  inline int meta_size() const;
+  inline void clear_meta();
+  static const int kMetaFieldNumber = 3;
+  inline const ::StorageQuery_MetaEntry& meta(int index) const;
+  inline ::StorageQuery_MetaEntry* mutable_meta(int index);
+  inline ::StorageQuery_MetaEntry* add_meta();
+  inline const ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry >&
+      meta() const;
+  inline ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry >*
+      mutable_meta();
+
+  // @@protoc_insertion_point(class_scope:StorageQuery.MetaEntry)
+ private:
+  inline void set_has_key();
+  inline void clear_has_key();
+  inline void set_has_value();
+  inline void clear_has_value();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::std::string* key_;
+  ::std::string* value_;
+  ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry > meta_;
+  friend void  protobuf_AddDesc_storagequery_2eproto();
+  friend void protobuf_AssignDesc_storagequery_2eproto();
+  friend void protobuf_ShutdownFile_storagequery_2eproto();
+
+  void InitAsDefaultInstance();
+  static StorageQuery_MetaEntry* default_instance_;
+};
+// -------------------------------------------------------------------
 
 class StorageQuery : public ::google::protobuf::Message {
  public:
@@ -127,6 +240,8 @@ class StorageQuery : public ::google::protobuf::Message {
   ::google::protobuf::Metadata GetMetadata() const;
 
   // nested types ----------------------------------------------------
+
+  typedef StorageQuery_MetaEntry MetaEntry;
 
   typedef StorageQuery_Action Action;
   static const Action SELECT = StorageQuery_Action_SELECT;
@@ -238,6 +353,18 @@ class StorageQuery : public ::google::protobuf::Message {
   inline ::StorageQuery_Result queryresult() const;
   inline void set_queryresult(::StorageQuery_Result value);
 
+  // repeated .StorageQuery.MetaEntry meta = 7;
+  inline int meta_size() const;
+  inline void clear_meta();
+  static const int kMetaFieldNumber = 7;
+  inline const ::StorageQuery_MetaEntry& meta(int index) const;
+  inline ::StorageQuery_MetaEntry* mutable_meta(int index);
+  inline ::StorageQuery_MetaEntry* add_meta();
+  inline const ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry >&
+      meta() const;
+  inline ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry >*
+      mutable_meta();
+
   // @@protoc_insertion_point(class_scope:StorageQuery)
  private:
   inline void set_has_name();
@@ -262,6 +389,7 @@ class StorageQuery : public ::google::protobuf::Message {
   ::google::protobuf::int32 id_;
   int queryaction_;
   ::std::string* content_;
+  ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry > meta_;
   int queryresult_;
   friend void  protobuf_AddDesc_storagequery_2eproto();
   friend void protobuf_AssignDesc_storagequery_2eproto();
@@ -274,6 +402,192 @@ class StorageQuery : public ::google::protobuf::Message {
 
 
 // ===================================================================
+
+// StorageQuery_MetaEntry
+
+// required string key = 1;
+inline bool StorageQuery_MetaEntry::has_key() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void StorageQuery_MetaEntry::set_has_key() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void StorageQuery_MetaEntry::clear_has_key() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void StorageQuery_MetaEntry::clear_key() {
+  if (key_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    key_->clear();
+  }
+  clear_has_key();
+}
+inline const ::std::string& StorageQuery_MetaEntry::key() const {
+  // @@protoc_insertion_point(field_get:StorageQuery.MetaEntry.key)
+  return *key_;
+}
+inline void StorageQuery_MetaEntry::set_key(const ::std::string& value) {
+  set_has_key();
+  if (key_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    key_ = new ::std::string;
+  }
+  key_->assign(value);
+  // @@protoc_insertion_point(field_set:StorageQuery.MetaEntry.key)
+}
+inline void StorageQuery_MetaEntry::set_key(const char* value) {
+  set_has_key();
+  if (key_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    key_ = new ::std::string;
+  }
+  key_->assign(value);
+  // @@protoc_insertion_point(field_set_char:StorageQuery.MetaEntry.key)
+}
+inline void StorageQuery_MetaEntry::set_key(const char* value, size_t size) {
+  set_has_key();
+  if (key_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    key_ = new ::std::string;
+  }
+  key_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:StorageQuery.MetaEntry.key)
+}
+inline ::std::string* StorageQuery_MetaEntry::mutable_key() {
+  set_has_key();
+  if (key_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    key_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:StorageQuery.MetaEntry.key)
+  return key_;
+}
+inline ::std::string* StorageQuery_MetaEntry::release_key() {
+  clear_has_key();
+  if (key_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = key_;
+    key_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void StorageQuery_MetaEntry::set_allocated_key(::std::string* key) {
+  if (key_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete key_;
+  }
+  if (key) {
+    set_has_key();
+    key_ = key;
+  } else {
+    clear_has_key();
+    key_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:StorageQuery.MetaEntry.key)
+}
+
+// optional bytes value = 2;
+inline bool StorageQuery_MetaEntry::has_value() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void StorageQuery_MetaEntry::set_has_value() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void StorageQuery_MetaEntry::clear_has_value() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void StorageQuery_MetaEntry::clear_value() {
+  if (value_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    value_->clear();
+  }
+  clear_has_value();
+}
+inline const ::std::string& StorageQuery_MetaEntry::value() const {
+  // @@protoc_insertion_point(field_get:StorageQuery.MetaEntry.value)
+  return *value_;
+}
+inline void StorageQuery_MetaEntry::set_value(const ::std::string& value) {
+  set_has_value();
+  if (value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    value_ = new ::std::string;
+  }
+  value_->assign(value);
+  // @@protoc_insertion_point(field_set:StorageQuery.MetaEntry.value)
+}
+inline void StorageQuery_MetaEntry::set_value(const char* value) {
+  set_has_value();
+  if (value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    value_ = new ::std::string;
+  }
+  value_->assign(value);
+  // @@protoc_insertion_point(field_set_char:StorageQuery.MetaEntry.value)
+}
+inline void StorageQuery_MetaEntry::set_value(const void* value, size_t size) {
+  set_has_value();
+  if (value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    value_ = new ::std::string;
+  }
+  value_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:StorageQuery.MetaEntry.value)
+}
+inline ::std::string* StorageQuery_MetaEntry::mutable_value() {
+  set_has_value();
+  if (value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    value_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:StorageQuery.MetaEntry.value)
+  return value_;
+}
+inline ::std::string* StorageQuery_MetaEntry::release_value() {
+  clear_has_value();
+  if (value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = value_;
+    value_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void StorageQuery_MetaEntry::set_allocated_value(::std::string* value) {
+  if (value_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete value_;
+  }
+  if (value) {
+    set_has_value();
+    value_ = value;
+  } else {
+    clear_has_value();
+    value_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:StorageQuery.MetaEntry.value)
+}
+
+// repeated .StorageQuery.MetaEntry meta = 3;
+inline int StorageQuery_MetaEntry::meta_size() const {
+  return meta_.size();
+}
+inline void StorageQuery_MetaEntry::clear_meta() {
+  meta_.Clear();
+}
+inline const ::StorageQuery_MetaEntry& StorageQuery_MetaEntry::meta(int index) const {
+  // @@protoc_insertion_point(field_get:StorageQuery.MetaEntry.meta)
+  return meta_.Get(index);
+}
+inline ::StorageQuery_MetaEntry* StorageQuery_MetaEntry::mutable_meta(int index) {
+  // @@protoc_insertion_point(field_mutable:StorageQuery.MetaEntry.meta)
+  return meta_.Mutable(index);
+}
+inline ::StorageQuery_MetaEntry* StorageQuery_MetaEntry::add_meta() {
+  // @@protoc_insertion_point(field_add:StorageQuery.MetaEntry.meta)
+  return meta_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry >&
+StorageQuery_MetaEntry::meta() const {
+  // @@protoc_insertion_point(field_list:StorageQuery.MetaEntry.meta)
+  return meta_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry >*
+StorageQuery_MetaEntry::mutable_meta() {
+  // @@protoc_insertion_point(field_mutable_list:StorageQuery.MetaEntry.meta)
+  return &meta_;
+}
+
+// -------------------------------------------------------------------
 
 // StorageQuery
 
@@ -577,6 +891,36 @@ inline void StorageQuery::set_queryresult(::StorageQuery_Result value) {
   set_has_queryresult();
   queryresult_ = value;
   // @@protoc_insertion_point(field_set:StorageQuery.queryresult)
+}
+
+// repeated .StorageQuery.MetaEntry meta = 7;
+inline int StorageQuery::meta_size() const {
+  return meta_.size();
+}
+inline void StorageQuery::clear_meta() {
+  meta_.Clear();
+}
+inline const ::StorageQuery_MetaEntry& StorageQuery::meta(int index) const {
+  // @@protoc_insertion_point(field_get:StorageQuery.meta)
+  return meta_.Get(index);
+}
+inline ::StorageQuery_MetaEntry* StorageQuery::mutable_meta(int index) {
+  // @@protoc_insertion_point(field_mutable:StorageQuery.meta)
+  return meta_.Mutable(index);
+}
+inline ::StorageQuery_MetaEntry* StorageQuery::add_meta() {
+  // @@protoc_insertion_point(field_add:StorageQuery.meta)
+  return meta_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry >&
+StorageQuery::meta() const {
+  // @@protoc_insertion_point(field_list:StorageQuery.meta)
+  return meta_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry >*
+StorageQuery::mutable_meta() {
+  // @@protoc_insertion_point(field_mutable_list:StorageQuery.meta)
+  return &meta_;
 }
 
 

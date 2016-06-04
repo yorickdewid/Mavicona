@@ -21,6 +21,9 @@ namespace {
 const ::google::protobuf::Descriptor* StorageQuery_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   StorageQuery_reflection_ = NULL;
+const ::google::protobuf::Descriptor* StorageQuery_MetaEntry_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  StorageQuery_MetaEntry_reflection_ = NULL;
 const ::google::protobuf::EnumDescriptor* StorageQuery_Action_descriptor_ = NULL;
 const ::google::protobuf::EnumDescriptor* StorageQuery_Result_descriptor_ = NULL;
 
@@ -34,13 +37,14 @@ void protobuf_AssignDesc_storagequery_2eproto() {
       "storagequery.proto");
   GOOGLE_CHECK(file != NULL);
   StorageQuery_descriptor_ = file->message_type(0);
-  static const int StorageQuery_offsets_[6] = {
+  static const int StorageQuery_offsets_[7] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, quid_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, content_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, queryaction_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, queryresult_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, meta_),
   };
   StorageQuery_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -53,6 +57,23 @@ void protobuf_AssignDesc_storagequery_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(StorageQuery));
+  StorageQuery_MetaEntry_descriptor_ = StorageQuery_descriptor_->nested_type(0);
+  static const int StorageQuery_MetaEntry_offsets_[3] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery_MetaEntry, key_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery_MetaEntry, value_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery_MetaEntry, meta_),
+  };
+  StorageQuery_MetaEntry_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      StorageQuery_MetaEntry_descriptor_,
+      StorageQuery_MetaEntry::default_instance_,
+      StorageQuery_MetaEntry_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery_MetaEntry, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery_MetaEntry, _unknown_fields_),
+      -1,
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(StorageQuery_MetaEntry));
   StorageQuery_Action_descriptor_ = StorageQuery_descriptor_->enum_type(0);
   StorageQuery_Result_descriptor_ = StorageQuery_descriptor_->enum_type(1);
 }
@@ -69,6 +90,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     StorageQuery_descriptor_, &StorageQuery::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    StorageQuery_MetaEntry_descriptor_, &StorageQuery_MetaEntry::default_instance());
 }
 
 }  // namespace
@@ -76,6 +99,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
 void protobuf_ShutdownFile_storagequery_2eproto() {
   delete StorageQuery::default_instance_;
   delete StorageQuery_reflection_;
+  delete StorageQuery_MetaEntry::default_instance_;
+  delete StorageQuery_MetaEntry_reflection_;
 }
 
 void protobuf_AddDesc_storagequery_2eproto() {
@@ -85,18 +110,23 @@ void protobuf_AddDesc_storagequery_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\022storagequery.proto\"\213\002\n\014StorageQuery\022\014\n"
+    "\n\022storagequery.proto\"\202\003\n\014StorageQuery\022\014\n"
     "\004name\030\001 \002(\t\022\n\n\002id\030\002 \002(\005\022\014\n\004quid\030\003 \002(\t\022\017\n"
     "\007content\030\004 \001(\014\022)\n\013queryaction\030\005 \002(\0162\024.St"
     "orageQuery.Action\022)\n\013queryresult\030\006 \002(\0162\024"
-    ".StorageQuery.Result\"8\n\006Action\022\n\n\006SELECT"
-    "\020\000\022\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE\020\003\"2"
-    "\n\006Result\022\013\n\007SUCCESS\020\000\022\014\n\010NOTFOUND\020\001\022\r\n\tD"
-    "UPLICATE\020\002", 290);
+    ".StorageQuery.Result\022%\n\004meta\030\007 \003(\0132\027.Sto"
+    "rageQuery.MetaEntry\032N\n\tMetaEntry\022\013\n\003key\030"
+    "\001 \002(\t\022\r\n\005value\030\002 \001(\014\022%\n\004meta\030\003 \003(\0132\027.Sto"
+    "rageQuery.MetaEntry\"8\n\006Action\022\n\n\006SELECT\020"
+    "\000\022\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE\020\003\"2\n"
+    "\006Result\022\013\n\007SUCCESS\020\000\022\014\n\010NOTFOUND\020\001\022\r\n\tDU"
+    "PLICATE\020\002", 409);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "storagequery.proto", &protobuf_RegisterTypes);
   StorageQuery::default_instance_ = new StorageQuery();
+  StorageQuery_MetaEntry::default_instance_ = new StorageQuery_MetaEntry();
   StorageQuery::default_instance_->InitAsDefaultInstance();
+  StorageQuery_MetaEntry::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_storagequery_2eproto);
 }
 
@@ -158,12 +188,346 @@ const StorageQuery_Result StorageQuery::Result_MAX;
 const int StorageQuery::Result_ARRAYSIZE;
 #endif  // _MSC_VER
 #ifndef _MSC_VER
+const int StorageQuery_MetaEntry::kKeyFieldNumber;
+const int StorageQuery_MetaEntry::kValueFieldNumber;
+const int StorageQuery_MetaEntry::kMetaFieldNumber;
+#endif  // !_MSC_VER
+
+StorageQuery_MetaEntry::StorageQuery_MetaEntry()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:StorageQuery.MetaEntry)
+}
+
+void StorageQuery_MetaEntry::InitAsDefaultInstance() {
+}
+
+StorageQuery_MetaEntry::StorageQuery_MetaEntry(const StorageQuery_MetaEntry& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:StorageQuery.MetaEntry)
+}
+
+void StorageQuery_MetaEntry::SharedCtor() {
+  ::google::protobuf::internal::GetEmptyString();
+  _cached_size_ = 0;
+  key_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  value_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+StorageQuery_MetaEntry::~StorageQuery_MetaEntry() {
+  // @@protoc_insertion_point(destructor:StorageQuery.MetaEntry)
+  SharedDtor();
+}
+
+void StorageQuery_MetaEntry::SharedDtor() {
+  if (key_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete key_;
+  }
+  if (value_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete value_;
+  }
+  if (this != default_instance_) {
+  }
+}
+
+void StorageQuery_MetaEntry::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* StorageQuery_MetaEntry::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return StorageQuery_MetaEntry_descriptor_;
+}
+
+const StorageQuery_MetaEntry& StorageQuery_MetaEntry::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_storagequery_2eproto();
+  return *default_instance_;
+}
+
+StorageQuery_MetaEntry* StorageQuery_MetaEntry::default_instance_ = NULL;
+
+StorageQuery_MetaEntry* StorageQuery_MetaEntry::New() const {
+  return new StorageQuery_MetaEntry;
+}
+
+void StorageQuery_MetaEntry::Clear() {
+  if (_has_bits_[0 / 32] & 3) {
+    if (has_key()) {
+      if (key_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        key_->clear();
+      }
+    }
+    if (has_value()) {
+      if (value_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        value_->clear();
+      }
+    }
+  }
+  meta_.Clear();
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool StorageQuery_MetaEntry::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:StorageQuery.MetaEntry)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // required string key = 1;
+      case 1: {
+        if (tag == 10) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_key()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->key().data(), this->key().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "key");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(18)) goto parse_value;
+        break;
+      }
+
+      // optional bytes value = 2;
+      case 2: {
+        if (tag == 18) {
+         parse_value:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->mutable_value()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(26)) goto parse_meta;
+        break;
+      }
+
+      // repeated .StorageQuery.MetaEntry meta = 3;
+      case 3: {
+        if (tag == 26) {
+         parse_meta:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+                input, add_meta()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(26)) goto parse_meta;
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:StorageQuery.MetaEntry)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:StorageQuery.MetaEntry)
+  return false;
+#undef DO_
+}
+
+void StorageQuery_MetaEntry::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:StorageQuery.MetaEntry)
+  // required string key = 1;
+  if (has_key()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->key().data(), this->key().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "key");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      1, this->key(), output);
+  }
+
+  // optional bytes value = 2;
+  if (has_value()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
+      2, this->value(), output);
+  }
+
+  // repeated .StorageQuery.MetaEntry meta = 3;
+  for (int i = 0; i < this->meta_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      3, this->meta(i), output);
+  }
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:StorageQuery.MetaEntry)
+}
+
+::google::protobuf::uint8* StorageQuery_MetaEntry::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:StorageQuery.MetaEntry)
+  // required string key = 1;
+  if (has_key()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->key().data(), this->key().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "key");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        1, this->key(), target);
+  }
+
+  // optional bytes value = 2;
+  if (has_value()) {
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        2, this->value(), target);
+  }
+
+  // repeated .StorageQuery.MetaEntry meta = 3;
+  for (int i = 0; i < this->meta_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        3, this->meta(i), target);
+  }
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:StorageQuery.MetaEntry)
+  return target;
+}
+
+int StorageQuery_MetaEntry::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // required string key = 1;
+    if (has_key()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->key());
+    }
+
+    // optional bytes value = 2;
+    if (has_value()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::BytesSize(
+          this->value());
+    }
+
+  }
+  // repeated .StorageQuery.MetaEntry meta = 3;
+  total_size += 1 * this->meta_size();
+  for (int i = 0; i < this->meta_size(); i++) {
+    total_size +=
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        this->meta(i));
+  }
+
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void StorageQuery_MetaEntry::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const StorageQuery_MetaEntry* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const StorageQuery_MetaEntry*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void StorageQuery_MetaEntry::MergeFrom(const StorageQuery_MetaEntry& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  meta_.MergeFrom(from.meta_);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_key()) {
+      set_key(from.key());
+    }
+    if (from.has_value()) {
+      set_value(from.value());
+    }
+  }
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void StorageQuery_MetaEntry::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void StorageQuery_MetaEntry::CopyFrom(const StorageQuery_MetaEntry& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool StorageQuery_MetaEntry::IsInitialized() const {
+  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
+
+  if (!::google::protobuf::internal::AllAreInitialized(this->meta())) return false;
+  return true;
+}
+
+void StorageQuery_MetaEntry::Swap(StorageQuery_MetaEntry* other) {
+  if (other != this) {
+    std::swap(key_, other->key_);
+    std::swap(value_, other->value_);
+    meta_.Swap(&other->meta_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+  }
+}
+
+::google::protobuf::Metadata StorageQuery_MetaEntry::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = StorageQuery_MetaEntry_descriptor_;
+  metadata.reflection = StorageQuery_MetaEntry_reflection_;
+  return metadata;
+}
+
+
+// -------------------------------------------------------------------
+
+#ifndef _MSC_VER
 const int StorageQuery::kNameFieldNumber;
 const int StorageQuery::kIdFieldNumber;
 const int StorageQuery::kQuidFieldNumber;
 const int StorageQuery::kContentFieldNumber;
 const int StorageQuery::kQueryactionFieldNumber;
 const int StorageQuery::kQueryresultFieldNumber;
+const int StorageQuery::kMetaFieldNumber;
 #endif  // !_MSC_VER
 
 StorageQuery::StorageQuery()
@@ -268,6 +632,7 @@ void StorageQuery::Clear() {
 #undef OFFSET_OF_FIELD_
 #undef ZR_
 
+  meta_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -379,6 +744,20 @@ bool StorageQuery::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(58)) goto parse_meta;
+        break;
+      }
+
+      // repeated .StorageQuery.MetaEntry meta = 7;
+      case 7: {
+        if (tag == 58) {
+         parse_meta:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+                input, add_meta()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(58)) goto parse_meta;
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -451,6 +830,12 @@ void StorageQuery::SerializeWithCachedSizes(
       6, this->queryresult(), output);
   }
 
+  // repeated .StorageQuery.MetaEntry meta = 7;
+  for (int i = 0; i < this->meta_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      7, this->meta(i), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -507,6 +892,13 @@ void StorageQuery::SerializeWithCachedSizes(
       6, this->queryresult(), target);
   }
 
+  // repeated .StorageQuery.MetaEntry meta = 7;
+  for (int i = 0; i < this->meta_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        7, this->meta(i), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -560,6 +952,14 @@ int StorageQuery::ByteSize() const {
     }
 
   }
+  // repeated .StorageQuery.MetaEntry meta = 7;
+  total_size += 1 * this->meta_size();
+  for (int i = 0; i < this->meta_size(); i++) {
+    total_size +=
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        this->meta(i));
+  }
+
   if (!unknown_fields().empty()) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
@@ -585,6 +985,7 @@ void StorageQuery::MergeFrom(const ::google::protobuf::Message& from) {
 
 void StorageQuery::MergeFrom(const StorageQuery& from) {
   GOOGLE_CHECK_NE(&from, this);
+  meta_.MergeFrom(from.meta_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_name()) {
       set_name(from.name());
@@ -623,6 +1024,7 @@ void StorageQuery::CopyFrom(const StorageQuery& from) {
 bool StorageQuery::IsInitialized() const {
   if ((_has_bits_[0] & 0x00000037) != 0x00000037) return false;
 
+  if (!::google::protobuf::internal::AllAreInitialized(this->meta())) return false;
   return true;
 }
 
@@ -634,6 +1036,7 @@ void StorageQuery::Swap(StorageQuery* other) {
     std::swap(content_, other->content_);
     std::swap(queryaction_, other->queryaction_);
     std::swap(queryresult_, other->queryresult_);
+    meta_.Swap(&other->meta_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
