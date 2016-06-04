@@ -80,6 +80,27 @@ void initMaster() {
 		query.set_queryaction(StorageQuery::INSERT);
 		query.set_queryresult(StorageQuery::SUCCESS);
 
+		for (int i = 0; i < data.meta_size(); i++) {
+			ScrapeData::MetaEntry skeygroup = data.meta(i);
+
+			StorageQuery::MetaEntry *dkeygroup = query.add_meta();
+			dkeygroup->set_key(skeygroup.key());
+
+			if (skeygroup.has_value()) {
+				dkeygroup->set_value(skeygroup.value());
+			} else if (skeygroup.meta_size()) {
+
+				/* Decending */
+				for (int j = 0; j < skeygroup.meta_size(); j++) {
+					ScrapeData::MetaEntry skey = skeygroup.meta(j);
+
+					StorageQuery::MetaEntry *dkey = dkeygroup->add_meta();
+					dkey->set_key(skey.key());
+					dkey->set_value(skey.value());
+				}
+			}
+		}
+
 		performQueryRequest(query);
 
 		/* Send reply back to client */
@@ -94,8 +115,8 @@ void initMaster() {
 void initSlave() {
 	std::cout << "Slave" << std::endl;
 
-	Engine coredb(EngineType::DB_ABI);
-	Engine metadb(EngineType::DB_ADI);
+	Engine recorddb(EngineType::DB_ABI);
+	Engine datadb(EngineType::DB_ADI);
 
 	/* Prepare our context and socket */
 	zmq::context_t context(1);
@@ -121,20 +142,28 @@ void initSlave() {
 			switch (query.queryaction()) {
 				case StorageQuery::SELECT:
 					std::cout << "Request " << query.id() << " [SELECT] " << query.quid() << " named '" << query.name() << "'" << std::endl;
-					query.set_content(coredb.get(query.quid()));
+					query.set_content(datadb.get(query.quid()));
+
 					break;
 				case StorageQuery::INSERT:
 					std::cout << "Request " << query.id() << " [INSERT] " << query.quid() << " named '" << query.name() << "'" << std::endl;
-					coredb.put(query.quid(), query.name(), query.content());
-					// insert into meta [ADI]
+					datadb.put(query.quid(), query.name(), query.content());
+
+					for (int i = 0; i < query.meta_size(); i++) {
+						if (query.meta(i).has_value())
+							recorddb.put(query.quid(), query.meta(i).key(), query.meta(i).value());
+					}
+
 					break;
 				case StorageQuery::UPDATE:
 					std::cout << "Request " << query.id() << " [UPDATE] " << query.quid() << " named '" << query.name() << "'" << std::endl;
-					coredb.put(query.quid(), query.name(), query.content(), true);
+					datadb.put(query.quid(), query.name(), query.content(), true);
+
 					break;
 				case StorageQuery::DELETE:
 					std::cout << "Request " << query.id() << " [DELETE] " << query.quid() << " named '" << query.name() << "'" << std::endl;
-					coredb.remove(query.quid(), query.name());
+					datadb.remove(query.quid(), query.name());
+
 					break;
 			}
 		} catch (upscaledb::error &error) {
