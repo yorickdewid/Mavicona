@@ -8,7 +8,7 @@ void Store::send(const std::string& data) {
 	memcpy(reinterpret_cast<void *>(request.data()), data.c_str(), data.size());
 	socket->send(request);
 
-	// Get the reply
+	/* Get the reply */
 	zmq::message_t reply;
 	socket->recv(&reply);
 
@@ -23,7 +23,7 @@ bool Store::run() {
 	std::cout << "Connecting to cynder..." << std::endl;
 	socket->connect(("tcp://" + host).c_str());
 
-	// Perform query
+	/* Perform query */
 	std::string serialized;
 	m_Payload->SerializeToString(&serialized);
 

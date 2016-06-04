@@ -26,7 +26,7 @@ std::string timestampToString(const time_t rawtime) {
 void PlainTextHandler::handle() {
 	const ScrapeData::Data *data = getPayload();
 
-	std::cout << "Item[" << getId() << "] handler [plaintxt]" << std::endl;
+	// std::cout << "Item[" << getId() << "] handler [plaintxt]" << std::endl;
 
 	switch (data->payload().size()) {
 		case 32:

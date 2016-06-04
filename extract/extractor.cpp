@@ -55,28 +55,7 @@ void parseData(ScrapeData& data, unsigned int counter) {
 	Detect detector;
 	Ruler ruler(commonRuleset);
 
-	//int scrapeId = data.id();
 	data.set_id(counter);
-
-	//std::cout << "Item[" << data.id() << "] scrapeid: " << scrapeId << std::endl;
-	//std::cout << "Item[" << data.id() << "] object: " << data.quid() << std::endl;
-	//std::cout << "Item[" << data.id() << "] name: " << data.name() << std::endl;
-
-	/*switch (data.type()) {
-		case ScrapeData::PLAIN:
-			std::cout << "Item[" << data.id() << "] type: PLAIN" << std::endl;
-			break;
-		case ScrapeData::FILE:
-			std::cout << "Item[" << data.id() << "] type: FILE" << std::endl;
-			break;
-		case ScrapeData::BINARY:
-			std::cout << "Item[" << data.id() << "] type: BINARY" << std::endl;
-			break;
-		case ScrapeData::STREAM:
-			std::cout << "Item[" << data.id() << "] type: STREAM" << std::endl;
-			break;
-	}*/
-
 	ScrapeData::Data payload = data.content();
 
 	/* Determine type and additional information */
@@ -92,10 +71,6 @@ void parseData(ScrapeData& data, unsigned int counter) {
 	 * basically maches anything.
 	 */
 	if (detector.found()) {
-		//std::cout << "Item[" << data.id() << "] mime name: " << detector.mime()->name() << std::endl;
-		//std::cout << "Item[" << data.id() << "] mime type: " << detector.mime()->type() << std::endl;
-		//std::cout << "Item[" << data.id() << "] mime category: " << detector.mime()->category() << std::endl;
-
 		ScrapeData::MetaEntry *metaMime = data.add_meta();
 		metaMime->set_key("mime");
 
@@ -112,8 +87,6 @@ void parseData(ScrapeData& data, unsigned int counter) {
 		metaCategory->set_value(detector.mime()->category());
 
 		if (!detector.charset().empty()) {
-			//std::cout << "Item[" << data.id() << "] charset: " << detector.charset() << std::endl;
-
 			ScrapeData::MetaEntry *metaCharset = data.add_meta();
 			metaCharset->set_key("charset");
 			metaCharset->set_value(detector.charset());
