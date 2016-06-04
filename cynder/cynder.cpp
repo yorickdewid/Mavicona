@@ -2,25 +2,23 @@
 #include <map>
 #include <string>
 #include <iostream>
-// #include <quidpp.h>
-//#include <ups/upscaledb.hpp>
-//#include <leveldb/db.h>
+#include <quidpp.h>
 
+#include "common/util.h"
 #include "common/sdbm_hash.h"
 #include "common/crc32.h"
 #include "common/hdb.h"
+#include "common/config.h"
+#include "common/logger.h"
+#include "common/cxxopts.h"
 #include "protoc/scrapedata.pb.h"
 #include "protoc/storagequery.pb.h"
 #include "consistent_hash.h"
-#include "server_node.h"
-#include "node_config.h"
 #include "engine.h"
 
 #define SHARDING_SPREAD		10
 
 static Consistent::HashRing<std::string, quidpp::Quid, Crc32> nodeRing(SHARDING_SPREAD, Crc32());
-static std::map<std::string, ServerNode> servers;
-static NodeConfig nc;
 
 void performQueryRequest(StorageQuery& query) {
 	zmq::context_t context(1);
@@ -30,7 +28,7 @@ void performQueryRequest(StorageQuery& query) {
 	query.SerializeToString(&serialized);
 
 	std::string host = nodeRing.getNode(query.quid());
-	socket.connect(("tcp://" + host + ":5522").c_str());
+	socket.connect(("tcp://" + host).c_str());
 	std::cout << "Connect to server " << host << " for record " << query.quid() << std::endl;
 
 	zmq::message_t request(serialized.size());
@@ -40,18 +38,13 @@ void performQueryRequest(StorageQuery& query) {
 	// Get the reply
 	zmq::message_t reply;
 	socket.recv(&reply);
-	socket.disconnect(("tcp://" + host + ":5522").c_str());
+	socket.disconnect(("tcp://" + host).c_str());
 
 	query.ParseFromArray(reply.data(), reply.size());
 }
 
 void initMaster() {
 	std::cout << "Master" << std::endl;
-
-	/* Setup node ring */
-	nc.foreachSlaveNode([](const std::string & key, const std::string & value) -> void {
-		std::cout << "Adding '" << value << ":" << nodeRing.addNode(value) << "' to nodering" << std::endl;
-	});
 
 	/* Prepare our context and socket */
 	zmq::context_t context(1);
@@ -131,7 +124,7 @@ void initSlave() {
 	while (true) {
 		zmq::message_t request;
 
-		//  Wait for next request from client
+		/* Wait for next request from client */
 		socket.recv(&request);
 
 		StorageQuery query;
@@ -180,7 +173,7 @@ void initSlave() {
 			}
 		}
 
-		// Send back query structure
+		/* Send back query structure */
 		std::string serialized;
 		query.SerializeToString(&serialized);
 
@@ -194,16 +187,54 @@ int main(int argc, char *argv[]) {
 
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-	if (argc > 2 && !strcmp(argv[1], "-a")) {
-		nc.addSlaveNode(argv[2]);
+	cxxopts::Options options(argv[0], " [FILE]");
+
+	options.add_options("Help")
+	("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
+	("m,master", "Promote node to master")
+	("h,help", "Print this help");
+
+	try {
+		options.parse(argc, argv);
+	} catch (const cxxopts::OptionException& e) {
+		std::cerr << "error parsing options: " << e.what() << std::endl;
+		return 1;
+	}
+
+	if (options.count("help")) {
+		std::cerr << options.help({"Help"}) << std::endl;
 		return 0;
 	}
 
-	if (argc > 1 && !strcmp(argv[1], "-m")) {
-		nc.setMaster();
+	/* Make sure we have an pitcher and cynder host even if the ruleset ignores this action */
+	if (options.count("hbs")) {
+		std::string configfile = options["hbs"].as<std::string>();
+		if (!file_exist(configfile)) {
+			std::cerr << "error: " << configfile << ": No such file or directory" << std::endl;
+			return 1;
+		}
+
+		ConfigFile config(configfile);
+		if (!config.exist("cynder-master")) {
+			std::cerr << "Must be at least 1 cynder master listed" << std::endl;
+			return 1;
+		}
+
+		if (!config.exist("cynder-worker")) {
+			std::cerr << "Must be at least 1 cynder worker listed" << std::endl;
+			return 1;
+		}
+
+		ConfigFile::range r = config.find("cynder-worker");
+		for (ConfigFile::iterator i = r.first; i != r.second; i++) {
+			std::cout << "Adding '" << i->second << ":" << nodeRing.addNode(i->second) << "' to nodering" << std::endl;
+		}
+	} else {
+		std::cerr << "HBS config is required for this service" << std::endl;
+		return 1;
 	}
 
-	if (nc.isMaster())
+	if (options.count("master"))
 		initMaster();
 
 	/* Only initialize if we're not master */
