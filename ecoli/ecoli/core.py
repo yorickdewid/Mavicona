@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 import argparse
@@ -5,34 +7,30 @@ import urllib2
 import pickledb
 import simplejson
 
-url = 'https://httpbin.org/get'
+url = 'http://ecoli.mavicona.net/index.json'
 file_name = 'index.json'
 
 def install(package):
-	print 'Installing ', package
+	print('Installing ', package)
 
 def remove(package):
-	print 'Removing ', package
+	print('Removing ', package)
 
 def update_repo():
 	reponse = urllib2.urlopen(url)
 	file = open('.ecoli/' + file_name, 'wb')
 	meta = reponse.info()
-	file_size = int(meta.getheaders("Content-Length")[0])
-	print "Downloading: %s bytes: %s" % (file_name, file_size)
+	print('Updating catalog... ', end="")
 
-	file_size_dl = 0
 	block_sz = 8192
 	while True:
 		buffer = reponse.read(block_sz)
 		if not buffer:
 			break
 
-		file_size_dl += len(buffer)
 		file.write(buffer)
-		status = r"%d  [%3.2f%%]" % (file_size_dl, file_size_dl * 100. / file_size)
-		status = status + chr(8) * (len(status)+1)
-		print status,
+
+	print('[done]')
 
 	file.close()
 
@@ -46,12 +44,15 @@ def verify_datadir():
 def update_packages():
 	return
 
-def list_repo():
+def list_repo(search=""):
 	with open('.ecoli/index.json') as repo:
 		data = simplejson.load(repo)
 		for package in data['packages']:
-			print package['name'], package['description']
-
+			if search:
+				if search not in package['name'].lower():
+					continue
+			
+			print("{}\t\t{}".format(package['name'], package['description']))
 
 def main(args=sys.argv[1:]):
 	"""
@@ -88,6 +89,9 @@ def main(args=sys.argv[1:]):
 
 	if results.run_self_update:
 		update_repo()
+
+	if results.pattern:
+		list_repo(results.pattern.lower())
 
 	if results.run_list:
 		list_repo()
