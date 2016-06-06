@@ -1,5 +1,5 @@
 #include "thread.h"
-
+#include "log.h"
 
 CMutex::CMutex(void) {
 	/* Initialize the mutex */
@@ -50,15 +50,9 @@ bool CThread::Create(void *(*routine)(void *), void *arg) {
 	return true;
 }
 
-bool CThread::Destroy(void) {
-	int res;
-
+void CThread::Destroy(void) {
 	/* Destroy thread */
-	res = pthread_cancel(thread);
-	if (res)
-		return false;
-
-	return true;
+	pthread_cancel(thread);
 }
 
 bool CThread::Join(void) {

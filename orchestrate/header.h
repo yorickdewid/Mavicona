@@ -73,11 +73,14 @@ class CHeader {
 	*/
 	void AddLocation(const std::string& location);
 
+	void AddConnection(bool close = true);
+
 	/*!
 		Add the content length string.
 		\param len the content length.
 	*/
 	void AddLength(size_t len);
+	void AddAdditional();
 
 	/*!
 		Add the date.

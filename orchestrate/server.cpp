@@ -1,5 +1,6 @@
 #include <iostream>
 #include <errno.h>
+#include <unistd.h>
 
 #include "client.h"
 #include "header.h"
@@ -7,14 +8,19 @@
 #include "server.h"
 #include "utils.h"
 
-CServer::CServer(unsigned short port) {
+#define MAX_THREAD_COUNT	20
+
+CServer::CServer(unsigned short _port) {
 	/* Set port number */
-	this->port = port;
+	port = _port;
 }
 
 CServer::~CServer(void) {
 	/* Stop server */
 	Stop();
+
+	/* Destroy socket */
+	Socket.Destroy();
 }
 
 void *CServer::Handler(void *client) {
@@ -42,17 +48,16 @@ void *CServer::Handler(void *client) {
 		if (!type.compare("GET")) {
 			/* Check path */
 			if (!path.compare("/")) {
-				// path = "/index.html";
-
 				res = Client->SendRedirect("/core::webledge::");
 				continue;
 			}
 
 			/* Match internal calls */
-			res = Client->MatchInternal(path);
+			res = Client->ParseUri(path);
 
 			/* Send file */
-			res = Client->SendFile(path);
+			// res = Client->SendFile(path);
+			res = Client->HandleError(REPLY_BADREQ);
 		} else {
 			/* Bad request */
 			res = Client->HandleError(REPLY_BADREQ);
@@ -63,7 +68,7 @@ void *CServer::Handler(void *client) {
 			break;
 	}
 
-	CLog::Print("Disconnecting...");
+	// CLog::Print("Disconnecting..."); 
 
 	/* Disconnect client */
 	Client->Disconnect();
@@ -98,20 +103,20 @@ bool CServer::Start(void) {
 		return false;
 	}
 
+	if (chdir("wwwroot")) {
+		CLog::PrintErr("ERROR: Cannot change directory!");
+		return false;
+	}
+
 	return true;
 }
 
 void CServer::Stop(void) {
 	std::vector<CThread *>::iterator it;
 
-	/* Destroy socket */
-	Socket.Destroy();
-
 	/* Destroy threads */
-	foreach (threads, it) {
+	foreach(threads, it) {
 		CThread *Thread = *it;
-
-		CLog::Print("Destroying thread...");
 
 		/* Destroy thread */
 		Thread->Destroy();
@@ -132,6 +137,10 @@ bool CServer::CreateThread(CSocket *Socket) {
 	CThread *Thread;
 
 	bool res;
+
+	/* Clean the pool */
+	if (threads.size() > MAX_THREAD_COUNT)
+		Stop();
 
 	/* Create client object */
 	Client = new CClient(Socket);
@@ -165,10 +174,10 @@ bool CServer::Accept(void) {
 	}
 
 	/* Show connection info */
-	//cout << "Connection received!" << endl;
-	//cout << "   IP Address: " << inet_ntoa(sockAddr.sin_addr) << endl;
-	//cout << "   Port: " << htons(sockAddr.sin_port) << endl;
-	//cout << endl;
+	// std::cout << "Connection received!" << endl;
+	// std::cout << "   IP Address: " << inet_ntoa(sockAddr.sin_addr) << endl;
+	// std::cout << "   Port: " << htons(sockAddr.sin_port) << endl;
+	// std::cout << endl;
 
 	/* Create thread */
 	return CreateThread(Client);

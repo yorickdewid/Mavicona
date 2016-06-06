@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 
+#include "common/json.h"
 #include "client.h"
 #include "error_page.h"
 #include "orchestrator.h"
@@ -10,9 +11,9 @@
 #define BUF_MAXLEN	1024
 
 
-CClient::CClient(CSocket *Socket) {
+CClient::CClient(CSocket *_Socket) {
 	/* Set the client socket */
-	this->Socket = Socket;
+	Socket = _Socket;
 }
 
 CClient::~CClient(void) {
@@ -93,11 +94,7 @@ bool CClient::SendHtml(const void *buffer, size_t len, int reply) {
 	Header.Set("X-Content-Type-Options: nosniff\r\n");
 	Header.Set("X-Frame-Options: deny\r\n");
 	Header.Set("X-XSS-Protection: 1; mode=block\r\n");
-	Header.Set("X-Interface-Subset: html\r\n");
-	Header.Set("X-Webledge: kirama\r\n");
-	Header.Set("X-Webledge-SubId: 325434522\r\n");
-	Header.Set("X-Webledge-Act: contract\r\n");
-	Header.Set("Via: Webledge " APP_VERSION "\r\n");
+	Header.AddAdditional();
 
 	Header.AddDate();
 	Header.AddServer();
@@ -122,21 +119,12 @@ bool CClient::SendHtml(const void *buffer, size_t len, int reply) {
 
 bool CClient::SendRedirect(const std::string& location) {
 	CHeader Header;
-
 	bool    ret;
 
 	/* Setup header */
 	Header.AddReply(REPLY_REDIR_PER);
 	Header.AddLocation(location);
-	Header.Set("X-Content-Type-Options: nosniff\r\n");
-	Header.Set("X-Frame-Options: deny\r\n");
-	Header.Set("X-XSS-Protection: 1; mode=block\r\n");
-	Header.Set("X-Interface-Subset: html\r\n");
-	Header.Set("X-Webledge: kirama\r\n");
-	Header.Set("X-Webledge-SubId: 325434522\r\n");
-	Header.Set("X-Webledge-Act: contract\r\n");
-	Header.Set("Via: Webledge " APP_VERSION "\r\n");
-
+	Header.AddAdditional();
 	Header.AddDate();
 	Header.AddServer();
 	Header.AddEnd();
@@ -165,51 +153,40 @@ bool CClient::SendHeader(CHeader &Header) {
 	return true;
 }
 
-bool CClient::MatchInternal(std::string filepath) {
-	if (!filepath.compare("/core::webledge::")) {
-		std::stringstream ss;
+bool CClient::ParseUri(std::string filepath) {
+	const std::string service("/core::foundation::kirama::service");
+	const std::string webledge("/core::webledge::");
+
+	if (!filepath.compare(0, service.size(), service)) {
 		CHeader 	Header;
 		const char *buffer;
 		size_t      len, res;
+		nlohmann::json object;
 
-		/* YAML code */
-		ss << "# sequencer protocols for Laser eye surgery" << std::endl;
-		ss << "---" << std::endl;
-		ss << "- step:  &id001                  # defines anchor label &id001" << std::endl;
-		ss << "    instrument:      Lasik 2000" << std::endl;
-		ss << "    pulseEnergy:     5.4" << std::endl;
-		ss << "    pulseDuration:   12" << std::endl;
-		ss << "    repetition:      1000" << std::endl;
-		ss << "    spotSize:        1mm" << std::endl << std::endl;
-		ss << "- step: &id002" << std::endl;
-		ss << "    instrument:      Lasik 2000" << std::endl;
-		ss << "    pulseEnergy:     5.0" << std::endl;
-		ss << "    pulseDuration:   10" << std::endl;
-		ss << "    repetition:      500" << std::endl;
-		ss << "    spotSize:        2mm" << std::endl;
-		ss << "- step: *id001                   # refers to the first step (with anchor &id001)" << std::endl;
-		ss << "- step: *id002                   # refers to the second step" << std::endl;
-		ss << "- step:" << std::endl;
-		ss << "    <<: *id001" << std::endl;
-		ss << "    spotSize: 2mm                # redefines just this key, refers rest from &id001" << std::endl;
-		ss << "- step: *id002" << std::endl;
+		object["subsystem"] = "kirama";
+		object["active"] = true;
+		object["operation"] = "default";
+		object["type"] = "jsonrpc";
+		object["success"] = true;
+		object["message"] = nullptr;
+		object["parameters"] = {"calls", {
+			{"status", "Server status"},
+			{"solicit", "Register instance"}
+		}};
+		std::string s = object.dump(4);
 
-		/* Set buffer */
-		buffer = ss.str().c_str();
-		len    = ss.str().length();
+		buffer = s.c_str();
+		len    = s.length();
 
 		/* Setup header */
 		Header.AddReply(REPLY_OK);
-		// Header.AddType("application/x-yaml");
+		Header.AddType("application/json");
 		Header.AddDate();
 		Header.AddServer();
+		Header.AddConnection(false);
 		Header.AddLength(len);
 		Header.Set("Access-Control-Allow-Origin: *\r\n");
-		Header.Set("X-Interface-Subset: yaml\r\n");
-		Header.Set("X-Webledge: kirama\r\n");
-		Header.Set("X-Webledge-SubId: 325434522\r\n");
-		Header.Set("X-Webledge-Act: contract\r\n");
-		Header.Set("Via: Webledge " APP_VERSION "\r\n");
+		Header.AddAdditional();
 		Header.AddEnd();
 
 		/* Send header */
@@ -223,6 +200,22 @@ bool CClient::MatchInternal(std::string filepath) {
 			if (res <= 0)
 				return false;
 		}
+	}
+
+	if (!filepath.compare(0, webledge.size(), webledge)) {
+		std::string dir = filepath.substr(webledge.size()).c_str();
+		if (!dir.empty()) {
+			std::string subdir = "";
+
+			size_t index;
+			while ((index = dir.find("::")) != std::string::npos)
+				dir.replace(index, 2, "/");
+
+			SendFile(dir);
+		}
+		
+		SendFile("index.html");
+
 	}
 
 	return false;

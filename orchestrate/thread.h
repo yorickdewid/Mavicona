@@ -2,7 +2,7 @@
 #define _THREAD_HPP_
 
 #include <pthread.h>
-
+#include <memory.h>
 
 /*!
 	Mutex abstraction class.
@@ -61,7 +61,7 @@ class CThread {
 		Destroy the thread.
 		\returns true if success, otherwise false.
 	*/
-	bool Destroy(void);
+	void Destroy(void);
 
 	/*!
 		Join the thread.

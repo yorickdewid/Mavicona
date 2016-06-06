@@ -71,9 +71,9 @@ bool CHeader::GetPath(std::string &path) {
 	return true;
 }
 
-void CHeader::Set(std::string header) {
+void CHeader::Set(std::string _header) {
 	/* Set the header string */
-	this->header << header;
+	header << _header;
 }
 
 void CHeader::Set(const char *header) {
@@ -95,12 +95,24 @@ void CHeader::AddType(const std::string& type) {
 
 void CHeader::AddLocation(const std::string& location) {
 	/* Add the content type */
-	header << "location: " << location << CRLF;
+	header << "Location: " << location << CRLF;
+}
+
+void CHeader::AddConnection(bool close) {
+	/* Add the content type */
+	header << "Connection: " << (close ? "Close" : "Keep-Alive") << CRLF;
 }
 
 void CHeader::AddLength(size_t len) {
 	/* Add the content length */
 	header << "Content-length: " << len << CRLF;
+}
+
+void CHeader::AddAdditional() {
+	header << "X-Webledge: kirama" << CRLF;
+	header << "X-Webledge-SubId: 325434522" << CRLF;
+	header << "X-Webledge-Act: contract" << CRLF;
+	header << "Via: Webledge " APP_VERSION << CRLF;
 }
 
 void CHeader::AddDate(void) {

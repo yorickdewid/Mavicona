@@ -87,7 +87,7 @@ class CClient {
 		\param filepath the file to send.
 		\returns true if success, otherwise false.
 	*/
-	bool MatchInternal(std::string filepath);
+	bool ParseUri(std::string filepath);
 
 	/*!
 		Receive request from the client.
