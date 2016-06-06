@@ -3,9 +3,10 @@ import sys
 import argparse
 import urllib2
 import pickledb
+import simplejson
 
 url = 'https://httpbin.org/get'
-file_name = 'repository.json'
+file_name = 'index.json'
 
 def install(package):
 	print 'Installing ', package
@@ -45,6 +46,13 @@ def verify_datadir():
 def update_packages():
 	return
 
+def list_repo():
+	with open('.ecoli/index.json') as repo:
+		data = simplejson.load(repo)
+		for package in data['packages']:
+			print package['name'], package['description']
+
+
 def main(args=sys.argv[1:]):
 	"""
 	The main function.
@@ -62,6 +70,7 @@ def main(args=sys.argv[1:]):
 	group.add_argument('-s', action='store', metavar='pattern', dest='pattern', help='Search for package')
 
 	parser.add_argument('--self-update', action='store_true', dest='run_self_update', help='Update local repository')
+	parser.add_argument('--list', action='store_true', dest='run_list', help='Show all packages')
 	parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 	parser.parse_args()
 
@@ -79,6 +88,9 @@ def main(args=sys.argv[1:]):
 
 	if results.run_self_update:
 		update_repo()
+
+	if results.run_list:
+		list_repo()
 
 	localdb.dump()
 

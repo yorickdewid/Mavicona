@@ -154,7 +154,7 @@ bool CClient::SendHeader(CHeader &Header) {
 }
 
 bool CClient::ParseUri(std::string filepath) {
-	const std::string service("/core::foundation::kirama::service");
+	const std::string service("/core::foundation::rpc::service");
 	const std::string webledge("/core::webledge::");
 
 	if (!filepath.compare(0, service.size(), service)) {
@@ -163,7 +163,6 @@ bool CClient::ParseUri(std::string filepath) {
 		size_t      len, res;
 		nlohmann::json object;
 
-		object["subsystem"] = "kirama";
 		object["active"] = true;
 		object["operation"] = "default";
 		object["type"] = "jsonrpc";
