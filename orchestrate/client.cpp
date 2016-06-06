@@ -211,6 +211,8 @@ bool CClient::ParseUri(std::string filepath) {
 			while ((index = dir.find("::")) != std::string::npos)
 				dir.replace(index, 2, "/");
 
+  			dir.substr(0, dir.find_last_of('#'));
+
 			SendFile(dir);
 		}
 		
@@ -259,6 +261,7 @@ bool CClient::SendFile(const char *filepath) {
 	Header.AddReply(REPLY_OK);
 	Header.AddDate();
 	Header.AddServer();
+	Header.AddAdditional();
 	Header.AddLength(len);
 	Header.AddEnd();
 

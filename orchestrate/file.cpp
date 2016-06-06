@@ -39,8 +39,7 @@ bool CFile::Open(const char *filepath) {
 	spath << basepath << filepath;
 
 	/* Path string */
-	fpath = 
-	spath.str().c_str();
+	fpath = spath.str().c_str();
 
 	/* Open file */
 	file.open(fpath);
