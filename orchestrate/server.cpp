@@ -8,7 +8,7 @@
 #include "server.h"
 #include "utils.h"
 
-#define MAX_THREAD_COUNT	20
+#define MAX_THREAD_COUNT	40
 
 CServer::CServer(unsigned short _port) {
 	/* Set port number */
@@ -88,38 +88,41 @@ bool CServer::Start() {
 	/* Create socket */
 	res = Socket.Create();
 	if (!res) {
-		CLog::PrintErr("ERROR: Socket creation failed!");
+		std::cerr << "Socket creation failed" << std::endl;
 		return false;
 	}
 
 	/* Bind address */
 	res = Socket.Bind(port);
 	if (!res) {
-		CLog::PrintErr("ERROR: Bind address failed!");
+		std::cerr << "Bind address failed" << std::endl;
 		return false;
 	}
 
 	/* Listen for connections */
 	res = Socket.Listen(10);
 	if (!res) {
-		CLog::PrintErr("ERROR: Listen failed!");
+		std::cerr << "Listen failed" << std::endl;
 		return false;
 	}
 
 	if (chdir("wwwroot")) {
-		CLog::PrintErr("ERROR: Cannot change directory!");
+		std::cerr << "Cannot change directory" << std::endl;
 		return false;
 	}
 
 	return true;
 }
 
-void CServer::Stop() {
-	std::vector<CThread *>::iterator it;
+void CServer::Stop(bool cleanup) {
+	// std::vector<CThread *>::iterator it;
 
 	/* Destroy threads */
-	foreach(threads, it) {
-		CThread *Thread = *it;
+	// foreach(threads, it) {
+	for (unsigned int i = 0; i < (cleanup ? threads.size()/2 : threads.size()); ++i) {
+		// CThread *Thread = *it;
+		CThread *Thread = threads[i];
+		printf("Killing thread %d\n", i);
 
 		/* Destroy thread */
 		Thread->Destroy();
@@ -143,7 +146,7 @@ bool CServer::CreateThread(CSocket *Socket) {
 
 	/* Clean the pool */
 	if (threads.size() > MAX_THREAD_COUNT)
-		Stop();
+		Stop(true);
 
 	/* Create client object */
 	Client = new CClient(Socket);
@@ -175,12 +178,6 @@ bool CServer::Accept() {
 		CLog::PrintErr("ERROR: Accept connection failed!");
 		return false;
 	}
-
-	/* Show connection info */
-	// std::cout << "Connection received!" << endl;
-	// std::cout << "   IP Address: " << inet_ntoa(sockAddr.sin_addr) << endl;
-	// std::cout << "   Port: " << htons(sockAddr.sin_port) << endl;
-	// std::cout << endl;
 
 	/* Create thread */
 	return CreateThread(Client);

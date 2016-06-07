@@ -53,7 +53,7 @@ class CServer {
 	/*!
 		Stop the server.
 	*/
-	void Stop();
+	void Stop(bool cleanup = false);
 
 	/*!
 		Accept an incoming connection.
