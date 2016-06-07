@@ -12,7 +12,7 @@
 */
 class CSocket {
 	int sockFd;	//!< Socket descriptor.
-	struct sockaddr_in sockAddr;
+	struct sockaddr_in6 sockAddr;
 
   public:
 	/*!
@@ -24,7 +24,7 @@ class CSocket {
 		Socket object constructor.
 		\param fd the socket descriptor.
 	*/
-	CSocket(int fd, struct sockaddr_in sockAddr);
+	CSocket(int fd, struct sockaddr_in6 sockAddr);
 
 	/*!
 		Socket object destructor.

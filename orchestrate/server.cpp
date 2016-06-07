@@ -115,14 +115,9 @@ bool CServer::Start() {
 }
 
 void CServer::Stop(bool cleanup) {
-	// std::vector<CThread *>::iterator it;
-
 	/* Destroy threads */
-	// foreach(threads, it) {
 	for (unsigned int i = 0; i < (cleanup ? threads.size()/2 : threads.size()); ++i) {
-		// CThread *Thread = *it;
 		CThread *Thread = threads[i];
-		printf("Killing thread %d\n", i);
 
 		/* Destroy thread */
 		Thread->Destroy();

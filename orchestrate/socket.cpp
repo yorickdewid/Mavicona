@@ -1,15 +1,16 @@
 #include <cstdio>
+#include <memory.h>
 #include <unistd.h>
 #include <stdlib.h>
 
 #include "socket.h"
 
-CSocket::CSocket(void) {
+CSocket::CSocket() {
 	/* Reset descriptor */
 	sockFd = -1;
 }
 
-CSocket::CSocket(int fd, struct sockaddr_in sockAddr) {
+CSocket::CSocket(int fd, struct sockaddr_in6 sockAddr) {
 	/* Set descriptor */
 	sockFd = fd;
 	this->sockAddr = sockAddr;
@@ -20,19 +21,23 @@ CSocket::~CSocket(void) {
 	Destroy();
 }
 
-bool CSocket::Create(void) {
+bool CSocket::Create() {
 	/* Destroy socket */
 	Destroy();
 
 	/* Create socket */
-	sockFd = socket(AF_INET, SOCK_STREAM, 0);
+	sockFd = socket(AF_INET6, SOCK_STREAM, 0);
 	if (sockFd < 0)
+		return false;
+
+	int on = 1;
+	if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
 		return false;
 
 	return true;
 }
 
-void CSocket::Destroy(void) {
+void CSocket::Destroy() {
 	/* Shutdown socket */
 	if (sockFd >= 0)
 		shutdown(sockFd, SHUT_RDWR);
@@ -42,26 +47,28 @@ void CSocket::Destroy(void) {
 }
 
 std::string CSocket::RemoteAddr() {
-	/*std::cout << "Connection received!" << std::endl;
-	std::cout << "   IP Address: " << inet_ntoa(sockAddr.sin_addr) << std::endl;
-	std::cout << "   Port: " << htons(sockAddr.sin_port) << std::endl;
-	std::cout << std::endl;*/
-	return inet_ntoa(sockAddr.sin_addr);
+	char str[INET6_ADDRSTRLEN];
+
+	inet_ntop(AF_INET6, &sockAddr.sin6_addr, str, sizeof(str));
+
+	return str;
 }
 
 std::string CSocket::RemotePort() {
-	return std::to_string(htons(sockAddr.sin_port));
+	return std::to_string(htons(sockAddr.sin6_port));
 }
 
 bool CSocket::Bind(unsigned short port) {
-	struct sockaddr_in sockAddr;
+	struct sockaddr_in6 sockAddr;
+
+	memset(&sockAddr, 0, sizeof(sockAddr));
 
 	int res;
 
 	/* Socket address */
-	sockAddr.sin_family      = AF_INET;
-	sockAddr.sin_port        = htons(port);
-	sockAddr.sin_addr.s_addr = INADDR_ANY;
+	sockAddr.sin6_family    = AF_INET6;
+	sockAddr.sin6_port      = htons(port);
+	sockAddr.sin6_addr      = in6addr_any;
 
 	/* Bind address to socket */
 	res = bind(sockFd, (struct sockaddr *)&sockAddr, sizeof(sockAddr));
@@ -83,7 +90,7 @@ bool CSocket::Listen(unsigned int max) {
 }
 //#include <iostream>
 CSocket *CSocket::Accept() {
-	struct sockaddr_in sockAddr;
+	struct sockaddr_in6 sockAddr;
 	socklen_t sockLen;
 
 	int fd;
