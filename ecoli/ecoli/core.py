@@ -41,13 +41,16 @@ def query_yes_no(question, default="yes"):
 			sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n')")
 
 def package_get_location(search):
-	with open('.ecoli/index.json') as repo:
+	if not os.path.isfile('.ecoli/' + file_name):
+		update_repo()
+
+	with open('.ecoli/' + file_name) as repo:
 		data = simplejson.load(repo)
 		for package in data['packages']:
 			if search not in package['name'].lower():
 					continue
 
-			return package['location']
+			return package
 
 	return None
 
@@ -61,8 +64,29 @@ def install(install_list, db):
 		if loc:
 			downloader.append(loc)
 
-	if query_yes_no('Installing %d package(s)?' % len(downloader)):
+	if not downloader:
+		print('\nNo packages to install')
+		return
+
+	if query_yes_no('\nInstalling %d package(s)?' % len(downloader)):
 		print('Downloading...')
+		for download in downloader:
+			reponse = urllib2.urlopen(download['location'])
+			file = open('.ecoli/tmp/' + download['name'].lower() + '.zip', 'wb')
+			print('Fetching %s...' % download['name'], end="")
+
+			block_sz = 8192
+			while True:
+				buffer = reponse.read(block_sz)
+				if not buffer:
+					break
+
+				file.write(buffer)
+				print('.', end="")
+
+			# push to localdb
+
+			print('[done]')
 
 def remove(package):
 	print('Removing ', package)
@@ -70,7 +94,6 @@ def remove(package):
 def update_repo():
 	reponse = urllib2.urlopen(url)
 	file = open('.ecoli/' + file_name, 'wb')
-	meta = reponse.info()
 	print('Updating catalog...', end="")
 
 	block_sz = 8192
@@ -97,7 +120,10 @@ def update_packages():
 	return
 
 def list_repo(search=""):
-	with open('.ecoli/index.json') as repo:
+	if not os.path.isfile('.ecoli/' + file_name):
+		update_repo()
+
+	with open('.ecoli/' + file_name) as repo:
 		data = simplejson.load(repo)
 		for package in data['packages']:
 			if search:
@@ -156,7 +182,7 @@ def main(args=sys.argv[1:]):
 		list_repo()
 
 	if not take_action:
-		parser.error('No action requested, see --help')
+		print('No actions requested, see --help')
 
 	localdb.dump()
 
