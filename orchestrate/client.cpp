@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <cstring>
 
 #include "common/json.h"
 #include "client.h"
@@ -16,7 +17,7 @@ CClient::CClient(CSocket *_Socket) {
 	Socket = _Socket;
 }
 
-CClient::~CClient(void) {
+CClient::~CClient() {
 	/* Disconnect client */
 	Disconnect();
 
@@ -24,9 +25,13 @@ CClient::~CClient(void) {
 	delete Socket;
 }
 
-void CClient::Disconnect(void) {
+void CClient::Disconnect() {
 	/* Destroy socket */
 	Socket->Destroy();
+}
+
+std::string CClient::Remote() {
+	return Socket->RemoteAddr() + ':' + Socket->RemotePort();
 }
 
 int CClient::Read(void *buffer, size_t len) {

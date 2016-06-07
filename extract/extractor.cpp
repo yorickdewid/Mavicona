@@ -5,7 +5,6 @@
 
 #include "common/util.h"
 #include "common/config.h"
-#include "common/logger.h"
 #include "common/cxxopts.h"
 #include "protoc/scrapedata.pb.h"
 #include "ruler.h"

@@ -1,40 +1,49 @@
 #ifndef _SOCKET_HPP_
 #define _SOCKET_HPP_
 
+#include <iostream>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+
 /*!
 	Socket object class.
 	\author Miguel Boton Campo
 */
 class CSocket {
 	int sockFd;	//!< Socket descriptor.
+	struct sockaddr_in sockAddr;
 
   public:
 	/*!
 		Socket object constructor.
 	*/
-	CSocket(void);
+	CSocket();
 
 	/*!
 		Socket object constructor.
 		\param fd the socket descriptor.
 	*/
-	CSocket(int fd);
+	CSocket(int fd, struct sockaddr_in sockAddr);
 
 	/*!
 		Socket object destructor.
 	*/
-	~CSocket(void);
+	~CSocket();
 
 	/*!
 		Create a socket.
 		\returns true if success, false otherwise.
 	*/
-	bool Create(void);
+	bool Create();
 
 	/*!
 		Destroy the socket.
 	*/
-	void Destroy(void);
+	void Destroy();
+
+	std::string RemoteAddr();
+	std::string RemotePort();
 
 	/*!
 		Bind the socket to a port.
@@ -53,7 +62,7 @@ class CSocket {
 	/*!
 		Accept incoming connection.
 	*/
-	CSocket *Accept(void);
+	CSocket *Accept();
 
 	/*!
 		Send data through the socket.

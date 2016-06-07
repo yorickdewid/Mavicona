@@ -37,7 +37,9 @@ class CClient {
 	/*!
 		Disconnect the client.
 	*/
-	void Disconnect(void);
+	void Disconnect();
+
+	std::string Remote();
 
 	/*!
 		Read data from the client.

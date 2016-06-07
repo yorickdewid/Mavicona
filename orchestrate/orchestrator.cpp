@@ -12,7 +12,7 @@ static CServer *Server = nullptr;
 static unsigned short port = 5500;
 
 void Quit(int dummy) {
-	CLog::Print("Terminating...");
+	std::cout << "Terminating..." << std::endl;
 
 	/* Stop server */
 	Server->Stop();
@@ -58,21 +58,21 @@ int main(int argc, char *argv[]) {
 	/* Create server */
 	Server = new CServer(port);
 	if (!Server) {
-		CLog::PrintErr("ERROR: Server could NOT be created!");
+		std::cerr << "Cannot create server" << std::endl;
 		return 1;
 	}
 
 	/* Start server */
 	res = Server->Start();
 	if (!res) {
-		CLog::PrintErr("ERROR: Server could NOT be started!");
+		std::cerr << "Server cannot be started" << std::endl;
 		return 1;
 	}
 
 	/* Register signal */
 	signal(SIGINT, Quit);
 
-	CLog::Print("Waiting for connections");
+	std::cout << "Waiting for connections" << std::endl;
 
 	/* Keep waiting for connections */
 	while (Server->Accept());

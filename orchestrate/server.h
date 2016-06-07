@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include "common/logger.h"
 #include "socket.h"
 #include "thread.h"
 
@@ -12,6 +13,7 @@
 */
 class CServer {
 	CSocket Socket;			//!< Socket object.
+	FileLogger *logger = new FileLogger("access");
 
 	std::vector<CThread *> threads;	//!< Thread array.
 	unsigned short port;		//!< Server port number.
@@ -40,24 +42,24 @@ class CServer {
 	/*!
 		Server object destructor.
 	*/
-	~CServer(void);
+	~CServer();
 
 	/*!
 		Start the server.
 		\returns true if success, otherwise false.
 	*/
-	bool Start(void);
+	bool Start();
 
 	/*!
 		Stop the server.
 	*/
-	void Stop(void);
+	void Stop();
 
 	/*!
 		Accept an incoming connection.
 		\returns true if success, otherwise false.
 	*/
-	bool Accept(void);
+	bool Accept();
 };
 
 #endif	/* _HTTP_HPP */

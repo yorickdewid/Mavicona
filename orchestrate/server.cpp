@@ -15,9 +15,11 @@ CServer::CServer(unsigned short _port) {
 	port = _port;
 }
 
-CServer::~CServer(void) {
+CServer::~CServer() {
 	/* Stop server */
 	Stop();
+
+	delete logger;
 
 	/* Destroy socket */
 	Socket.Destroy();
@@ -42,7 +44,8 @@ void *CServer::Handler(void *client) {
 		Header.GetPath(path);
 
 		/* Show request info */
-		CLog::Print("Request [%s] %s", type.c_str(), path.c_str());
+		CLog::Print("Request %s [%s] %s", Client->Remote().c_str(), type.c_str(), path.c_str());
+		// (*logger) << "Request [" << type << "] " << path << FileLogger::endl();
 
 		/* Check request type */
 		if (!type.compare("GET")) {
@@ -79,7 +82,7 @@ void *CServer::Handler(void *client) {
 	return NULL;
 }
 
-bool CServer::Start(void) {
+bool CServer::Start() {
 	bool res;
 
 	/* Create socket */
@@ -111,7 +114,7 @@ bool CServer::Start(void) {
 	return true;
 }
 
-void CServer::Stop(void) {
+void CServer::Stop() {
 	std::vector<CThread *>::iterator it;
 
 	/* Destroy threads */
@@ -163,7 +166,7 @@ bool CServer::CreateThread(CSocket *Socket) {
 	return true;
 }
 
-bool CServer::Accept(void) {
+bool CServer::Accept() {
 	CSocket *Client;
 
 	/* Accept incoming connection */
