@@ -12,9 +12,10 @@
 #define BUF_MAXLEN	1024
 
 
-CClient::CClient(CSocket *_Socket) {
+CClient::CClient(CSocket *_Socket, FileLogger *_log) {
 	/* Set the client socket */
 	Socket = _Socket;
+	logger = _log;
 }
 
 CClient::~CClient() {

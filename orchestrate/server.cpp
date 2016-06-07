@@ -4,7 +4,6 @@
 
 #include "client.h"
 #include "header.h"
-#include "log.h"
 #include "server.h"
 #include "utils.h"
 
@@ -44,8 +43,7 @@ void *CServer::Handler(void *client) {
 		Header.GetPath(path);
 
 		/* Show request info */
-		CLog::Print("Request %s [%s] %s", Client->Remote().c_str(), type.c_str(), path.c_str());
-		// (*logger) << "Request [" << type << "] " << path << FileLogger::endl();
+		(*Client->logger) << "Request " << Client->Remote() << " [" << type << "] " << path << FileLogger::endl();
 
 		/* Check request type */
 		if (!type.compare("GET")) {
@@ -71,8 +69,6 @@ void *CServer::Handler(void *client) {
 			break;
 	}
 
-	// CLog::Print("Disconnecting..."); 
-
 	/* Disconnect client */
 	Client->Disconnect();
 
@@ -88,26 +84,26 @@ bool CServer::Start() {
 	/* Create socket */
 	res = Socket.Create();
 	if (!res) {
-		std::cerr << "Socket creation failed" << std::endl;
+		(*logger) << FileLogger::error() << "Socket creation failed" << FileLogger::endl();
 		return false;
 	}
 
 	/* Bind address */
 	res = Socket.Bind(port);
 	if (!res) {
-		std::cerr << "Bind address failed" << std::endl;
+		(*logger) << FileLogger::error() << "Bind address failed" << FileLogger::endl();
 		return false;
 	}
 
 	/* Listen for connections */
-	res = Socket.Listen(10);
+	res = Socket.Listen(20);
 	if (!res) {
-		std::cerr << "Listen failed" << std::endl;
+		(*logger) << FileLogger::error() << "Listen failed" << FileLogger::endl();
 		return false;
 	}
 
 	if (chdir("wwwroot")) {
-		std::cerr << "Cannot change directory" << std::endl;
+		(*logger) << FileLogger::error() << "Cannot change directory" << FileLogger::endl();
 		return false;
 	}
 
@@ -133,7 +129,7 @@ void CServer::Stop(bool cleanup) {
 	threads.clear();
 }
 
-bool CServer::CreateThread(CSocket *Socket) {
+bool CServer::CreateThread(CSocket *Socket, FileLogger *log) {
 	CClient *Client;
 	CThread *Thread;
 
@@ -144,7 +140,7 @@ bool CServer::CreateThread(CSocket *Socket) {
 		Stop(true);
 
 	/* Create client object */
-	Client = new CClient(Socket);
+	Client = new CClient(Socket, log);
 	if (!Client)
 		return false;
 
@@ -170,11 +166,11 @@ bool CServer::Accept() {
 	/* Accept incoming connection */
 	Client = Socket.Accept();
 	if (!Client) {
-		CLog::PrintErr("ERROR: Accept connection failed!");
+		(*logger) << FileLogger::error() << "Accept connection failed" << FileLogger::endl();
 		return false;
 	}
 
 	/* Create thread */
-	return CreateThread(Client);
+	return CreateThread(Client, logger);
 }
 

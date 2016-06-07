@@ -4,7 +4,6 @@
 
 #include "common/cxxopts.h"
 #include "http.h"
-#include "log.h"
 #include "server.h"
 
 /* Global variables */

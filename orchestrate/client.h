@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "common/logger.h"
 #include "header.h"
 #include "http.h"
 #include "socket.h"
@@ -23,11 +24,13 @@ class CClient {
 	bool SendHeader(CHeader &Header);
 
   public:
+  	FileLogger *logger;
+
 	/*!
 		Client object constructor.
 		\param fd the client socket descriptor.
 	*/
-	CClient(CSocket *Socket);
+	CClient(CSocket *Socket, FileLogger *log);
 
 	/*!
 		Client object destructor.

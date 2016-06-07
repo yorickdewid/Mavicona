@@ -30,7 +30,7 @@ class CServer {
 		\param Socket the client socket object.
 		\returns true if sucess, otherwise false.
 	*/
-	bool CreateThread(CSocket *Socket);
+	bool CreateThread(CSocket *Socket, FileLogger *log);
 
   public:
 	/*!
