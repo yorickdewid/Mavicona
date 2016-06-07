@@ -10,8 +10,59 @@ import simplejson
 url = 'http://ecoli.mavicona.net/index.json'
 file_name = 'index.json'
 
-def install(package):
-	print('Installing ', package)
+def query_yes_no(question, default="yes"):
+	"""Ask a yes/no question via raw_input() and return their answer.
+
+	"question" is a string that is presented to the user.
+	"default" is the presumed answer if the user just hits <Enter>.
+		It must be "yes" (the default), "no" or None (meaning
+		an answer is required of the user).
+
+	The "answer" return value is True for "yes" or False for "no".
+	"""
+	valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
+	if default is None:
+		prompt = " [y/n] "
+	elif default == "yes":
+		prompt = " [Y/n] "
+	elif default == "no":
+		prompt = " [y/N] "
+	else:
+		raise ValueError("invalid default answer: '%s'" % default)
+
+	while True:
+		sys.stdout.write(question + prompt)
+		choice = raw_input().lower()
+		if default is not None and choice == '':
+			return valid[default]
+		elif choice in valid:
+			return valid[choice]
+		else:
+			sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n')")
+
+def package_get_location(search):
+	with open('.ecoli/index.json') as repo:
+		data = simplejson.load(repo)
+		for package in data['packages']:
+			if search not in package['name'].lower():
+					continue
+
+			return package['location']
+
+	return None
+
+def install(install_list, db):
+	print('Installing')
+
+	downloader = []
+	for package in install_list:
+		loc = package_get_location(package)
+		print('\t- ', package, '[found]' if loc else '[not found]')
+		if loc:
+			downloader.append(loc)
+
+	if query_yes_no('Installing %d package(s)?' % len(downloader)):
+		print('Downloading...')
 
 def remove(package):
 	print('Removing ', package)
@@ -20,7 +71,7 @@ def update_repo():
 	reponse = urllib2.urlopen(url)
 	file = open('.ecoli/' + file_name, 'wb')
 	meta = reponse.info()
-	print('Updating catalog... ', end="")
+	print('Updating catalog...', end="")
 
 	block_sz = 8192
 	while True:
@@ -29,6 +80,7 @@ def update_repo():
 			break
 
 		file.write(buffer)
+		print('.', end="")
 
 	print('[done]')
 
@@ -75,26 +127,36 @@ def main(args=sys.argv[1:]):
 	parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 	parser.parse_args()
 
+	take_action = False
 	results = parser.parse_args()
 
 	if results.install_package:
-		install(results.install_package)
+		take_action = True
+		install(results.install_package, localdb)
 	
 	if results.remove_package:
+		take_action = True
 		remove(results.remove_package)
 
 	if results.run_update:
+		take_action = True
 		update_repo()
 		update_packages()
 
 	if results.run_self_update:
+		take_action = True
 		update_repo()
 
 	if results.pattern:
+		take_action = True
 		list_repo(results.pattern.lower())
 
 	if results.run_list:
+		take_action = True
 		list_repo()
+
+	if not take_action:
+		parser.error('No action requested, see --help')
 
 	localdb.dump()
 
