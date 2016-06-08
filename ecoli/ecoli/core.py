@@ -6,6 +6,7 @@ import argparse
 import urllib2
 import pickledb
 import simplejson
+import zipfile
 
 url = 'http://ecoli.mavicona.net/index.json'
 file_name = 'index.json'
@@ -84,6 +85,11 @@ def install(install_list, db):
 				file.write(buffer)
 				print('.', end="")
 
+			file.close()
+
+			with zipfile.ZipFile('.ecoli/tmp/' + download['name'].lower() + '.zip', 'r') as czip:
+				czip.extractall('.ecoli/packages/' + download['name'])
+
 			# push to localdb
 
 			print('[done]')
@@ -143,13 +149,13 @@ def main(args=sys.argv[1:]):
 	parser = argparse.ArgumentParser(description='Processing library manager')
 
 	group = parser.add_argument_group('package actions')
-	group.add_argument('-i', action='append', metavar='package', dest='install_package', default=[], help='Install package(s)')
-	group.add_argument('-d', action='append', metavar='package', dest='remove_package', default=[], help='Remove package(s)')
-	group.add_argument('-u', action='store_true', dest='run_update', help='Update local packages')
-	group.add_argument('-s', action='store', metavar='pattern', dest='pattern', help='Search for package')
+	group.add_argument('-i', action='append', metavar='package', dest='install_package', default=[], help='install package(s)')
+	group.add_argument('-d', action='append', metavar='package', dest='remove_package', default=[], help='remove package(s)')
+	group.add_argument('-u', action='store_true', dest='run_update', help='update local packages')
+	group.add_argument('-s', action='store', metavar='pattern', dest='pattern', help='search for package')
 
-	parser.add_argument('--self-update', action='store_true', dest='run_self_update', help='Update local repository')
-	parser.add_argument('--list', action='store_true', dest='run_list', help='Show all packages')
+	parser.add_argument('--show-repos', action='store_true', dest='run_show_repos', help='list repositories')
+	parser.add_argument('--list', action='store_true', dest='run_list', help='show all packages')
 	parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 	parser.parse_args()
 
@@ -169,9 +175,9 @@ def main(args=sys.argv[1:]):
 		update_repo()
 		update_packages()
 
-	if results.run_self_update:
-		take_action = True
-		update_repo()
+	#if results.run_show_repos:
+	#	take_action = True
+	#	update_repo()
 
 	if results.pattern:
 		take_action = True
