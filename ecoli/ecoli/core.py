@@ -90,7 +90,7 @@ def install(install_list, db):
 			with zipfile.ZipFile('.ecoli/tmp/' + download['name'].lower() + '.zip', 'r') as czip:
 				czip.extractall('.ecoli/packages/' + download['name'])
 
-			# push to localdb
+			db.set(download['name'], download)
 
 			print('[done]')
 
