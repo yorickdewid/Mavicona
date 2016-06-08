@@ -3,6 +3,7 @@ from __future__ import print_function
 import os
 import sys
 import argparse
+import shutil
 import urllib2
 import pickledb
 import simplejson
@@ -90,12 +91,18 @@ def install(install_list, db):
 			with zipfile.ZipFile('.ecoli/tmp/' + download['name'].lower() + '.zip', 'r') as czip:
 				czip.extractall('.ecoli/packages/' + download['name'])
 
-			db.set(download['name'], download)
+			db.ladd('packages_installed', download)
 
 			print('[done]')
 
-def remove(package):
-	print('Removing ', package)
+def remove(remove_list, db):
+	for package in remove_list:
+		for index,install in enumerate(db.lgetall('packages_installed')):
+			if package.lower() == install['name'].lower():
+				print('Removing ' + install['name'])
+
+				shutil.rmtree('.ecoli/packages/' + install['name'])
+				db.lpop('packages_installed', index)
 
 def update_repo():
 	reponse = urllib2.urlopen(url)
@@ -146,6 +153,11 @@ def main(args=sys.argv[1:]):
 	verify_datadir()
 	localdb = pickledb.load('.ecoli/data/local.db', True)
 
+	try:
+		localdb.llen('packages_installed')
+	except KeyError:
+		localdb.lcreate('packages_installed')
+
 	parser = argparse.ArgumentParser(description='Processing library manager')
 
 	group = parser.add_argument_group('package actions')
@@ -168,7 +180,7 @@ def main(args=sys.argv[1:]):
 	
 	if results.remove_package:
 		take_action = True
-		remove(results.remove_package)
+		remove(results.remove_package, localdb)
 
 	if results.run_update:
 		take_action = True
