@@ -22,7 +22,7 @@ def query_yes_no(question, default="yes"):
 
 	The "answer" return value is True for "yes" or False for "no".
 	"""
-	valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
+	valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False, "ney": False}
 	if default is None:
 		prompt = " [y/n] "
 	elif default == "yes":
@@ -129,8 +129,23 @@ def verify_datadir():
 		os.makedirs('.ecoli/packages')
 		os.makedirs('.ecoli/tmp')	
 
-def update_packages():
-	return
+def update_packages(db):
+	if not os.path.isfile('.ecoli/' + file_name):
+		update_repo()
+
+	for index,local in enumerate(db.lgetall('packages_installed')):
+		package = package_get_location(local['name'].lower())
+		if not package:
+			print('Package not in remote repository')
+			return
+
+		if package['name'].lower() == local['name'].lower():
+			if (package['build'] > local['build']):
+				print('Installing new version')
+
+				db.lpop('packages_installed', index)
+
+				install([package['name'].lower()], db)
 
 def list_repo(search=""):
 	if not os.path.isfile('.ecoli/' + file_name):
@@ -185,7 +200,7 @@ def main(args=sys.argv[1:]):
 	if results.run_update:
 		take_action = True
 		update_repo()
-		update_packages()
+		update_packages(localdb)
 
 	#if results.run_show_repos:
 	#	take_action = True
