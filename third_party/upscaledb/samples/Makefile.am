@@ -1,0 +1,52 @@
+
+AM_CPPFLAGS     = -I../include -I$(top_builddir)/include
+
+noinst_PROGRAMS = db1 db2 db3 db4 db5 db6 env1 env2 env3 uqi1 uqi2
+
+noinst_BIN      = db1 db2 db3 db4 db5 db6 env1 env2 env3 uqi1 uqi2
+
+if ENABLE_REMOTE
+noinst_PROGRAMS += server1 client1
+noinst_BIN      += server1 client1
+endif
+
+db1_SOURCES     = db1.c
+db1_LDADD       = $(top_builddir)/src/libupscaledb.la
+
+db2_SOURCES     = db2.c
+db2_LDADD       = $(top_builddir)/src/libupscaledb.la
+
+db3_SOURCES     = db3.c
+db3_LDADD       = $(top_builddir)/src/libupscaledb.la
+
+db4_SOURCES     = db4.c
+db4_LDADD       = $(top_builddir)/src/libupscaledb.la
+
+db5_SOURCES     = db5.c
+db5_LDADD       = $(top_builddir)/src/libupscaledb.la
+
+db6_SOURCES     = db6.cpp
+db6_LDADD       = $(top_builddir)/src/libupscaledb.la
+
+env1_SOURCES    = env1.c
+env1_LDADD      = $(top_builddir)/src/libupscaledb.la
+
+env2_SOURCES    = env2.c
+env2_LDADD      = $(top_builddir)/src/libupscaledb.la
+
+env3_SOURCES    = env3.cpp
+env3_LDADD      = $(top_builddir)/src/libupscaledb.la
+
+server1_SOURCES = server1.c
+server1_LDADD   = $(top_builddir)/src/libupscaledb.la \
+                  $(top_builddir)/src/5server/libupsserver.la -ldl -lpthread
+
+client1_SOURCES = client1.c
+client1_LDADD   = $(top_builddir)/src/libupscaledb.la \
+                  $(top_builddir)/src/5server/libupsserver.la -ldl -lpthread
+
+uqi1_SOURCES    = uqi1.c
+uqi1_LDADD      = $(top_builddir)/src/libupscaledb.la
+
+uqi2_SOURCES    = uqi2.c
+uqi2_LDADD      = $(top_builddir)/src/libupscaledb.la

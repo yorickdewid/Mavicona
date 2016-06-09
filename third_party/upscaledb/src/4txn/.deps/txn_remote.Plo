@@ -1,0 +1,3 @@
+4txn/txn_remote.lo: 4txn/txn_remote.cc /usr/include/stdc-predef.h
+
+/usr/include/stdc-predef.h:

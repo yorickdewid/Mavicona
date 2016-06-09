@@ -1,0 +1,3 @@
+4db/db_remote.lo: 4db/db_remote.cc /usr/include/stdc-predef.h
+
+/usr/include/stdc-predef.h:

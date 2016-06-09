@@ -1,0 +1,4 @@
+4cursor/cursor_remote.lo: 4cursor/cursor_remote.cc \
+ /usr/include/stdc-predef.h
+
+/usr/include/stdc-predef.h:
