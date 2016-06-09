@@ -2,25 +2,6 @@
 
 #include "file.h"
 
-std::string CFile::basepath = "";
-
-std::string CFile::GetPath(void) {
-	/* Return the basepath */
-	return basepath;
-}
-
-void CFile::SetPath(std::string dirpath) {
-	/* Set the basepath */
-	basepath = dirpath;
-}
-
-void CFile::SetPath(const char *dirpath) {
-	std::string s(dirpath);
-
-	/* Set the basepath */
-	SetPath(s);
-}
-
 bool CFile::Open(std::string filepath) {
 	const char *s = filepath.c_str();
 
@@ -30,19 +11,15 @@ bool CFile::Open(std::string filepath) {
 
 bool CFile::Open(const char *filepath) {
 	std::stringstream spath;
-	const char  *fpath;
 
 	/* Close file */
 	Close();
 
-	/* Generate path */
-	spath << basepath << filepath;
-
-	/* Path string */
-	fpath = spath.str().c_str();
+	/* Save name */
+	name = filepath;
 
 	/* Open file */
-	file.open(fpath);
+	file.open(filepath);
 
 	/* Check if opened */
 	return file.is_open();
@@ -69,6 +46,19 @@ size_t CFile::Size(void) {
 	file.seekg(pos, std::ios::beg);
 
 	return size;
+}
+
+std::string CFile::Type() {
+	std::string ext = name.substr(name.find_last_of(".") + 1);
+	if(ext == "js") {
+		return "application/javascript";
+	} else if(ext == "css") {
+		return "text/css";
+	} else if(ext == "html") {
+		return "text/html";
+	}
+
+	return "";
 }
 
 bool CFile::Read(void *buffer, size_t len) {

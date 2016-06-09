@@ -10,23 +10,10 @@
 */
 class CFile {
 	static std::string basepath;		//!< File basepath.
-
+	std::string name;
 	std::fstream file;			//!< File object.
 
   public:
-	/*!
-		Get the basepath.
-		\returns the current basepath.
-	*/
-	static std::string GetPath(void);
-
-	/*!
-		Set the basepath.
-		\param dirpath the directory to use as base.
-	*/
-	static void SetPath(std::string dirpath);
-	static void SetPath(const char *dirpath);
-
 	/*!
 		Open a file.
 		\param filepath the file path.
@@ -45,6 +32,12 @@ class CFile {
 		\returns the file size.
 	*/
 	size_t Size(void);
+
+	/*!
+		Get the file size.
+		\returns the file size.
+	*/
+	std::string Type();
 
 	/*!
 		Read data from the file.

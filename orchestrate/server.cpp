@@ -55,6 +55,8 @@ void *CServer::Handler(void *client) {
 
 			/* Match internal calls */
 			res = Client->ParseUri(path);
+			if (res)
+				continue;
 
 			/* Send file */
 			// res = Client->SendFile(path);

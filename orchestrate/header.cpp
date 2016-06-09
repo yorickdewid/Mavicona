@@ -90,7 +90,8 @@ void CHeader::AddReply(int reply) {
 
 void CHeader::AddType(const std::string& type) {
 	/* Add the content type */
-	header << "Content-type: " << type << CRLF;
+	if (!type.empty())
+		header << "Content-type: " << type << CRLF;
 }
 
 void CHeader::AddLocation(const std::string& location) {

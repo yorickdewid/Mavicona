@@ -205,6 +205,8 @@ bool CClient::ParseUri(std::string filepath) {
 			if (res <= 0)
 				return false;
 		}
+
+		return true;
 	}
 
 	if (!filepath.compare(0, webledge.size(), webledge)) {
@@ -219,10 +221,18 @@ bool CClient::ParseUri(std::string filepath) {
   			dir.substr(0, dir.find_last_of('#'));
 
 			SendFile(dir);
+			return true;
 		}
 		
 		SendFile("index.html");
 
+		return true;
+	}
+
+	if (!filepath.compare("/favicon.ico") || !filepath.compare("/sitemap.xml")) {
+		HandleError(REPLY_NOENT);
+		
+		return true;
 	}
 
 	return false;
@@ -264,6 +274,7 @@ bool CClient::SendFile(const char *filepath) {
 
 	/* Setup header */
 	Header.AddReply(REPLY_OK);
+	Header.AddType(File.Type());
 	Header.AddDate();
 	Header.AddServer();
 	Header.AddAdditional();
