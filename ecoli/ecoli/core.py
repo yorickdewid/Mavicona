@@ -104,23 +104,25 @@ def remove(remove_list, db):
 				shutil.rmtree('.ecoli/packages/' + install['name'])
 				db.lpop('packages_installed', index)
 
-def update_repo():
-	reponse = urllib2.urlopen(url)
-	file = open('.ecoli/' + file_name, 'wb')
-	print('Updating catalog...', end="")
+def update_repo(db):
+	print('Updating catalogs...', end="")
 
-	block_sz = 8192
-	while True:
-		buffer = reponse.read(block_sz)
-		if not buffer:
-			break
+	for source in db.lgetall('sources'):
+		reponse = urllib2.urlopen(source)
+		file = open('.ecoli/' + file_name, 'wb')
 
-		file.write(buffer)
-		print('.', end="")
+		block_sz = 8192
+		while True:
+			buffer = reponse.read(block_sz)
+			if not buffer:
+				break
+
+			file.write(buffer)
+			print('.', end="")
+
+		file.close()
 
 	print('[done]')
-
-	file.close()
 
 def verify_datadir():
 	if not os.path.exists('.ecoli'):
@@ -131,7 +133,7 @@ def verify_datadir():
 
 def update_packages(db):
 	if not os.path.isfile('.ecoli/' + file_name):
-		update_repo()
+		update_repo(db)
 
 	for index,local in enumerate(db.lgetall('packages_installed')):
 		package = package_get_location(local['name'].lower())
@@ -147,9 +149,9 @@ def update_packages(db):
 
 				install([package['name'].lower()], db)
 
-def list_repo(search=""):
+def list_repo(db, search=""):
 	if not os.path.isfile('.ecoli/' + file_name):
-		update_repo()
+		update_repo(db)
 
 	with open('.ecoli/' + file_name) as repo:
 		data = simplejson.load(repo)
@@ -159,6 +161,10 @@ def list_repo(search=""):
 					continue
 			
 			print("{}\t\t{}".format(package['name'], package['description']))
+
+def list_sources(db):
+	for source in db.lgetall('sources'):			
+		print(source)
 
 def main(args=sys.argv[1:]):
 	"""
@@ -172,6 +178,8 @@ def main(args=sys.argv[1:]):
 		localdb.llen('packages_installed')
 	except KeyError:
 		localdb.lcreate('packages_installed')
+		localdb.lcreate('sources')
+		localdb.ladd('sources', url)
 
 	parser = argparse.ArgumentParser(description='Processing library manager')
 
@@ -199,20 +207,20 @@ def main(args=sys.argv[1:]):
 
 	if results.run_update:
 		take_action = True
-		update_repo()
+		update_repo(localdb)
 		update_packages(localdb)
 
-	#if results.run_show_repos:
-	#	take_action = True
-	#	update_repo()
+	if results.run_show_repos:
+		take_action = True
+		list_sources(localdb)
 
 	if results.pattern:
 		take_action = True
-		list_repo(results.pattern.lower())
+		list_repo(localdb, results.pattern.lower())
 
 	if results.run_list:
 		take_action = True
-		list_repo()
+		list_repo(localdb)
 
 	if not take_action:
 		print('No actions requested, see --help')
