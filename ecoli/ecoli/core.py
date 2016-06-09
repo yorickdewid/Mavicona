@@ -7,6 +7,7 @@ import shutil
 import urllib2
 import pickledb
 import simplejson
+import signal
 import zipfile
 
 url = 'http://ecoli.mavicona.net/index.json'
@@ -41,6 +42,10 @@ def query_yes_no(question, default="yes"):
 			return valid[choice]
 		else:
 			sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n')")
+
+def signal_handler(signal, frame):
+	print()
+	sys.exit(0)
 
 def package_get_location(search):
 	if not os.path.isfile('.ecoli/' + file_name):
@@ -129,7 +134,7 @@ def verify_datadir():
 		os.makedirs('.ecoli')
 		os.makedirs('.ecoli/data')
 		os.makedirs('.ecoli/packages')
-		os.makedirs('.ecoli/tmp')	
+		os.makedirs('.ecoli/tmp')
 
 def update_packages(db):
 	if not os.path.isfile('.ecoli/' + file_name):
@@ -166,6 +171,11 @@ def list_sources(db):
 	for source in db.lgetall('sources'):			
 		print(source)
 
+def cleanup():
+	shutil.rmtree('.ecoli/tmp')
+	os.makedirs('.ecoli/tmp')
+	print('Cleanup...[done]')
+
 def main(args=sys.argv[1:]):
 	"""
 	The main function.
@@ -191,8 +201,11 @@ def main(args=sys.argv[1:]):
 
 	parser.add_argument('--show-repos', action='store_true', dest='run_show_repos', help='list repositories')
 	parser.add_argument('--list', action='store_true', dest='run_list', help='show all packages')
+	parser.add_argument('--cleanup', action='store_true', dest='run_cleanup', help='remove cached files and packages')
 	parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 	parser.parse_args()
+
+	signal.signal(signal.SIGINT, signal_handler)
 
 	take_action = False
 	results = parser.parse_args()
@@ -221,6 +234,10 @@ def main(args=sys.argv[1:]):
 	if results.run_list:
 		take_action = True
 		list_repo(localdb)
+
+	if results.run_cleanup:
+		take_action = True
+		cleanup()
 
 	if not take_action:
 		print('No actions requested, see --help')
