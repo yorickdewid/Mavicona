@@ -12,7 +12,7 @@ constexpr char defaultDataDir[] = "data";
 class AbstractEngine {
 	upscaledb::env env;       /* upscaledb environment object */
 	upscaledb::db db;         /* upscaledb database object */
-	char *name_prefix;
+	const char *name_prefix;
 	unsigned int counter = 0;
 
 	const std::string dbname(const char *dir) {
@@ -27,7 +27,7 @@ class AbstractEngine {
 	}
 
   public:
-	AbstractEngine(char *prefix, bool allow_duplicates = false, const char *datadir = defaultDataDir) : name_prefix(prefix) {
+	AbstractEngine(const char *prefix, bool allow_duplicates = false, const char *datadir = defaultDataDir) : name_prefix(prefix) {
 		mkdir(datadir, 0700);
 
 		assert(strlen(name_prefix) == 3);
