@@ -6,7 +6,7 @@
 class RecordIndex : public AbstractEngine {
 
   public:
-	RecordIndex() : AbstractEngine("ari", false) {}
+	RecordIndex() : AbstractEngine("ari") {}
 
 };
 

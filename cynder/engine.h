@@ -45,6 +45,10 @@ class AbstractEngine {
 		}
 	}
 
+	inline unsigned int dbcount() {
+		return counter;
+	}
+
 	virtual ~AbstractEngine() {
 		db.close();
 		env.close();
