@@ -36,12 +36,17 @@ class AbstractEngine {
 			{0,}
 		};
 
-		/* Create a new environment for ADI file and a database in this environment */
-		try{
-			env.create(dbname(datadir).c_str());
-			db = env.create_db(1, allow_duplicates ? UPS_ENABLE_DUPLICATE_KEYS : 0, &params[0]);
+		try {
+			const char *dbfile = dbname(datadir).c_str();
+			if (!file_exist(dbfile)) {
+				env.create(dbfile);
+				db = env.create_db(1, allow_duplicates ? UPS_ENABLE_DUPLICATE_KEYS : 0, &params[0]);
+			} else {
+				env.open(dbfile);
+				db = env.open_db(1, allow_duplicates ? UPS_ENABLE_DUPLICATE_KEYS : 0);
+			}
 		} catch (upscaledb::error& e) {
-			std::cerr << "Error creating database: " << e.get_string() << std::endl;
+			std::cerr << "Error accessing database: " << e.get_string() << std::endl;
 		}
 	}
 
@@ -49,9 +54,13 @@ class AbstractEngine {
 		return counter;
 	}
 
-	virtual ~AbstractEngine() {
+	void close() {
 		db.close();
 		env.close();
+	}
+
+	virtual ~AbstractEngine() {
+		close();
 	}
 
 	virtual void put(std::string key, std::string value, bool override = false) {
