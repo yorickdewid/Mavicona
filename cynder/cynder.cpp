@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <csignal>
 #include <quidpp.h>
 
 #include "common/util.h"
@@ -14,11 +15,31 @@
 #include "protoc/scrapedata.pb.h"
 #include "protoc/storagequery.pb.h"
 #include "consistent_hash.h"
-#include "engine.h"
+#include "catalogus.h"
+#include "record_index.h"
+#include "data_index.h"
+#include "key_index.h"
+#include "text_index.h"
 
 #define SHARDING_SPREAD		10
+// #define DATA_VALUE_LIMIT 	16 * 1024 * 1024
+#define DATA_VALUE_LIMIT 	1024
 
 static Consistent::HashRing<std::string, quidpp::Quid, Crc32> nodeRing(SHARDING_SPREAD, Crc32());
+static bool interrupted = false;
+
+void signal_handler(int signum) {
+	interrupted = true;
+}
+
+static void catch_signals() {
+    struct sigaction action;
+    action.sa_handler = signal_handler;
+    action.sa_flags = 0;
+    sigemptyset (&action.sa_mask);
+    sigaction (SIGINT, &action, NULL);
+    sigaction (SIGTERM, &action, NULL);
+}
 
 void performQueryRequest(StorageQuery& query) {
 	zmq::context_t context(1);
@@ -101,15 +122,23 @@ void initMaster() {
 		memcpy(reply.data(), "DONE", 5);
 		socket.send(reply);
 	}
-
-	exit(0); /* Should never reach */
 }
 
 void initSlave() {
 	std::cout << "Slave" << std::endl;
 
-	Engine recorddb(EngineType::DB_ABI);
-	Engine datadb(EngineType::DB_ADI);
+	// catalogus
+	Catalogus cat;
+	RecordIndex ari;
+	DataIndex adi;
+	// KeyIndex uki;
+	// TextIndex fti;
+
+	/* Save database counters */
+	cat.put("ari_count", ari.dbcount());
+	cat.put("adi_count", adi.dbcount());
+	// cat.put("uki_count", uki.dbcount());
+	// cat.put("fti_count", fti.dbcount());
 
 	/* Prepare our context and socket */
 	zmq::context_t context(1);
@@ -119,13 +148,19 @@ void initSlave() {
 	socket.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
 	socket.bind("tcp://*:5522");
 
+	std::string serialized;
 	std::cout << "Waiting for connections " << std::endl;
 
 	while (true) {
 		zmq::message_t request;
 
 		/* Wait for next request from client */
-		socket.recv(&request);
+		try {
+			socket.recv(&request);
+		} catch (zmq::error_t &e) {
+			std::cout << "Exit gracefully" << std::endl;
+			break;
+		}
 
 		StorageQuery query;
 		query.ParseFromArray(request.data(), request.size());
@@ -135,27 +170,40 @@ void initSlave() {
 			switch (query.queryaction()) {
 				case StorageQuery::SELECT:
 					std::cout << "Request " << query.id() << " [SELECT] " << query.quid() << " named '" << query.name() << "'" << std::endl;
-					query.set_content(datadb.get(query.quid()));
+					
+					/* Restore the record */
+					serialized = ari.get(query.quid());
+					query.ParseFromArray(serialized.data(), serialized.size());
+
+					/* Restore content */
+					query.set_content(adi.get(query.quid()));
 
 					break;
 				case StorageQuery::INSERT:
 					std::cout << "Request " << query.id() << " [INSERT] " << query.quid() << " named '" << query.name() << "'" << std::endl;
-					datadb.put(query.quid(), query.name(), query.content());
-
-					for (int i = 0; i < query.meta_size(); i++) {
-						if (query.meta(i).has_value())
-							recorddb.put(query.quid(), query.meta(i).key(), query.meta(i).value());
+					
+					/* Store content in LFB */
+					if (query.content().size() > DATA_VALUE_LIMIT) {
+						std::cout << "Store in LFB" << std::endl;
 					}
+
+					/* Store content */
+					adi.put(query.quid(), query.content());
+
+					/* Store the record */
+					query.clear_content();
+					query.SerializeToString(&serialized);
+					ari.put(query.quid(), serialized);
 
 					break;
 				case StorageQuery::UPDATE:
 					std::cout << "Request " << query.id() << " [UPDATE] " << query.quid() << " named '" << query.name() << "'" << std::endl;
-					datadb.put(query.quid(), query.name(), query.content(), true);
+					/*datadb.put(query.quid(), query.name(), query.content(), true);*/
 
 					break;
 				case StorageQuery::DELETE:
 					std::cout << "Request " << query.id() << " [DELETE] " << query.quid() << " named '" << query.name() << "'" << std::endl;
-					datadb.remove(query.quid(), query.name());
+					/*datadb.remove(query.quid(), query.name());*/
 
 					break;
 			}
@@ -174,7 +222,6 @@ void initSlave() {
 		}
 
 		/* Send back query structure */
-		std::string serialized;
 		query.SerializeToString(&serialized);
 
 		zmq::message_t reply(serialized.size());
@@ -234,11 +281,12 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	catch_signals();
+
 	if (options.count("master"))
 		initMaster();
-
-	/* Only initialize if we're not master */
-	initSlave();
+	else
+		initSlave();
 
 	return 0;
 }
