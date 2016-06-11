@@ -43,7 +43,7 @@ class AbstractEngine {
 				db = env.create_db(1, allow_duplicates ? UPS_ENABLE_DUPLICATE_KEYS : 0, &params[0]);
 			} else {
 				env.open(dbfile);
-				db = env.open_db(1, allow_duplicates ? UPS_ENABLE_DUPLICATE_KEYS : 0);
+				db = env.open_db(1);
 			}
 		} catch (upscaledb::error& e) {
 			std::cerr << "Error accessing database: " << e.get_string() << std::endl;
