@@ -9,45 +9,32 @@
 
 #define ITEM_SIZE	8 * 1024 * 1024
 
-constexpr char defaultStorageDir[] = "data";
-
 class Filepage {
-	const char *name_prefix;
-	const char *dir;
-	unsigned int counter = 0;
-
-	const std::string dbname(const char *dir) {
-		std::stringstream ss;
-		ss << std::string(dir);
-		ss << "/";
-		ss << name_prefix;
-		ss << std::setw(4) << std::setfill('0') << counter++;
-		ss << "dxdb";
-
-		return ss.str();
-	}
-
-	void createPage();
+	bool m_Open = false;
+	std::fstream fs;
 
   public:
-	Filepage(const char *storagedir = defaultStorageDir) : name_prefix("lfb"), dir(storagedir) {
-		mkdir(storagedir, 0700);
+	Filepage() {
 
-		assert(strlen(name_prefix) == 3);
 	}
 
-	unsigned int store(std::string name, std::string data);
+	void create(const std::string& file);
+	void open(const std::string& file);
+	bool verify();
 
-	std::string retrieve(unsigned int page, std::string name);
+	unsigned int storeItem(std::string name, std::string data);
 
-	void purge(unsigned int page, std::string name);
+	std::string retrieveItem(unsigned int page, std::string name);
 
-	inline unsigned int dbcount() {
-		return counter;
+	void removeItem(unsigned int page, std::string name);
+
+	inline bool is_open() {
+		return m_Open;
 	}
 
 	~Filepage() {
-
+		if (m_Open)
+			fs.close();
 	}
 
 };
