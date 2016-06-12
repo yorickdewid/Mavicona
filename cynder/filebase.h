@@ -28,16 +28,9 @@ class Filebase {
 		return ss.str();
 	}
 
-	Filepage *createPage(const std::string& file) {
-		Filepage *page = new Filepage();
-		page->create(file);
-
-		return page;
-	}
-
-	Filepage *openPage(const std::string& file) {
-		Filepage *page = new Filepage();
-		page->open(file);
+	Filepage *aquirePage(const std::string& file) {
+		Filepage *page = new Filepage(file);
+		filepages.push_back(page);
 
 		return page;
 	}
@@ -47,19 +40,15 @@ class Filebase {
 		mkdir(storagedir, 0700);
 
 		assert(strlen(name_prefix) == 3);
-
-		std::string file = dbname(dir);
-		Filepage *page = createPage(file);
-		filepages.push_back(page);
-
-		page->verify();
-
-		// Filepage *page = openPage(file);
-
-		// openPage(file);
 	}
 
-	unsigned int put(std::string name, std::string data);
+	unsigned int put(std::string name, std::string data) {
+		Filepage *page = aquirePage(dbname(dir));
+
+		page->storeItem(name, data);
+
+		return counter - 1; //TODO hack
+	}
 
 	std::string get(unsigned int page, std::string name);
 

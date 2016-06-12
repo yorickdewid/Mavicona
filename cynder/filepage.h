@@ -7,34 +7,51 @@
 #include <sstream>
 #include <sys/stat.h>
 
-#define ITEM_SIZE	8 * 1024 * 1024
+#include "common/util.h"
+
+#define ITEM_SIZE			8 * 1024 * 1024
+#define DEFAULT_PAGE_ALLOC	16			/* Capacity of page in items */
 
 class Filepage {
-	bool m_Open = false;
-	std::fstream fs;
+	unsigned short m_Elements;
+	unsigned int m_Allocated;
+	unsigned int m_FirstFree;
+	FILE *m_pFile = nullptr;
+	const std::string m_File;
+
+	void writeHeader();
+	void grow();
 
   public:
-	Filepage() {
-
+	Filepage(const std::string& file) : m_File(file) {
+		if (!file_exist(m_File)) {
+			create();
+		} else {
+			open();
+		}
 	}
 
-	void create(const std::string& file);
-	void open(const std::string& file);
-	bool verify();
+	void create(unsigned int alloc = DEFAULT_PAGE_ALLOC);
+	void open();
 
-	unsigned int storeItem(std::string name, std::string data);
+	void storeItem(std::string name, std::string data);
 
-	std::string retrieveItem(unsigned int page, std::string name);
+	std::string retrieveItem(std::string name);
 
 	void removeItem(unsigned int page, std::string name);
 
+	size_t size();
+
+	inline bool empty() {
+		return size() == 0;
+	}
+
 	inline bool is_open() {
-		return m_Open;
+		return m_pFile != nullptr;
 	}
 
 	~Filepage() {
-		if (m_Open)
-			fs.close();
+		fclose(m_pFile);
 	}
 
 };

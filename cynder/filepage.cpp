@@ -4,21 +4,18 @@
 #include "filepage.h"
 
 #define PAGE_MAGIC		"LFBX01E"	/* Magic checkup */
-#define PAGE_CAPACITY	16			/* Capacity of page in items */
 
 #define PAGE_FLAG_NIL	0x0
 #define PAGE_FLAG_INV	0x2
+#define PAGE_FLAG_GZIP	0x8
 #define PAGE_FLAG_FULL	0x12
 
 struct pageHeader {
-	const unsigned char magic[8] = PAGE_MAGIC;
-	short elements = 0;
-	int next_item = 0;
+	char magic[8];// = PAGE_MAGIC;
+	unsigned short elements = 0;
+	unsigned int allocated = 0;
+	unsigned int first_free = 0;
 	int flags = PAGE_FLAG_NIL;
-};
-
-struct pageFooter {
-	const unsigned char magic[8] = PAGE_MAGIC;
 };
 
 struct pageIndex {
@@ -26,60 +23,111 @@ struct pageIndex {
 	int item = 0;
 };
 
-bool Filepage::verify() {
+size_t Filepage::size() {
+	return m_Elements;
+}
+
+void Filepage::create(unsigned int alloc) {
+	m_pFile = fopen(m_File.c_str(), "w+");
+
 	pageHeader header;
-	fs.read((char *)&header, sizeof(pageHeader));
+	strcpy(header.magic, PAGE_MAGIC);
+	header.allocated = alloc;
+	header.first_free = sizeof(pageHeader) + (sizeof(pageIndex) * header.allocated);
+	fwrite((const char *)&header, sizeof(pageHeader), 1, m_pFile);
+
+	/* Allocate page on disk */
+	fseek(m_pFile, sizeof(pageHeader) + (sizeof(pageIndex) * header.allocated) + (ITEM_SIZE * header.allocated), SEEK_CUR);
+	fwrite("\0", 1, 1, m_pFile);
+
+	fflush(m_pFile);
+
+	m_Elements = header.elements;
+	m_Allocated = header.allocated;
+	m_FirstFree = header.first_free;
+}
+
+void Filepage::open() {
+	m_pFile = fopen(m_File.c_str(), "r+");
+
+	pageHeader header;
+	fread((char *)&header, sizeof(pageHeader), 1, m_pFile);
 
 	if (strcmp((const char *)header.magic, PAGE_MAGIC)) {
-		puts("Magic error"); // throw error
-		return false;
+		puts("Magic error 1"); // throw error
+		return;
 	}
 
-	if (header.elements > PAGE_CAPACITY) {
+	if (header.elements > header.allocated) {
 		puts("Overflow error"); // throw error
-		return false;
+		return;
 	}
 
-	fs.seekg(sizeof(pageHeader) + (sizeof(pageIndex) * PAGE_CAPACITY) + (ITEM_SIZE * PAGE_CAPACITY));
-
-	pageFooter footer;
-	fs.read((char *)&footer, sizeof(pageFooter));
-
-	if (strcmp((const char *)footer.magic, PAGE_MAGIC)) {
-		puts("Magic err"); // throw error
-		return false;
-	}
-
-	return true;
+	m_Elements = header.elements;
+	m_Allocated = header.allocated;
+	m_FirstFree = header.first_free;
 }
 
-void Filepage::create(const std::string& file) {
-	fs.open(file.c_str(), std::fstream::out | std::fstream::binary);
+void Filepage::writeHeader() {
+	fseek(m_pFile, 0, SEEK_SET);
 
 	pageHeader header;
-	fs.write((const char *)&header, sizeof(pageHeader));
+	strcpy(header.magic, PAGE_MAGIC);
+	header.elements = m_Elements;
+	header.allocated = m_Allocated;
+	header.first_free = m_FirstFree;
 
-	fs.seekp(sizeof(pageHeader) + (sizeof(pageIndex) * PAGE_CAPACITY) + (ITEM_SIZE * PAGE_CAPACITY));
+	fwrite((const char *)&header, sizeof(pageHeader), 1, m_pFile);
 
-	pageFooter footer;
-	fs.write((const char *)&footer, sizeof(pageFooter));
-
-	fs.flush();
-
-	m_Open = true;
+	fflush(m_pFile);
 }
 
-void Filepage::open(const std::string& file) {
-	if (!is_open()) {
-		fs.open(file.c_str(), std::fstream::in | std::fstream::out | std::fstream::binary);
-		if (!fs.is_open()) {
-			puts("Access error"); // throw error
-			return;
-		}
+void Filepage::storeItem(std::string name, std::string data) {
+	if (name.size() > 40) {
+		puts("Name overflows index");
+		return;
 	}
 
-	if (!verify())
-		return;
+	std::cout << "Current allocation size: " << (m_Allocated * ITEM_SIZE) << std::endl;
+	std::cout << "Elements: " << m_Elements << std::endl;
+	std::cout << "Free offset: " << m_FirstFree << std::endl;
+	std::cout << "New data size: " << data.size() << std::endl;
 
-	m_Open = true;
+	if (m_FirstFree + data.size() > (m_Allocated * ITEM_SIZE)) {
+		puts("Should grow");
+		return;
+	}
+
+	if (m_Elements == m_Allocated) {
+		puts("Should grow certainly, fullhouse");
+		return;
+	}
+
+	{
+		size_t namepos = sizeof(pageHeader) + (sizeof(pageIndex) * m_Elements);
+		std::cout << "Position for new name: " << namepos << std::endl;
+
+		fseek(m_pFile, namepos, SEEK_CUR);
+
+		pageIndex index;
+		strcpy(index.name, name.c_str());
+		index.item = m_FirstFree;
+
+		fwrite((const char *)&index, sizeof(pageIndex), 1, m_pFile);
+	}
+
+	{
+		std::cout << "Position for new data: " << m_FirstFree << std::endl;
+		fseek(m_pFile, m_FirstFree, SEEK_CUR);
+
+		fwrite(data.c_str(), 1, data.size(), m_pFile);
+
+		m_FirstFree += data.size();
+	}
+
+	m_Elements++;
+
+	writeHeader();
+
+	fflush(m_pFile);
 }
