@@ -1,4 +1,4 @@
-OBJS = ../common/config.o ../protoc/scrapedata.pb.o scrape.o ../quid/libquid.a
+OBJS = ../protoc/scrapedata.pb.o scrape.o ../quid/libquid.a
 CC = g++
 DEBUG = -g
 LIBS = -lprotobuf -lzmq $(shell python2.7-config --libs)
