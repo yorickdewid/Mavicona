@@ -1,3 +1,0 @@
-4env/env_remote.lo: 4env/env_remote.cc /usr/include/stdc-predef.h
-
-/usr/include/stdc-predef.h:
