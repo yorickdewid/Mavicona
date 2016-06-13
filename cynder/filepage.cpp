@@ -10,8 +10,11 @@
 #define PAGE_FLAG_GZIP	0x8
 #define PAGE_FLAG_FULL	0x12
 
+#define INDEX_FLAG_NIL	0x0
+#define INDEX_FLAG_DEL	0x2
+
 struct pageHeader {
-	char magic[8];// = PAGE_MAGIC;
+	char magic[8];
 	unsigned short elements = 0;
 	unsigned int allocated = 0;
 	unsigned int first_free = 0;
@@ -20,7 +23,8 @@ struct pageHeader {
 
 struct pageIndex {
 	char name[40];
-	int item = 0;
+	unsigned int item = 0;
+	char flags = INDEX_FLAG_NIL;
 };
 
 size_t Filepage::size() {
@@ -37,7 +41,7 @@ void Filepage::create(unsigned int alloc) {
 	fwrite((const char *)&header, sizeof(pageHeader), 1, m_pFile);
 
 	/* Allocate page on disk */
-	fseek(m_pFile, sizeof(pageHeader) + (sizeof(pageIndex) * header.allocated) + (ITEM_SIZE * header.allocated), SEEK_CUR);
+	fseek(m_pFile, sizeof(pageHeader) + header.first_free + (ITEM_SIZE * header.allocated), SEEK_CUR);
 	fwrite("\0", 1, 1, m_pFile);
 
 	fflush(m_pFile);
@@ -82,6 +86,18 @@ void Filepage::writeHeader() {
 	fflush(m_pFile);
 }
 
+void Filepage::grow() {
+	m_Allocated *= 2;
+
+	m_FirstFree += (sizeof(pageIndex) * (m_Allocated / 2));
+
+	/* Allocate page on disk */
+	fseek(m_pFile, m_FirstFree + (ITEM_SIZE * m_Allocated), SEEK_CUR);
+	fwrite("\0", 1, 1, m_pFile);
+
+	writeHeader();
+}
+
 void Filepage::storeItem(std::string name, std::string data) {
 	if (name.size() > 40) {
 		puts("Name overflows index");
@@ -100,6 +116,7 @@ void Filepage::storeItem(std::string name, std::string data) {
 
 	if (m_Elements == m_Allocated) {
 		puts("Should grow certainly, fullhouse");
+		grow();
 		return;
 	}
 
