@@ -16,8 +16,11 @@ class Filepage {
 	unsigned short m_Elements;
 	unsigned int m_Allocated;
 	unsigned int m_FirstFree;
+	unsigned int m_Grow;
+	unsigned int m_LastIndex;
 	FILE *m_pFile = nullptr;
 	const std::string m_File;
+	//TODO multimap containing name<>pointer
 
 	void writeHeader();
 	void grow();

@@ -13,11 +13,14 @@
 #define INDEX_FLAG_NIL	0x0
 #define INDEX_FLAG_DEL	0x2
 
+#define INDEX_NEXT_EMPTY	0x11
+
 struct pageHeader {
 	char magic[8];
 	unsigned short elements = 0;
 	unsigned int allocated = 0;
 	unsigned int first_free = 0;
+	unsigned int grow_items = 0;
 	int flags = PAGE_FLAG_NIL;
 };
 
@@ -36,12 +39,19 @@ void Filepage::create(unsigned int alloc) {
 
 	pageHeader header;
 	strcpy(header.magic, PAGE_MAGIC);
-	header.allocated = alloc;
+	header.allocated = alloc;//TODO, not enough
+	header.grow_items = alloc;
 	header.first_free = sizeof(pageHeader) + (sizeof(pageIndex) * header.allocated);
 	fwrite((const char *)&header, sizeof(pageHeader), 1, m_pFile);
 
+	/* Set pointer to next index */
+	fseek(m_pFile, header.first_free, SEEK_CUR);
+	int next_index = INDEX_NEXT_EMPTY;
+	fwrite((const char *)&next_index, sizeof(unsigned int), 1, m_pFile);
+	header.first_free += sizeof(unsigned int);
+
 	/* Allocate page on disk */
-	fseek(m_pFile, sizeof(pageHeader) + header.first_free + (ITEM_SIZE * header.allocated), SEEK_CUR);
+	fseek(m_pFile, header.first_free + (ITEM_SIZE * header.allocated), SEEK_CUR);
 	fwrite("\0", 1, 1, m_pFile);
 
 	fflush(m_pFile);
@@ -67,6 +77,13 @@ void Filepage::open() {
 		return;
 	}
 
+	/* TODO Get all indexes */
+	fseek(m_pFile, sizeof(pageHeader) + (sizeof(pageIndex) * header.allocated), SEEK_CUR);
+	int next_index;
+	fread((char *)&next_index, sizeof(unsigned int), 1, m_pFile);
+
+	printf("DEBUG: NEXT INDEX %d\n", next_index);
+
 	m_Elements = header.elements;
 	m_Allocated = header.allocated;
 	m_FirstFree = header.first_free;
@@ -90,6 +107,17 @@ void Filepage::grow() {
 	m_Allocated *= 2;
 
 	m_FirstFree += (sizeof(pageIndex) * (m_Allocated / 2));
+
+	/* Set pointer to next index */
+	fseek(m_pFile, m_FirstFree, SEEK_CUR);
+	int next_index = INDEX_NEXT_EMPTY;
+	fwrite((const char *)&next_index, sizeof(unsigned int), 1, m_pFile);
+	m_FirstFree += sizeof(unsigned int);
+
+	/* Set previous pointer to this index */
+	fseek(m_pFile, sizeof(pageHeader) + (sizeof(pageIndex) * (m_Allocated / 2)), SEEK_SET);
+	next_index = m_FirstFree;
+	fwrite((const char *)&next_index, sizeof(unsigned int), 1, m_pFile);
 
 	/* Allocate page on disk */
 	fseek(m_pFile, m_FirstFree + (ITEM_SIZE * m_Allocated), SEEK_CUR);
