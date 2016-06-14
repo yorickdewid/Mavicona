@@ -20,10 +20,9 @@
 #include "data_index.h"
 #include "key_index.h"
 #include "text_index.h"
+#include "filebase.h"
 
 #define SHARDING_SPREAD		10
-// #define DATA_VALUE_LIMIT 	16 * 1024 * 1024
-#define DATA_VALUE_LIMIT 	1024
 
 static Consistent::HashRing<std::string, quidpp::Quid, Crc32> nodeRing(SHARDING_SPREAD, Crc32());
 static bool interrupted = false;
@@ -131,14 +130,14 @@ void initSlave() {
 	Catalogus cat;
 	RecordIndex ari;
 	DataIndex adi;
-	// KeyIndex uki;
-	// TextIndex fti;
+	KeyIndex uki;
+	TextIndex fti;
 
 	/* Save database counters */
 	cat.put("ari_count", ari.dbcount());
 	cat.put("adi_count", adi.dbcount());
-	// cat.put("uki_count", uki.dbcount());
-	// cat.put("fti_count", fti.dbcount());
+	cat.put("uki_count", uki.dbcount());
+	cat.put("fti_count", fti.dbcount());
 
 	/* Prepare our context and socket */
 	zmq::context_t context(1);
@@ -166,6 +165,17 @@ void initSlave() {
 		query.ParseFromArray(request.data(), request.size());
 		query.set_queryresult(StorageQuery::SUCCESS);
 
+		/* Recursively insert meta data */
+		std::function<void (const StorageQuery::MetaEntry *)> traverseMeta = [&] (const StorageQuery::MetaEntry *key) { 
+			if (key->meta_size()) {
+				for (int i = 0; i < key->meta_size(); i++)
+					traverseMeta(&key->meta(i));
+			} else {
+				uki.put(query.quid(), key->key(), key->value());
+				fti.put(query.quid(), key->value(), key->key());
+			}
+		};
+
 		try {
 			switch (query.queryaction()) {
 				case StorageQuery::SELECT:
@@ -183,7 +193,7 @@ void initSlave() {
 					std::cout << "Request " << query.id() << " [INSERT] " << query.quid() << " named '" << query.name() << "'" << std::endl;
 					
 					/* Store content in LFB */
-					if (query.content().size() > DATA_VALUE_LIMIT) {
+					if (query.content().size() > ITEM_SIZE) {
 						std::cout << "Store in LFB" << std::endl;
 					}
 
@@ -194,6 +204,10 @@ void initSlave() {
 					query.clear_content();
 					query.SerializeToString(&serialized);
 					ari.put(query.quid(), serialized);
+
+					/* Store additional data in unclustered indexes */
+					for (int i = 0; i < query.meta_size(); i++)
+						traverseMeta(&query.meta(i));
 
 					break;
 				case StorageQuery::UPDATE:

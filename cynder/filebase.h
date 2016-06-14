@@ -28,7 +28,7 @@ class Filebase {
 		return ss.str();
 	}
 
-	Filepage *aquirePage(const std::string& file) {
+	Filepage *acquirePage(const std::string& file) {
 		Filepage *page = new Filepage(file);
 		filepages.push_back(page);
 
@@ -43,16 +43,16 @@ class Filebase {
 	}
 
 	unsigned int put(std::string name, std::string data) {
-		Filepage *page = aquirePage(dbname(dir));
+		Filepage *page = acquirePage(dbname(dir));
 
 		page->storeItem(name, data);
 
 		return counter - 1; //TODO hack
 	}
 
-	std::string get(unsigned int page, std::string name);
+	std::string get(unsigned int page, std::string name);//TODO
 
-	void remove(unsigned int page, std::string name);
+	void remove(unsigned int page, std::string name);//TODO
 
 	inline unsigned int dbcount() {
 		return counter;
