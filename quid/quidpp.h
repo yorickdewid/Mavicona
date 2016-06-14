@@ -7,7 +7,7 @@ extern "C" {
 
 namespace quidpp {
 
-class InvalidQuid {};
+class InvalidQuid {/*TODO set what()*/};
 
 class Quid {
 	quid_t quid;
@@ -26,6 +26,10 @@ class Quid {
 		}
 
 		strtoquid(strquid, &this->quid);
+	}
+
+	static size_t unpackedSize() {
+		return UNPACKED_LENGTH;
 	}
 
 	void uniform(char node[4]) const {

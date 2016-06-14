@@ -9,6 +9,7 @@ extern "C"
 #include "common.h"
 
 #define QUID_LENGTH 		38
+#define UNPACKED_LENGTH 	QUID_LENGTH - 2
 #define SHORT_QUID_LENGTH	14
 #define QUID_VERSION		3
 
