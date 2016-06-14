@@ -2,18 +2,9 @@
 #define TEXT_INDEX_H
 
 #include "engine.h"
+#include "additional_index.h"
 
-class TextIndex : public AbstractEngine {
-	std::vector<std::string> commonIndexKeywords = {{
-		"name", "author", "owner", "user", "username",
-		"date", "datetime", "timestamp", "locale",
-		"age", "type", "classification", "category",
-		"group", "set", "rating", "result", "status",
-		"location", "language", "place", "target",
-		"url", "address", "path", "description",
-		"remark", "subject", "comment",	"note",	"tag",
-	}};
-
+class TextIndex : public AbstractEngine, public AbstractAdditionalIndex {
   public:
 	TextIndex() : AbstractEngine("fti", true) {}
 
@@ -22,8 +13,7 @@ class TextIndex : public AbstractEngine {
 			std::cerr << "Invalid QUID concatenation" << std::endl;
 		}
 
-		std::vector<std::string>::iterator it = find(commonIndexKeywords.begin(), commonIndexKeywords.end(), value);
-		if (it == commonIndexKeywords.end())
+		if (!matchKeyword(value))
 			return;
 		
 		std::cout << "Value quallifies for storage\n";
