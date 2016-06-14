@@ -1,6 +1,6 @@
 OBJS = cynder.o filepage.o ../protoc/storagequery.pb.o ../protoc/scrapedata.pb.o ../third_party/upscaledb/src/.libs/libupscaledb.a  ../quid/libquid.a
 CC = g++
-DEBUG = -g
+DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq -lz -ldl -lboost_system -lboost_thread -lcrypto
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. -I../quid -I../third_party/upscaledb/include
 LFLAGS = -Wall $(DEBUG) $(LIBS)

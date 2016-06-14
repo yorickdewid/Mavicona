@@ -1,6 +1,6 @@
 OBJS = ../protoc/task.pb.o provision.o pitcher.o
 CC = g++
-DEBUG = -g
+DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq -lleveldb -lpthread
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I..
 LFLAGS = -Wall $(DEBUG) $(LIBS)

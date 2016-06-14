@@ -2,7 +2,7 @@ OBJS = ../protoc/scrapedata.pb.o ../protoc/task.pb.o ../third_party/lodepng/lode
 CC = g++
 LEX = flex
 YACC = bison
-DEBUG = -g
+DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq -lmagic
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I..  -I../third_party
 LFLAGS = -Wall $(DEBUG) $(LIBS)

@@ -1,6 +1,6 @@
 OBJS = ../protoc/scrapedata.pb.o scrape.o ../quid/libquid.a
 CC = g++
-DEBUG = -g
+DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq $(shell python2.7-config --libs)
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. $(shell python2.7-config --includes) -I../quid
 LFLAGS = -Wall $(DEBUG) $(LIBS)
