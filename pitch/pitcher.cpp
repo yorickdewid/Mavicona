@@ -1,5 +1,6 @@
 #include <zmq.hpp>
 #include <string>
+#include <csignal>
 #include <iostream>
 
 #include "common/util.h"
@@ -10,6 +11,20 @@
 #include "queue.h"
 
 static Queue<Task> taskQueue;
+static bool interrupted = false;
+
+void signal_handler(int signum) {
+	interrupted = true;
+}
+
+static void catch_signals() {
+	struct sigaction action;
+	action.sa_handler = signal_handler;
+	action.sa_flags = 0;
+	sigemptyset(&action.sa_mask);
+	sigaction(SIGINT, &action, NULL);
+	sigaction(SIGTERM, &action, NULL);
+}
 
 void parseTask(Task& task) {
 	switch (task.priority()) {
@@ -76,6 +91,8 @@ int main(int argc, char *argv[]) {
 	event.setTimeout(1 /* 1sec */);
 	event.start();
 
+	catch_signals();
+
 	/* Prepare our context and socket */
 	zmq::context_t context(1);
 	zmq::socket_t socket(context, ZMQ_REP);
@@ -90,7 +107,12 @@ int main(int argc, char *argv[]) {
 		zmq::message_t request;
 
 		/* Wait for next request from client */
-		socket.recv(&request);
+		try {
+			socket.recv(&request);
+		} catch (zmq::error_t &e) {
+			std::cout << "Exit gracefully" << std::endl;
+			break;
+		}
 
 		Task task;
 		task.ParseFromArray(request.data(), request.size());

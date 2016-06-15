@@ -1,5 +1,6 @@
 #include <zmq.hpp>
 #include <string>
+#include <csignal>
 #include <iostream>
 #include <unistd.h>
 
@@ -15,10 +16,24 @@
 static unsigned int dataCounter = 1000;
 static std::vector<RuleNode *> *commonRuleset = nullptr;
 static bool doFork = true;
+static bool interrupted = false;
 
 std::string configfile;
 
 void parseData(ScrapeData& data, unsigned int counter);
+
+void signal_handler(int signum) {
+	interrupted = true;
+}
+
+static void catch_signals() {
+	struct sigaction action;
+	action.sa_handler = signal_handler;
+	action.sa_flags = 0;
+	sigemptyset(&action.sa_mask);
+	sigaction(SIGINT, &action, NULL);
+	sigaction(SIGTERM, &action, NULL);
+}
 
 pid_t handleRequest(ScrapeData& data) {
 	dataCounter++;
@@ -205,6 +220,8 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	catch_signals();
+
 	//  Prepare our context and socket
 	zmq::context_t context(1);
 	zmq::socket_t socket(context, ZMQ_REP);
@@ -218,8 +235,13 @@ int main(int argc, char *argv[]) {
 	while (true) {
 		zmq::message_t request;
 
-		//  Wait for next request from client
-		socket.recv(&request);
+		/* Wait for next request from client */
+		try {
+			socket.recv(&request);
+		} catch (zmq::error_t &e) {
+			std::cout << "Exit gracefully" << std::endl;
+			break;
+		}
 
 		ScrapeData data;
 		data.ParseFromArray(request.data(), request.size());
