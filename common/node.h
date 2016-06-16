@@ -1,17 +1,18 @@
-#ifndef SERVER_NODE_H
-#define SERVER_NODE_H
+#ifndef NODE_H
+#define NODE_H
 
 #include <map>
 #include <string>
 
-class ServerNode {
+class Node {
 	std::string m_address;
 	std::string m_name;
+	unsigned int m_port;
 
   public:
-	ServerNode() {}
-	ServerNode(std::string address) : m_address(address) {}
-	ServerNode(std::string address, std::string name) : m_address(address), m_name(name) {}
+	Node() {}
+	Node(std::string address) : m_address(address) {}
+	Node(std::string address, std::string name, unsigned int port) : m_address(address), m_name(name), m_port(port) {}
 
 	std::string info() const {
 		if (m_address.empty())
@@ -29,4 +30,4 @@ class ServerNode {
 	}
 };
 
-#endif // SERVER_NODE_H
+#endif // NODE_H
