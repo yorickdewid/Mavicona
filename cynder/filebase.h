@@ -15,7 +15,7 @@ class Filebase {
 	const char *name_prefix;
 	const char *dir;
 	unsigned int counter = 0;
-	std::vector<Filepage *> filepages;
+	std::map<unsigned int, Filepage *> filepages;
 
 	const std::string dbname(const char *dir) {
 		std::stringstream ss;
@@ -28,31 +28,47 @@ class Filebase {
 		return ss.str();
 	}
 
-	Filepage *acquirePage(const std::string& file) {
-		Filepage *page = new Filepage(file);
-		filepages.push_back(page);
+	unsigned int pagecounter(std::string path) {
+		std::string _dbname = path.substr(path.find_last_of("/") + 1);
 
-		return page;
+		return atoi(_dbname.substr(3, 4).c_str());
+	}
+
+	void acquirePage(const std::string& file) {
+		filepages[pagecounter(file)] = new Filepage(file);
+	}
+
+	unsigned int applicablePage() {
+		return 0; // TODO for now
 	}
 
   public:
-	Filebase(const char *storagedir = defaultStorageDir) : name_prefix("lfb"), dir(storagedir) {
+	Filebase(unsigned int cnt = 0, const char *storagedir = defaultStorageDir) : name_prefix("lfb"), dir(storagedir) {
 		mkdir(storagedir, 0700);
 
 		assert(strlen(name_prefix) == 3);
+
+		/* Always once page */
+		acquirePage(dbname(dir));
+		
+		for (unsigned int i = 1; i < cnt; ++i)
+			acquirePage(dbname(dir));
 	}
 
 	unsigned int put(std::string name, std::string data) {
-		Filepage *page = acquirePage(dbname(dir));
+		unsigned int pageNum = applicablePage();
+		filepages[pageNum]->storeItem(name, data);
 
-		page->storeItem(name, data);
-
-		return counter - 1; //TODO hack
+		return pageNum;
 	}
 
-	std::string get(unsigned int page, std::string name);//TODO
+	std::vector<uint8_t> *get(unsigned int page, std::string name) {
+		return filepages[page]->retrieveItem(name);
+	}
 
-	void remove(unsigned int page, std::string name);//TODO
+	void remove(unsigned int page, std::string name) {
+		filepages[page]->removeItem(name);
+	}
 
 	inline unsigned int dbcount() {
 		return counter;
