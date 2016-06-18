@@ -42,7 +42,7 @@ class Filepage {
 
 	std::vector<uint8_t> *retrieveItem(std::string name);
 
-	void removeItem(unsigned int page, std::string name);
+	void removeItem(std::string name);
 
 	size_t size();
 

@@ -6,12 +6,12 @@
 #define PAGE_MAGIC		"LFBX01E"	/* Magic checkup */
 
 #define PAGE_FLAG_NIL	0x0
-#define PAGE_FLAG_INV	0x2
-#define PAGE_FLAG_GZIP	0x8
-#define PAGE_FLAG_FULL	0x12
+#define PAGE_FLAG_INV	0x1
+#define PAGE_FLAG_GZIP	0x2
+#define PAGE_FLAG_FULL	0x10
 
 #define INDEX_FLAG_NIL	0x0
-#define INDEX_FLAG_DEL	0x2
+#define INDEX_FLAG_DEL	0x1
 
 #define INDEX_NEXT_EMPTY	0x11
 
@@ -167,7 +167,7 @@ void Filepage::storeItem(std::string name, std::string data) {
 }
 
 std::vector<uint8_t> *Filepage::retrieveItem(std::string name) {
-	std::map<std::string, std::pair<unsigned int, unsigned int>>::iterator it = contents.find(name);
+	std::map<std::string, std::pair<unsigned int, unsigned int>>::const_iterator it = contents.find(name);
 	if (it == contents.end()) {
 		puts("not found");
 		return nullptr;
@@ -181,4 +181,33 @@ std::vector<uint8_t> *Filepage::retrieveItem(std::string name) {
 	fread(&bufferref[0], sizeof(uint8_t), pair.second, m_pFile);
 
 	return buffer;
+}
+
+void Filepage::removeItem(std::string name) {
+	std::map<std::string, std::pair<unsigned int, unsigned int>>::iterator it = contents.find(name);
+	if (it == contents.end()) {
+		puts("not found");
+		return;
+	}
+
+	/* Pointer to current index */
+	unsigned int indexPointer = sizeof(pageHeader);
+	fseek(m_pFile, indexPointer, SEEK_SET);
+
+	for (int i = 0; i < m_Elements; ++i) {
+		/* Move to next index */
+		if ((indexPointer + (sizeof(pageIndexItem) * m_Grow)) == (unsigned int)ftell(m_pFile)) {
+			fread(&indexPointer, sizeof(unsigned int), 1, m_pFile);
+			fseek(m_pFile, indexPointer, SEEK_SET);
+		}
+
+		pageIndexItem item;
+		fread(&item, sizeof(pageIndexItem), 1, m_pFile);
+		if (!strcmp(item.name, name.c_str())) {
+			/* Set remove bit and write index */
+			fseek(m_pFile, -sizeof(pageIndexItem), SEEK_CUR);
+			item.flags |= INDEX_FLAG_DEL;
+			fwrite(&item, sizeof(pageIndexItem), 1, m_pFile);
+		}
+	}
 }
