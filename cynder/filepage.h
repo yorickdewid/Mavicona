@@ -24,7 +24,7 @@ class Filepage {
 	std::map<std::string, std::pair<unsigned int, unsigned int>> contents;
 
 	void writeHeader();
-	void grow();
+	void growPage();
 
   public:
 	Filepage(const std::string& file) : m_File(file) {

@@ -85,6 +85,11 @@ void Filepage::open() {
 
 		pageIndexItem item;
 		fread(&item, sizeof(pageIndexItem), 1, m_pFile);
+
+		/* Ignore deleted items */
+		if (item.flags & INDEX_FLAG_DEL)
+			continue;
+
 		contents[item.name] = std::pair<unsigned int, unsigned int>(item.item, item.size);
 	}
 
@@ -107,7 +112,7 @@ void Filepage::writeHeader() {
 	fflush(m_pFile);
 }
 
-void Filepage::grow() {
+void Filepage::growPage() {
 	unsigned int new_index = m_FirstFree;
 	m_FirstFree += (sizeof(pageIndexItem) * m_Grow);
 
@@ -138,7 +143,7 @@ void Filepage::storeItem(std::string name, std::string data) {
 
 	/* Grow page if last index is full */
 	if (!(m_Elements % m_Grow) && m_Elements > 1)
-		grow();
+		growPage();
 
 	/* Write metadata to index */
 	size_t namepos = m_LastIndex + (sizeof(pageIndexItem) * (m_Elements % m_Grow));
