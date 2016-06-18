@@ -18,14 +18,14 @@
 struct pageHeader {
 	char magic[8];
 	unsigned short elements = 0;
-	unsigned int allocated = 0;
 	unsigned int first_free = 0;
 	unsigned int grow_items = 0;
 	int flags = PAGE_FLAG_NIL;
 };
 
-struct pageIndex {
-	char name[40];
+struct pageIndexItem {
+	char name[36];
+	unsigned int size;
 	unsigned int item = 0;
 	char flags = INDEX_FLAG_NIL;
 };
@@ -39,54 +39,58 @@ void Filepage::create(unsigned int alloc) {
 
 	pageHeader header;
 	strcpy(header.magic, PAGE_MAGIC);
-	header.allocated = alloc;//TODO, not enough
 	header.grow_items = alloc;
-	header.first_free = sizeof(pageHeader) + (sizeof(pageIndex) * header.allocated);
+	header.first_free = sizeof(pageHeader) + (sizeof(pageIndexItem) * header.grow_items) + sizeof(unsigned int);
 	fwrite((const char *)&header, sizeof(pageHeader), 1, m_pFile);
 
+	/* Pointer to current index */
+	m_LastIndex = sizeof(pageHeader);
+
 	/* Set pointer to next index */
-	fseek(m_pFile, header.first_free, SEEK_CUR);
+	fseek(m_pFile, (sizeof(pageIndexItem) * header.grow_items), SEEK_CUR);
 	int next_index = INDEX_NEXT_EMPTY;
 	fwrite((const char *)&next_index, sizeof(unsigned int), 1, m_pFile);
-	header.first_free += sizeof(unsigned int);
 
 	/* Allocate page on disk */
-	fseek(m_pFile, header.first_free + (ITEM_SIZE * header.allocated), SEEK_CUR);
+	fseek(m_pFile, ITEM_SIZE * header.grow_items, SEEK_END);
 	fwrite("\0", 1, 1, m_pFile);
 
 	fflush(m_pFile);
 
 	m_Elements = header.elements;
-	m_Allocated = header.allocated;
 	m_FirstFree = header.first_free;
+	m_Grow = header.grow_items;
 }
 
 void Filepage::open() {
 	m_pFile = fopen(m_File.c_str(), "r+");
 
 	pageHeader header;
-	fread((char *)&header, sizeof(pageHeader), 1, m_pFile);
+	fread(&header, sizeof(pageHeader), 1, m_pFile);
 
 	if (strcmp((const char *)header.magic, PAGE_MAGIC)) {
 		puts("Magic error 1"); // throw error
 		return;
 	}
 
-	if (header.elements > header.allocated) {
-		puts("Overflow error"); // throw error
-		return;
+	/* Pointer to current index */
+	m_LastIndex = sizeof(pageHeader);
+
+	for (int i = 0; i < header.elements; ++i) {
+		/* Move to next index */
+		if ((m_LastIndex + (sizeof(pageIndexItem) * header.grow_items)) == (unsigned int)ftell(m_pFile)) {
+			fread(&m_LastIndex, sizeof(unsigned int), 1, m_pFile);
+			fseek(m_pFile, m_LastIndex, SEEK_SET);
+		}
+
+		pageIndexItem item;
+		fread(&item, sizeof(pageIndexItem), 1, m_pFile);
+		contents[item.name] = std::pair<unsigned int, unsigned int>(item.item, item.size);
 	}
 
-	/* TODO Get all indexes */
-	fseek(m_pFile, sizeof(pageHeader) + (sizeof(pageIndex) * header.allocated), SEEK_CUR);
-	int next_index;
-	fread((char *)&next_index, sizeof(unsigned int), 1, m_pFile);
-
-	printf("DEBUG: NEXT INDEX %d\n", next_index);
-
 	m_Elements = header.elements;
-	m_Allocated = header.allocated;
 	m_FirstFree = header.first_free;
+	m_Grow = header.grow_items;
 }
 
 void Filepage::writeHeader() {
@@ -95,8 +99,8 @@ void Filepage::writeHeader() {
 	pageHeader header;
 	strcpy(header.magic, PAGE_MAGIC);
 	header.elements = m_Elements;
-	header.allocated = m_Allocated;
 	header.first_free = m_FirstFree;
+	header.grow_items = m_Grow;
 
 	fwrite((const char *)&header, sizeof(pageHeader), 1, m_pFile);
 
@@ -104,23 +108,23 @@ void Filepage::writeHeader() {
 }
 
 void Filepage::grow() {
-	m_Allocated *= 2;
-
-	m_FirstFree += (sizeof(pageIndex) * (m_Allocated / 2));
+	unsigned int new_index = m_FirstFree;
+	m_FirstFree += (sizeof(pageIndexItem) * m_Grow);
 
 	/* Set pointer to next index */
-	fseek(m_pFile, m_FirstFree, SEEK_CUR);
+	fseek(m_pFile, m_FirstFree, SEEK_SET);
 	int next_index = INDEX_NEXT_EMPTY;
 	fwrite((const char *)&next_index, sizeof(unsigned int), 1, m_pFile);
 	m_FirstFree += sizeof(unsigned int);
 
 	/* Set previous pointer to this index */
-	fseek(m_pFile, sizeof(pageHeader) + (sizeof(pageIndex) * (m_Allocated / 2)), SEEK_SET);
-	next_index = m_FirstFree;
+	fseek(m_pFile, m_LastIndex + (sizeof(pageIndexItem) * m_Grow), SEEK_SET);
+	next_index = new_index;
+	m_LastIndex = new_index;
 	fwrite((const char *)&next_index, sizeof(unsigned int), 1, m_pFile);
 
 	/* Allocate page on disk */
-	fseek(m_pFile, m_FirstFree + (ITEM_SIZE * m_Allocated), SEEK_CUR);
+	fseek(m_pFile, m_FirstFree + (ITEM_SIZE * m_Grow), SEEK_CUR);
 	fwrite("\0", 1, 1, m_pFile);
 
 	writeHeader();
@@ -128,51 +132,53 @@ void Filepage::grow() {
 
 void Filepage::storeItem(std::string name, std::string data) {
 	if (name.size() > 40) {
-		puts("Name overflows index");
+		puts("Name overflows index"); // throw
 		return;
 	}
 
-	std::cout << "Current allocation size: " << (m_Allocated * ITEM_SIZE) << std::endl;
-	std::cout << "Elements: " << m_Elements << std::endl;
-	std::cout << "Free offset: " << m_FirstFree << std::endl;
-	std::cout << "New data size: " << data.size() << std::endl;
-
-	if (m_FirstFree + data.size() > (m_Allocated * ITEM_SIZE)) {
-		puts("Should grow");
-		return;
-	}
-
-	if (m_Elements == m_Allocated) {
-		puts("Should grow certainly, fullhouse");
+	/* Grow page if last index is full */
+	if (!(m_Elements % m_Grow) && m_Elements > 1)
 		grow();
-		return;
-	}
 
-	{
-		size_t namepos = sizeof(pageHeader) + (sizeof(pageIndex) * m_Elements);
-		std::cout << "Position for new name: " << namepos << std::endl;
+	/* Write metadata to index */
+	size_t namepos = m_LastIndex + (sizeof(pageIndexItem) * (m_Elements % m_Grow));
+	fseek(m_pFile, namepos, SEEK_SET);
 
-		fseek(m_pFile, namepos, SEEK_CUR);
+	pageIndexItem item;
+	strcpy(item.name, name.c_str());
+	item.size = data.size();
+	item.item = m_FirstFree;
+	fwrite(&item, sizeof(pageIndexItem), 1, m_pFile);
 
-		pageIndex index;
-		strcpy(index.name, name.c_str());
-		index.item = m_FirstFree;
+	/* Write data */
+	fseek(m_pFile, m_FirstFree, SEEK_SET);
+	fwrite(data.c_str(), 1, data.size(), m_pFile);
+	m_FirstFree += data.size();
 
-		fwrite((const char *)&index, sizeof(pageIndex), 1, m_pFile);
-	}
+	/* Add index to content list */
+	contents[item.name] = std::pair<unsigned int, unsigned int>(item.item, item.size);
 
-	{
-		std::cout << "Position for new data: " << m_FirstFree << std::endl;
-		fseek(m_pFile, m_FirstFree, SEEK_CUR);
-
-		fwrite(data.c_str(), 1, data.size(), m_pFile);
-
-		m_FirstFree += data.size();
-	}
-
+	/* Increase elements */
 	m_Elements++;
 
 	writeHeader();
 
 	fflush(m_pFile);
+}
+
+std::vector<uint8_t> *Filepage::retrieveItem(std::string name) {
+	std::map<std::string, std::pair<unsigned int, unsigned int>>::iterator it = contents.find(name);
+	if (it == contents.end()) {
+		puts("not found");
+		return nullptr;
+	}
+
+	auto pair = it->second;
+	fseek(m_pFile, pair.first, SEEK_SET);
+
+	std::vector<uint8_t> *buffer = new std::vector<uint8_t>(pair.second);
+	std::vector<uint8_t> &bufferref = *buffer;
+	fread(&bufferref[0], sizeof(uint8_t), pair.second, m_pFile);
+
+	return buffer;
 }

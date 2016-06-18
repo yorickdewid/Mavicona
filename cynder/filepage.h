@@ -5,6 +5,8 @@
 #include <cstring>
 #include <iomanip>
 #include <sstream>
+#include <map>
+#include <vector>
 #include <sys/stat.h>
 
 #include "common/util.h"
@@ -14,13 +16,12 @@
 
 class Filepage {
 	unsigned short m_Elements;
-	unsigned int m_Allocated;
 	unsigned int m_FirstFree;
 	unsigned int m_Grow;
 	unsigned int m_LastIndex;
 	FILE *m_pFile = nullptr;
 	const std::string m_File;
-	//TODO multimap containing name<>pointer
+	std::map<std::string, std::pair<unsigned int, unsigned int>> contents;
 
 	void writeHeader();
 	void grow();
@@ -39,7 +40,7 @@ class Filepage {
 
 	void storeItem(std::string name, std::string data);
 
-	std::string retrieveItem(std::string name);
+	std::vector<uint8_t> *retrieveItem(std::string name);
 
 	void removeItem(unsigned int page, std::string name);
 
