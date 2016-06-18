@@ -39,11 +39,16 @@ class Filepage {
 	void create(unsigned int alloc = DEFAULT_PAGE_ALLOC, unsigned int size = ITEM_SIZE);
 	void open();
 
+	/* Store new item */
 	void storeItem(std::string name, std::string data);
 
+	/* Get item by name */
 	std::vector<uint8_t> *retrieveItem(std::string name);
 
+	/* Remove item from page */
 	void removeItem(std::string name);
+
+	bool isFull();
 
 	size_t size();
 
@@ -51,7 +56,7 @@ class Filepage {
 		return size() == 0;
 	}
 
-	inline bool is_open() {
+	inline bool isOpen() {
 		return m_pFile != nullptr;
 	}
 

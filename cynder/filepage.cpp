@@ -34,7 +34,24 @@ size_t Filepage::size() {
 	return m_Elements;
 }
 
+bool Filepage::isFull() {
+	if (!isOpen())
+		return false; // throw error
+
+	fseek(m_pFile, 0, SEEK_SET);
+
+	pageHeader header;
+	fread(&header, sizeof(pageHeader), 1, m_pFile);
+	if (header.flags & PAGE_FLAG_FULL)
+		return true;
+
+	return false;
+}
+
 void Filepage::create(unsigned int alloc, unsigned int size) {
+	if (isOpen())
+		return;
+
 	m_pFile = fopen(m_File.c_str(), "w+");
 
 	pageHeader header;
@@ -65,6 +82,9 @@ void Filepage::create(unsigned int alloc, unsigned int size) {
 }
 
 void Filepage::open() {
+	if (isOpen())
+		return;
+
 	m_pFile = fopen(m_File.c_str(), "r+");
 
 	pageHeader header;
@@ -102,6 +122,9 @@ void Filepage::open() {
 }
 
 void Filepage::writeHeader() {
+	if (!isOpen())
+		return;
+
 	fseek(m_pFile, 0, SEEK_SET);
 
 	pageHeader header;
@@ -139,6 +162,9 @@ void Filepage::growPage() {
 }
 
 void Filepage::storeItem(std::string name, std::string data) {
+	if (!isOpen())
+		return;
+
 	if (name.size() > 40) {
 		puts("Name overflows index"); // throw
 		return;
@@ -175,6 +201,9 @@ void Filepage::storeItem(std::string name, std::string data) {
 }
 
 std::vector<uint8_t> *Filepage::retrieveItem(std::string name) {
+	if (!isOpen())
+		return nullptr;
+
 	std::map<std::string, std::pair<unsigned int, unsigned int>>::const_iterator it = contents.find(name);
 	if (it == contents.end()) {
 		puts("not found");
@@ -192,6 +221,9 @@ std::vector<uint8_t> *Filepage::retrieveItem(std::string name) {
 }
 
 void Filepage::removeItem(std::string name) {
+	if (!isOpen())
+		return;
+
 	std::map<std::string, std::pair<unsigned int, unsigned int>>::iterator it = contents.find(name);
 	if (it == contents.end()) {
 		puts("not found");
