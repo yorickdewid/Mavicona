@@ -19,6 +19,7 @@ class Filepage {
 	unsigned int m_FirstFree;
 	unsigned int m_Grow;
 	unsigned int m_LastIndex;
+	unsigned int m_ItemSize;
 	FILE *m_pFile = nullptr;
 	const std::string m_File;
 	std::map<std::string, std::pair<unsigned int, unsigned int>> contents;
@@ -35,7 +36,7 @@ class Filepage {
 		}
 	}
 
-	void create(unsigned int alloc = DEFAULT_PAGE_ALLOC);
+	void create(unsigned int alloc = DEFAULT_PAGE_ALLOC, unsigned int size = ITEM_SIZE);
 	void open();
 
 	void storeItem(std::string name, std::string data);

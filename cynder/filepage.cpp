@@ -1,5 +1,4 @@
 #include <fstream>
-#include <iostream> // temp!!
 
 #include "filepage.h"
 
@@ -20,6 +19,7 @@ struct pageHeader {
 	unsigned short elements = 0;
 	unsigned int first_free = 0;
 	unsigned int grow_items = 0;
+	unsigned int item_size = 0;
 	int flags = PAGE_FLAG_NIL;
 };
 
@@ -34,12 +34,13 @@ size_t Filepage::size() {
 	return m_Elements;
 }
 
-void Filepage::create(unsigned int alloc) {
+void Filepage::create(unsigned int alloc, unsigned int size) {
 	m_pFile = fopen(m_File.c_str(), "w+");
 
 	pageHeader header;
 	strcpy(header.magic, PAGE_MAGIC);
 	header.grow_items = alloc;
+	header.item_size = size;
 	header.first_free = sizeof(pageHeader) + (sizeof(pageIndexItem) * header.grow_items) + sizeof(unsigned int);
 	fwrite((const char *)&header, sizeof(pageHeader), 1, m_pFile);
 
@@ -52,7 +53,7 @@ void Filepage::create(unsigned int alloc) {
 	fwrite((const char *)&next_index, sizeof(unsigned int), 1, m_pFile);
 
 	/* Allocate page on disk */
-	fseek(m_pFile, ITEM_SIZE * header.grow_items, SEEK_END);
+	fseek(m_pFile, header.item_size * header.grow_items, SEEK_END);
 	fwrite("\0", 1, 1, m_pFile);
 
 	fflush(m_pFile);
@@ -60,6 +61,7 @@ void Filepage::create(unsigned int alloc) {
 	m_Elements = header.elements;
 	m_FirstFree = header.first_free;
 	m_Grow = header.grow_items;
+	m_ItemSize = header.item_size;
 }
 
 void Filepage::open() {
@@ -96,6 +98,7 @@ void Filepage::open() {
 	m_Elements = header.elements;
 	m_FirstFree = header.first_free;
 	m_Grow = header.grow_items;
+	m_ItemSize = header.item_size;
 }
 
 void Filepage::writeHeader() {
@@ -129,7 +132,7 @@ void Filepage::growPage() {
 	fwrite((const char *)&next_index, sizeof(unsigned int), 1, m_pFile);
 
 	/* Allocate page on disk */
-	fseek(m_pFile, m_FirstFree + (ITEM_SIZE * m_Grow), SEEK_CUR);
+	fseek(m_pFile, m_FirstFree + (m_ItemSize * m_Grow), SEEK_CUR);
 	fwrite("\0", 1, 1, m_pFile);
 
 	writeHeader();
