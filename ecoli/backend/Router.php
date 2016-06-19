@@ -85,16 +85,15 @@ class Router implements SingletonContract
 	}
 
 	/**
-	 * Match URI and method.
+	 * Match Request.
 	 *
-	 * @param  string  $uri
-	 * @param  string  $method
+	 * @param  Ecoli\Request  $request
 	 * @return Array
 	 */
-	public function match($uri, $method)
+	public function match(Request $request)
 	{
 		foreach ($this->routes as $route) {
-			if ($route['uri'] == $uri && $route['method'] == $method) {
+			if ($route['uri'] == $request->uri() && $route['method'] == $request->method()) {
 				return [$route['controler'], $route['function']];
 			}
 		}

@@ -56,12 +56,17 @@ class Application
 	 */
 	public function handle(Request $request)
 	{
-		$router = Router::getInstance();
-		$dest = $router->match('api/v1/repository', 'get');
-		if (is_null($dest))
-			die('404');
+		$response = new Response();
 
-		echo 'Calling ' . $dest[0] . ' and ' . $dest[1];
+		$router = Router::getInstance();
+		$dest = $router->match($request);
+		if (is_null($dest))
+			return $response->makeNotFound()->data('Not Found');
+
+		// echo 'Calling ' . $dest[0] . ' and ' . $dest[1];
+
+
+		return $response;
 	}
 
 	/**

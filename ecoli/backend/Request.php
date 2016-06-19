@@ -4,10 +4,10 @@ namespace Ecoli;
 
 abstract class HttpMethod
 {
-    const Get = 0;
-    const Post = 1;
-    const Put = 2;
-    const Delete = 3;
+	const Get = 0;
+	const Post = 1;
+	const Put = 2;
+	const Delete = 3;
 }
 
 class Request
@@ -60,13 +60,48 @@ class Request
 	}
 
 	/**
+	 * Retrieve URI.
+	 *
+	 * @return string
+	 */
+	public function uri()
+	{
+		if ($this->uri[0] == '/')
+			return substr($this->uri, 1);
+
+		return $this->uri;
+	}
+
+	/**
+	 * Retrieve URI.
+	 *
+	 * @return string
+	 */
+	public function method()
+	{
+		switch ($this->method) {
+			case HttpMethod::Put:
+				return 'put';
+			case HttpMethod::Post:
+				return 'post';
+			case HttpMethod::Get:
+				return 'get';
+			case HttpMethod::Delete:
+				return 'delete';
+			default:
+				//handle_error($request);
+				break;
+		}
+	}
+
+	/**
 	 * Gather request URI.
 	 *
 	 * @return void
 	 */
 	private function gatherUri()
 	{
-		$uri = $_SERVER['PATH_INFO'];
+		$this->uri = $_SERVER['PATH_INFO'];
 	}
 
 	/**
@@ -76,7 +111,7 @@ class Request
 	 */
 	private function gatherParameters()
 	{
-		$parameters = $_GET;
+		$this->parameters = $_GET;
 	}
 
 	/**

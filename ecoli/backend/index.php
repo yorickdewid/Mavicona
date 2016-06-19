@@ -19,6 +19,7 @@ require __DIR__ . '/Config.php';
 require __DIR__ . '/Router.php';
 require __DIR__ . '/Log.php';
 require __DIR__ . '/Request.php';
+require __DIR__ . '/Response.php';
 require __DIR__ . '/Ecoli.php';
 
 /*
@@ -57,6 +58,6 @@ $response = $app->handle(
     Ecoli\Request::capture()
 );
 
-// $response->send();
+$response->send();
 
 $app->terminate();
