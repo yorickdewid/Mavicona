@@ -33,7 +33,7 @@ class Response
 	 * @param  string  $contentType
 	 * @return void
 	 */
-	public function __construct($data, $httpCode = 200, $contentType = 'text/html; charset=utf-8')
+	public function __construct($data = null, $httpCode = 200, $contentType = 'text/html; charset=utf-8')
 	{
 		$this->data = $data;
 		$this->code = $httpCode;

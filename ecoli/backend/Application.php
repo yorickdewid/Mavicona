@@ -56,17 +56,16 @@ class Application
 	 */
 	public function handle(Request $request)
 	{
-		$response = new Response();
+		$response = new Response;
 
 		$router = Router::getInstance();
 		$dest = $router->match($request);
 		if (is_null($dest))
 			return $response->makeNotFound()->data('Not Found');
 
-		// echo 'Calling ' . $dest[0] . ' and ' . $dest[1];
+		$controller = new $dest[0];
 
-
-		return $response;
+		return $controller->$dest[1]();
 	}
 
 	/**

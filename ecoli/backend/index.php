@@ -21,6 +21,7 @@ require __DIR__ . '/Log.php';
 require __DIR__ . '/Request.php';
 require __DIR__ . '/Response.php';
 require __DIR__ . '/Ecoli.php';
+require __DIR__ . '/ApiController.php';
 
 /*
 |--------------------------------------------------------------------------
