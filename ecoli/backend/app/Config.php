@@ -30,8 +30,9 @@ class Config implements SingletonContract
 	 */
 	private function readConfig()
 	{
-		if (file_exists(self::$defaultConfig)) {
-			$config = parse_ini_file(self::$defaultConfig);
+		$dir = __DIR__ . '/../';
+		if (file_exists($dir . self::$defaultConfig)) {
+			$config = parse_ini_file($dir . self::$defaultConfig);
 		}
 	}
 

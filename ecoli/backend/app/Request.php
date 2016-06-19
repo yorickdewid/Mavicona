@@ -66,7 +66,7 @@ class Request
 	 */
 	public function uri()
 	{
-		if ($this->uri[0] == '/')
+		if (strlen($this->uri) > 1 && $this->uri[0] == '/')
 			return substr($this->uri, 1);
 
 		return $this->uri;
@@ -102,6 +102,10 @@ class Request
 	private function gatherUri()
 	{
 		$this->uri = $_SERVER['PATH_INFO'];
+
+		if (empty($this->uri)) {
+			$this->uri = '/';
+		}
 	}
 
 	/**

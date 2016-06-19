@@ -13,15 +13,16 @@
 |--------------------------------------------------------------------------
 */
 
-require __DIR__ . '/Application.php';
-require __DIR__ . '/SingletonContract.php';
-require __DIR__ . '/Config.php';
-require __DIR__ . '/Router.php';
-require __DIR__ . '/Log.php';
-require __DIR__ . '/Request.php';
-require __DIR__ . '/Response.php';
-require __DIR__ . '/Ecoli.php';
-require __DIR__ . '/ApiController.php';
+require __DIR__ . '/../app/Application.php';
+require __DIR__ . '/../app/SingletonContract.php';
+require __DIR__ . '/../app/Config.php';
+require __DIR__ . '/../app/Router.php';
+require __DIR__ . '/../app/Log.php';
+require __DIR__ . '/../app/Request.php';
+require __DIR__ . '/../app/Response.php';
+require __DIR__ . '/../Ecoli.php';
+require __DIR__ . '/../controller/ApiController.php';
+require __DIR__ . '/../controller/MainController.php';
 
 /*
 |--------------------------------------------------------------------------
