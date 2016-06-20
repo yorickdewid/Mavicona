@@ -7,6 +7,8 @@
  * @author   Yorick de Wid <yorick17@outlook.com>
  */
 
+define("FW_VERSION", "Version 0.1");
+
 /*
 |--------------------------------------------------------------------------
 | Load classes
@@ -17,6 +19,7 @@ require __DIR__ . '/../app/Application.php';
 require __DIR__ . '/../app/SingletonContract.php';
 require __DIR__ . '/../app/Config.php';
 require __DIR__ . '/../app/Router.php';
+require __DIR__ . '/../app/Database.php';
 require __DIR__ . '/../app/Log.php';
 require __DIR__ . '/../app/Request.php';
 require __DIR__ . '/../app/Response.php';
@@ -40,6 +43,7 @@ $app = new Ecoli\Application(Ecoli::class);
 $app->singleton([
     Ecoli\Config::class,
     Ecoli\Router::class,
+    Ecoli\Database::class,
     Ecoli\Log::class,
 ]);
 

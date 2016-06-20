@@ -33,7 +33,7 @@ class Ecoli //extends Core
 	public function registerRoutes()
 	{
 		Router::get('/', 'MainController::getIndex');
-		Router::get('repository/main/index.json', 'MainController::getMainRepository');
+		Router::get('repository/main/index/json', 'ApiController::getMainRepository');
 		Router::get('api/v1/repository', 'ApiController::getMainRepository');
 		Router::post('api/v1/package/new', 'ApiController::doNewPackage');
 	}
