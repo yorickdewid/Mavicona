@@ -32,6 +32,13 @@ class Quid {
 		return UNPACKED_LENGTH;
 	}
 
+	static std::string crop(const std::string& cquid) {
+		if (cquid.size() == (UNPACKED_LENGTH + 2) && cquid[0] == '{' && cquid[UNPACKED_LENGTH + 1] == '}')
+			return cquid.substr(1, UNPACKED_LENGTH);
+		
+		return "";
+	}
+
 	void uniform(char node[4]) const {
 		memcpy(node, this->quid.node, 4);
 	}

@@ -10,13 +10,17 @@ class KeyIndex : public AbstractEngine, public AbstractAdditionalIndex {
 
 	void put(std::string quid, std::string key, std::string value, bool override = false) {
 		if (quid.size() != quidpp::Quid::unpackedSize()) {
-			std::cerr << "Invalid QUID concatenation" << std::endl;
+			quid = quidpp::Quid::crop(quid);
+			if (quid.empty()) {
+				std::cerr << "Invalid QUID concatenation" << std::endl;
+				return;
+			}
 		}
 
 		if (!matchKeyword(key))
 			return;
 		
-		std::cout << "Key quallifies for storage\n";
+		std::cout << "Key quallifies for storage " << key << " " << value << std::endl;
 		AbstractEngine::put(key, quid + value, override);
 	}
 
