@@ -4,7 +4,6 @@
 #include "engine.h"
 
 class RecordIndex : public AbstractEngine {
-
   public:
 	RecordIndex() : AbstractEngine("ari") {}
 
