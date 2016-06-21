@@ -63,11 +63,17 @@ class AbstractEngine {
 		close();
 	}
 
-	virtual void put(std::string key, std::string value, bool override = false) {
+	virtual void put(std::string key, std::string value, bool override = false, bool duplicate = false) {
 		upscaledb::key _key((char *)key.c_str(), key.size());
 		upscaledb::record _record((char *)value.c_str(), value.size());
 
-		db.insert(&_key, &_record, override ? UPS_OVERWRITE : 0);
+		uint32_t flag = 0;
+		if (override)
+			flag = UPS_OVERWRITE;
+		else if (duplicate)
+			flag = UPS_DUPLICATE;
+
+		db.insert(&_key, &_record, flag);
 		env.flush();
 	}
 

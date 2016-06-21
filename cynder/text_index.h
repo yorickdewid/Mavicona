@@ -8,7 +8,7 @@ class TextIndex : public AbstractEngine, public AbstractAdditionalIndex {
   public:
 	TextIndex() : AbstractEngine("fti", true) {}
 
-	void put(std::string quid, std::string key, std::string value, bool override = false) {
+	void put(std::string quid, std::string key, std::string value) {
 		if (quid.size() != quidpp::Quid::unpackedSize()) {
 			quid = quidpp::Quid::crop(quid);
 			if (quid.empty()) {
@@ -21,7 +21,7 @@ class TextIndex : public AbstractEngine, public AbstractAdditionalIndex {
 			return;
 		
 		std::cout << "Value quallifies for storage " << key << " " << value << std::endl;
-		AbstractEngine::put(key, quid + value, override);
+		AbstractEngine::put(key, quid + value, false, true);
 	}
 
 };
