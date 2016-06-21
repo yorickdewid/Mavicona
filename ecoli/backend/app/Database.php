@@ -2,7 +2,7 @@
 
 namespace Ecoli;
 
-class Config implements SingletonContract
+class Database implements SingletonContract
 {
 	/**
 	 * Core application object.
@@ -12,18 +12,11 @@ class Config implements SingletonContract
 	static $app;
 
 	/**
-	 * Default config file.
+	 * PDO object.
 	 *
-	 * @var string
+	 * @var PDO
 	 */
-	static $defaultConfig = ".conf";
-
-	/**
-	 * INI config settings.
-	 *
-	 * @var Array
-	 */
-	private $config = [];
+	private $db = null;
 
 	/**
 	 * @var Singleton The reference to *Singleton* instance of this class
@@ -35,33 +28,17 @@ class Config implements SingletonContract
 	 *
 	 * @return void
 	 */
-	private function readConfig()
+	public function getdb()
 	{
-		$dir = __DIR__ . '/../';
-		if (file_exists($dir . self::$defaultConfig)) {
-			$this->config = parse_ini_file($dir . self::$defaultConfig);
+		if (is_null($this->db)) {
+			$this->db = new \PDO(
+				$this->app->config['database']['type'] . ':host=' . $this->app->config['database']['host'] . ';dbname=' . $this->app->config['database']['name'],
+				$this->app->config['database']['username'],
+				$this->app->config['database']['password']
+			);
 		}
-	}
 
-	/**
-	 * Return current config.
-	 *
-	 * @return Array
-	 */
-	public function getConfigOption($key)
-	{
-		return $this->config[$key];
-	}
-
-	/**
-	 * Returns config option.
-	 *
-	 * @return mixed.
-	 */
-	public static function option($key)
-	{
-		$object = static::getInstance();
-		return $object->getConfigOption($key);
+		return $this->db;
 	}
 
 	/**
@@ -79,13 +56,27 @@ class Config implements SingletonContract
 	}
 
 	/**
+	 * Return current config.
+	 *
+	 * @return Array
+	 */
+	public static function query($sql)
+	{
+		$object = static::getInstance();
+
+		$rs = $object->getdb()->query($sql);
+
+		return $rs->fetchAll(\PDO::FETCH_ASSOC);
+	}
+
+	/**
 	 * Register any hook and run initializer routines.
 	 *
 	 * @return void
 	 */
 	public function boot()
 	{
-		$this->readConfig();
+
 	}
 
 	/**
@@ -104,7 +95,7 @@ class Config implements SingletonContract
 	 */
 	protected function __construct()
 	{
-		
+
 	}
 
 	/**

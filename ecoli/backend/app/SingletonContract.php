@@ -5,10 +5,17 @@ namespace Ecoli;
 interface SingletonContract
 {
 	/**
-	 * Determine if the given configuration value exists.
+	 * Register any hook and run initializer routines.
 	 *
 	 * @return void
 	 */
 	public function boot();
+
+	/**
+	 * Inject core application.
+	 *
+	 * @return void
+	 */
+	public function inject($core);
 
 }

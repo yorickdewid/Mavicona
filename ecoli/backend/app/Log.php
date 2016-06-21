@@ -5,6 +5,13 @@ namespace Ecoli;
 class Log implements SingletonContract
 {
 	/**
+	 * Core application object.
+	 *
+	 * @var Ecoli\Application
+	 */
+	static $app;
+
+	/**
 	 * @var Singleton The reference to *Singleton* instance of this class
 	 */
 	private static $instance;
@@ -42,6 +49,16 @@ class Log implements SingletonContract
 	public function boot()
 	{
 		
+	}
+
+	/**
+	 * Inject core application.
+	 *
+	 * @return void
+	 */
+	public function inject($core)
+	{
+		$this->app = $core;
 	}
 
 	/**
