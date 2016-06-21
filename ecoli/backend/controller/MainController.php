@@ -5,14 +5,15 @@ use Ecoli\Response;
 class MainController
 {
 	/**
-	 * Retrieve all packages.
+	 * Retrieve index.
 	 *
 	 * @return Ecoli\Response
 	 */
 	public function getIndex()
 	{
-		$content = "<h1>Welcome</h1>";
-		$content .= "<i>Ecoli</i>";
+		$content = "<h1>Ecoli</h1>";
+		$content .= "<hr />";
+		$content .= "<i>Ecoli " . FW_VERSION . " " . date('Y') . "</i>";
 
 		return new Response($content);
 	}
