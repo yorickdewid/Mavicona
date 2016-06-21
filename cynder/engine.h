@@ -68,6 +68,7 @@ class AbstractEngine {
 		upscaledb::record _record((char *)value.c_str(), value.size());
 
 		db.insert(&_key, &_record, override ? UPS_OVERWRITE : 0);
+		env.flush();
 	}
 
 	virtual std::string get(std::string key) {
@@ -82,6 +83,7 @@ class AbstractEngine {
 		upscaledb::key _key((char *)key.c_str(), key.size());
 
 		db.erase(&_key);
+		env.flush();
 	}
 };
 
