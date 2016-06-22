@@ -1,12 +1,25 @@
 #ifndef TEXT_INDEX_H
 #define TEXT_INDEX_H
 
+#include <list>
+
 #include "engine.h"
 #include "additional_index.h"
 
 class TextIndex : public AbstractEngine, public AbstractAdditionalIndex {
+	RecordIndex *ari = nullptr;
+	DataIndex *adi = nullptr;
+
   public:
 	TextIndex() : AbstractEngine("fti", true) {}
+
+	void attach(RecordIndex *_ari) {
+		this->ari = ari;
+	}
+
+	void attach(DataIndex *_adi) {
+		this->adi = _adi;
+	}
 
 	void put(std::string quid, std::string key, std::string value) {
 		if (quid.size() != quidpp::Quid::unpackedSize()) {

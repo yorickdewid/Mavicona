@@ -132,12 +132,20 @@ void initSlave() {
 	DataIndex adi;
 	KeyIndex uki;
 	TextIndex fti;
+	Filebase lfb;
 
 	/* Save database counters */
 	cat.put("ari_count", ari.dbcount());
 	cat.put("adi_count", adi.dbcount());
 	cat.put("uki_count", uki.dbcount());
 	cat.put("fti_count", fti.dbcount());
+
+	/* Cross data references */
+	adi.attach(&lfb);
+	uki.attach(&ari);
+	uki.attach(&adi);
+	fti.attach(&ari);
+	fti.attach(&adi);
 
 	/* Prepare our context and socket */
 	zmq::context_t context(1);

@@ -1,6 +1,9 @@
 #ifndef QUIDPP_H
 #define QUIDPP_H
 
+#include <string>
+#include <memory.h>
+
 extern "C" {
 #include <quid.h>
 }

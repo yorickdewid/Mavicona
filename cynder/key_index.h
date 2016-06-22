@@ -7,8 +7,19 @@
 #include "additional_index.h"
 
 class KeyIndex : public AbstractEngine, public AbstractAdditionalIndex {
+	RecordIndex *ari = nullptr;
+	DataIndex *adi = nullptr;
+
   public:
 	KeyIndex() : AbstractEngine("uki", true) {}
+
+	void attach(RecordIndex *_ari) {
+		this->ari = ari;
+	}
+
+	void attach(DataIndex *_adi) {
+		this->adi = _adi;
+	}
 
 	void put(std::string quid, std::string key, std::string value) {
 		if (quid.size() != quidpp::Quid::unpackedSize()) {
