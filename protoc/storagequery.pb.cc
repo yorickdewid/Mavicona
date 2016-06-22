@@ -110,17 +110,17 @@ void protobuf_AddDesc_storagequery_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\022storagequery.proto\"\202\003\n\014StorageQuery\022\014\n"
+    "\n\022storagequery.proto\"\216\003\n\014StorageQuery\022\014\n"
     "\004name\030\001 \002(\t\022\n\n\002id\030\002 \002(\005\022\014\n\004quid\030\003 \002(\t\022\017\n"
     "\007content\030\004 \001(\014\022)\n\013queryaction\030\005 \002(\0162\024.St"
     "orageQuery.Action\022)\n\013queryresult\030\006 \002(\0162\024"
     ".StorageQuery.Result\022%\n\004meta\030\007 \003(\0132\027.Sto"
     "rageQuery.MetaEntry\032N\n\tMetaEntry\022\013\n\003key\030"
     "\001 \002(\t\022\r\n\005value\030\002 \001(\014\022%\n\004meta\030\003 \003(\0132\027.Sto"
-    "rageQuery.MetaEntry\"8\n\006Action\022\n\n\006SELECT\020"
-    "\000\022\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE\020\003\"2\n"
-    "\006Result\022\013\n\007SUCCESS\020\000\022\014\n\010NOTFOUND\020\001\022\r\n\tDU"
-    "PLICATE\020\002", 409);
+    "rageQuery.MetaEntry\"D\n\006Action\022\n\n\006SELECT\020"
+    "\000\022\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE\020\003\022\n\n"
+    "\006SEARCH\020\004\"2\n\006Result\022\013\n\007SUCCESS\020\000\022\014\n\010NOTF"
+    "OUND\020\001\022\r\n\tDUPLICATE\020\002", 421);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "storagequery.proto", &protobuf_RegisterTypes);
   StorageQuery::default_instance_ = new StorageQuery();
@@ -149,6 +149,7 @@ bool StorageQuery_Action_IsValid(int value) {
     case 1:
     case 2:
     case 3:
+    case 4:
       return true;
     default:
       return false;
@@ -160,6 +161,7 @@ const StorageQuery_Action StorageQuery::SELECT;
 const StorageQuery_Action StorageQuery::INSERT;
 const StorageQuery_Action StorageQuery::UPDATE;
 const StorageQuery_Action StorageQuery::DELETE;
+const StorageQuery_Action StorageQuery::SEARCH;
 const StorageQuery_Action StorageQuery::Action_MIN;
 const StorageQuery_Action StorageQuery::Action_MAX;
 const int StorageQuery::Action_ARRAYSIZE;

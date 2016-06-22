@@ -10,6 +10,7 @@ message StorageQuery {
     INSERT = 1;
     UPDATE = 2;
     DELETE = 3;
+    SEARCH = 4;
   }
 
   required Action queryaction = 5;

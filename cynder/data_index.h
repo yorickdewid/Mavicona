@@ -37,9 +37,10 @@ class DataIndex : public AbstractEngine {
 		if (value.size() > ITEM_SIZE) {
 			std::cout << "Store in LFB" << std::endl;
 
+			// do something with overrides
+
 			type.flags = DATA_FLAG_LFB;
 			type.page = 2; // TODO example
-			type.pointer = 3863522; // TODO example
 		}
 
 		std::cout << value.size() << std::endl;
@@ -65,7 +66,7 @@ class DataIndex : public AbstractEngine {
 
 		/* Retrieve content from LFB */
 		if (type.flags == DATA_FLAG_LFB) {
-			std::cout << "Retrieve from LFB with page " << type.page << " and offset " << type.pointer << std::endl;
+			std::cout << "Retrieve from LFB with page " << type.page << std::endl;
 		}
 
 		data.resize(data_end);

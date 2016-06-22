@@ -39,11 +39,12 @@ enum StorageQuery_Action {
   StorageQuery_Action_SELECT = 0,
   StorageQuery_Action_INSERT = 1,
   StorageQuery_Action_UPDATE = 2,
-  StorageQuery_Action_DELETE = 3
+  StorageQuery_Action_DELETE = 3,
+  StorageQuery_Action_SEARCH = 4
 };
 bool StorageQuery_Action_IsValid(int value);
 const StorageQuery_Action StorageQuery_Action_Action_MIN = StorageQuery_Action_SELECT;
-const StorageQuery_Action StorageQuery_Action_Action_MAX = StorageQuery_Action_DELETE;
+const StorageQuery_Action StorageQuery_Action_Action_MAX = StorageQuery_Action_SEARCH;
 const int StorageQuery_Action_Action_ARRAYSIZE = StorageQuery_Action_Action_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* StorageQuery_Action_descriptor();
@@ -248,6 +249,7 @@ class StorageQuery : public ::google::protobuf::Message {
   static const Action INSERT = StorageQuery_Action_INSERT;
   static const Action UPDATE = StorageQuery_Action_UPDATE;
   static const Action DELETE = StorageQuery_Action_DELETE;
+  static const Action SEARCH = StorageQuery_Action_SEARCH;
   static inline bool Action_IsValid(int value) {
     return StorageQuery_Action_IsValid(value);
   }

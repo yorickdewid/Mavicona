@@ -10,8 +10,11 @@
 constexpr char defaultDataDir[] = "data";
 
 class AbstractEngine {
+  protected:
 	upscaledb::env env;       /* upscaledb environment object */
 	upscaledb::db db;         /* upscaledb database object */
+
+  private:
 	const char *name_prefix;
 	unsigned int counter = 0;
 
