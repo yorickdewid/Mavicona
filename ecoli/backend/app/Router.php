@@ -5,6 +5,13 @@ namespace Ecoli;
 class Router implements SingletonContract
 {
 	/**
+	 * Core application object.
+	 *
+	 * @var Ecoli\Application
+	 */
+	static $app;
+
+	/**
 	 * The Artisan commands provided by your application.
 	 *
 	 * @var array
@@ -109,6 +116,16 @@ class Router implements SingletonContract
 	public function boot()
 	{
 		
+	}
+
+	/**
+	 * Inject core application.
+	 *
+	 * @return void
+	 */
+	public function inject($core)
+	{
+		$this->app = $core;
 	}
 
 	/**

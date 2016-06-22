@@ -1,6 +1,7 @@
 <?php
 
 use Ecoli\Router;
+use Ecoli\Config;
 
 class Ecoli //extends Core
 {
@@ -9,18 +10,20 @@ class Ecoli //extends Core
 	 *
 	 * @return Array
 	 */
-	public function appendConfig()
+	public function getConfig()
 	{
+		$config = Config::getInstance();
+
 		return [
 			'name' => 'Ecoli',
 			'description' => 'Central package manager',
 
 			'database' => [
-				'type' => 'mysql',
-				'host' => 'localhost',
-				'name' => '',
-				'username' => '',
-				'password' => '',
+				'type' => 'pgsql',
+				'host' => $config->getConfigOption('DB_HOST'),
+				'name' => $config->getConfigOption('DB_NAME'),
+				'username' => $config->getConfigOption('DB_USER'),
+				'password' => $config->getConfigOption('DB_PASSWD'),
 			]
 		];
 	}

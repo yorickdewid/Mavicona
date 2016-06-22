@@ -12,6 +12,13 @@ class Application
 	private $core;
 
 	/**
+	 * Application config.
+	 *
+	 * @var Array
+	 */
+	public $config;
+
+	/**
 	 * Define the application's command schedule.
 	 *
 	 * @param  string  $name
@@ -32,7 +39,7 @@ class Application
 	{
 		foreach ($classes as $class) {
 			$object = $class::getInstance();
-
+			$object->inject($this);
 			$object->boot();
 		}
 	}
@@ -44,7 +51,7 @@ class Application
 	 */
 	public function loadCore()
 	{
-		$this->core->appendConfig();
+		$this->config = $this->core->getConfig();
 		$this->core->registerRoutes();
 	}
 
@@ -60,8 +67,9 @@ class Application
 
 		$router = Router::getInstance();
 		$dest = $router->match($request);
-		if (is_null($dest))
+		if (is_null($dest)) {
 			return $response->makeNotFound()->data('Not Found');
+		}
 
 		$controller = new $dest[0];
 

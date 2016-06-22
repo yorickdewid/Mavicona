@@ -94,7 +94,7 @@ class Response
 			header('Pragma: no-cache');
 
 			if (!is_null($this->data)) {
-				$this->data = json_encode($this->data);
+				$this->data = json_encode($this->data, JSON_PRETTY_PRINT);
 			}
 		}
 
