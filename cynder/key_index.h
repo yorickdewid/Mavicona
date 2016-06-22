@@ -30,10 +30,12 @@ class KeyIndex : public AbstractEngine, public AbstractAdditionalIndex {
 			}
 		}
 
+		normalize(key);
+
 		if (!matchKeyword(key))
 			return;
 		
-		std::cout << "Key quallifies for storage " << key << " " << value << std::endl;
+		std::cout << "Key quallifies for storage " << key << " -> " << value << std::endl;
 		AbstractEngine::put(key, quid + value, false, true);
 	}
 

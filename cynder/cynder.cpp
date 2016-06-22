@@ -35,9 +35,9 @@ static void catch_signals() {
     struct sigaction action;
     action.sa_handler = signal_handler;
     action.sa_flags = 0;
-    sigemptyset (&action.sa_mask);
-    sigaction (SIGINT, &action, NULL);
-    sigaction (SIGTERM, &action, NULL);
+    sigemptyset(&action.sa_mask);
+    sigaction(SIGINT, &action, NULL);
+    sigaction(SIGTERM, &action, NULL);
 }
 
 void performQueryRequest(StorageQuery& query) {
@@ -55,7 +55,7 @@ void performQueryRequest(StorageQuery& query) {
 	memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
 	socket.send(request);
 
-	// Get the reply
+	/* Get the reply */
 	zmq::message_t reply;
 	socket.recv(&reply);
 	socket.disconnect(("tcp://" + host).c_str());
@@ -139,6 +139,7 @@ void initSlave() {
 	cat.put("adi_count", adi.dbcount());
 	cat.put("uki_count", uki.dbcount());
 	cat.put("fti_count", fti.dbcount());
+	cat.put("lfb_count", lfb.dbcount());
 
 	/* Cross data references */
 	adi.attach(&lfb);
@@ -295,9 +296,8 @@ int main(int argc, char *argv[]) {
 		}
 
 		ConfigFile::range r = config.find("cynder-worker");
-		for (ConfigFile::iterator i = r.first; i != r.second; i++) {
-			std::cout << "Adding '" << i->second << ":" << nodeRing.addNode(i->second) << "' to nodering" << std::endl;
-		}
+		for (ConfigFile::iterator i = r.first; i != r.second; i++)
+			nodeRing.addNode(i->second);
 	} else {
 		std::cerr << "HBS config is required for this service" << std::endl;
 		return 1;

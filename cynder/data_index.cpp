@@ -9,7 +9,7 @@
 
 struct StorageType {
 	unsigned short page = 0;
-	unsigned int pointer = 0;
+	unsigned int pointer = 0; /* No one knows why there's a pointer hanging around here... */
 	char magic;
 	char flags = DATA_FLAG_NIL;
 };
@@ -28,13 +28,17 @@ void DataIndex::put(std::string quid, std::string value, bool override) {
 	type.flags = DATA_FLAG_ADI;
 
 	/* Store content in LFB */
-	if (value.size() > ITEM_SIZE) {
+	if (value.size() > 240000 /*ITEM_SIZE*/) {
 		std::cout << "Store in LFB" << std::endl;
 
-		// do something with overrides
+		// TODO do something with overrides
 
 		type.flags = DATA_FLAG_LFB;
-		type.page = 2; // TODO example
+		type.page = lfb->put(quid, value);
+		printf("Page at %d\n", type.page); //just kidding, this is always 0
+
+		value.clear();
+		value.reserve(sizeof(StorageType));
 	}
 
 	std::cout << value.size() << std::endl;

@@ -10,6 +10,8 @@ class AbstractAdditionalIndex {
 		"location", "language", "place", "target",
 		"url", "address", "path", "description",
 		"remark", "subject", "comment",	"note",	"tag",
+		"color", "file", "width", "height", "time", "shape",
+		"size", "texture"
 	}};
 
   public:
