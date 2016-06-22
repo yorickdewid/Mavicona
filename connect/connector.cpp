@@ -13,7 +13,7 @@
 
 int main(int argc, char *argv[]) {
 	if (argc <= 1) {
-		fprintf(stderr, "Usage: ./example \"SELECT * FROM 7baa8989-70d6-4d84-afeb-77f1e16aaa41;\"\n");
+		fprintf(stderr, "Usage: %s \"SELECT * FROM ebaa898970d64d84afeb77f1e16aaa41;\"\n", argv[0]);
 		return -1;
 	}
 	std::string query = argv[1];

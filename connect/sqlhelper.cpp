@@ -130,7 +130,8 @@ namespace tsql {
 	void printSelectStatementInfo(SelectStatement* stmt, uintmax_t numIndent) {
 		inprint("SelectStatement", numIndent);
 		inprint("Fields:", numIndent+1);
-		for (Expr* expr : *stmt->selectList) printExpression(expr, numIndent+2);
+		for (Expr *expr : *stmt->selectList)
+			printExpression(expr, numIndent+2);
 
 		inprint("Sources:", numIndent+1);
 		printTableRefInfo(stmt->fromTable, numIndent+2);
