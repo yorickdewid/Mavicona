@@ -11,7 +11,7 @@ class KeyIndex : public AbstractEngine, public AbstractAdditionalIndex {
 	DataIndex *adi = nullptr;
 
   public:
-	KeyIndex() : AbstractEngine("uki", true) {}
+	KeyIndex(unsigned int counter) : AbstractEngine("uki", true, counter) {}
 
 	void attach(RecordIndex *_ari) {
 		this->ari = ari;

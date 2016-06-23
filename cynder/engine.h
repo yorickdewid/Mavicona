@@ -34,7 +34,9 @@ class AbstractEngine {
 	}
 
   public:
-	AbstractEngine(const char *prefix, bool allow_duplicates = false, const char *datadir = defaultDataDir) : name_prefix(prefix) {
+	AbstractEngine(const char *prefix, bool allow_duplicates = false, unsigned _counter = 0,
+		const char *datadir = defaultDataDir) : name_prefix(prefix), counter(_counter) {
+		
 		mkdir(datadir, 0700);
 
 		assert(strlen(name_prefix) == 3);
@@ -57,8 +59,8 @@ class AbstractEngine {
 		}
 	}
 
-	inline unsigned int dbcount() {
-		return counter;
+	inline unsigned int dbcount() const {
+		return counter - 1;
 	}
 
 	void close() {

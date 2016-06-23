@@ -128,18 +128,11 @@ void initSlave() {
 
 	// catalogus
 	Catalogus cat;
-	RecordIndex ari;
-	DataIndex adi;
-	KeyIndex uki;
-	TextIndex fti;
+	RecordIndex ari(cat.getVersionCount("ari"));
+	DataIndex adi(cat.getVersionCount("adi"));
+	KeyIndex uki(cat.getVersionCount("uki"));
+	TextIndex fti(cat.getVersionCount("fti"));
 	Filebase lfb;
-
-	/* Save database counters */
-	cat.put("ari_count", ari.dbcount());
-	cat.put("adi_count", adi.dbcount());
-	cat.put("uki_count", uki.dbcount());
-	cat.put("fti_count", fti.dbcount());
-	cat.put("lfb_count", lfb.dbcount());
 
 	/* Cross data references */
 	adi.attach(&lfb);
@@ -251,6 +244,15 @@ void initSlave() {
 		memcpy(reinterpret_cast<void *>(reply.data()), serialized.c_str(), serialized.size());
 		socket.send(reply);
 	}
+
+	std::cout << "Saving counters" << std::endl;
+
+	/* Save database counters */
+	cat.putVersionCount("ari", ari.dbcount());
+	cat.putVersionCount("adi", adi.dbcount());
+	cat.putVersionCount("uki", uki.dbcount());
+	cat.putVersionCount("fti", fti.dbcount());
+	cat.putVersionCount("lfb", lfb.dbcount());
 }
 
 int main(int argc, char *argv[]) {

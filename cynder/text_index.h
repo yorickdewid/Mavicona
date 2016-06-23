@@ -11,7 +11,7 @@ class TextIndex : public AbstractEngine, public AbstractAdditionalIndex {
 	DataIndex *adi = nullptr;
 
   public:
-	TextIndex() : AbstractEngine("fti", true) {}
+	TextIndex(unsigned int counter) : AbstractEngine("fti", true,counter) {}
 
 	void attach(RecordIndex *_ari) {
 		this->ari = ari;

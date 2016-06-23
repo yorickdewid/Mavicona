@@ -8,7 +8,7 @@ class DataIndex : public AbstractEngine {
 	Filebase *lfb = nullptr;
 
   public:
-	DataIndex() : AbstractEngine("adi") {}
+	DataIndex(unsigned int counter) : AbstractEngine("adi", false, counter) {}
 
 	void attach(Filebase *_lfb) {
 		this->lfb = _lfb;

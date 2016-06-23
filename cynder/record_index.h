@@ -5,7 +5,7 @@
 
 class RecordIndex : public AbstractEngine {
   public:
-	RecordIndex() : AbstractEngine("ari") {}
+	RecordIndex(unsigned int counter) : AbstractEngine("ari", false, counter) {}
 
 	void put(std::string quid, std::string value, bool override = false) {
 		if (quid.size() != quidpp::Quid::unpackedSize()) {

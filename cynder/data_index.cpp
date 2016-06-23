@@ -31,8 +31,6 @@ void DataIndex::put(std::string quid, std::string value, bool override) {
 	if (value.size() > 240000 /*ITEM_SIZE*/) {
 		std::cout << "Store in LFB" << std::endl;
 
-		// TODO do something with overrides
-
 		type.flags = DATA_FLAG_LFB;
 		type.page = lfb->put(quid, value);
 		printf("Page at %d\n", type.page); //just kidding, this is always 0
