@@ -35,11 +35,12 @@ class Filebase {
 	}
 
 	void acquirePage(const std::string& file) {
+		// TODO check if full
 		filepages[pagecounter(file)] = new Filepage(file);
 	}
 
 	unsigned int applicablePage() {
-		return 0; // TODO for now
+		return 0; // TODO Walk over applicable pages based on prio
 	}
 
   public:
@@ -48,9 +49,10 @@ class Filebase {
 
 		assert(strlen(name_prefix) == 3);
 
-		/* Always once page */
+		/* Always one page */
 		acquirePage(dbname(dir));
-		
+
+		/* Initialize all pages */
 		for (unsigned int i = 1; i < cnt; ++i)
 			acquirePage(dbname(dir));
 	}

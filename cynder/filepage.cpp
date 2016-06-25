@@ -1,4 +1,5 @@
 #include <fstream>
+#include <limits.h>
 
 #include "filepage.h"
 
@@ -32,20 +33,6 @@ struct pageIndexItem {
 
 size_t Filepage::size() {
 	return m_Elements;
-}
-
-bool Filepage::isFull() {
-	if (!isOpen())
-		return false; // throw error
-
-	fseek(m_pFile, 0, SEEK_SET);
-
-	pageHeader header;
-	fread(&header, sizeof(pageHeader), 1, m_pFile);
-	if (header.flags & PAGE_FLAG_FULL)
-		return true;
-
-	return false;
 }
 
 void Filepage::create(unsigned int alloc, unsigned int size) {
@@ -95,6 +82,9 @@ void Filepage::open() {
 		return;
 	}
 
+	if (header.flags & PAGE_FLAG_FULL)
+		m_pageFull = true;
+printf("Full? %d\n", m_pageFull);
 	/* Pointer to current index */
 	m_LastIndex = sizeof(pageHeader);
 
@@ -132,6 +122,10 @@ void Filepage::writeHeader() {
 	header.elements = m_Elements;
 	header.first_free = m_FirstFree;
 	header.grow_items = m_Grow;
+	header.item_size = m_ItemSize;
+
+	if (m_pageFull)
+		header.flags = PAGE_FLAG_FULL;
 
 	fwrite((const char *)&header, sizeof(pageHeader), 1, m_pFile);
 
@@ -161,6 +155,15 @@ void Filepage::growPage() {
 	writeHeader();
 }
 
+void Filepage::shouldClose() {
+	if (!isOpen())
+		return;
+
+	/* Close page if INT limit exceeds */
+	if (m_FirstFree + m_ItemSize > 25165824/*UINT_MAX*/)
+		m_pageFull = true;
+}
+
 void Filepage::storeItem(std::string name, std::string data) {
 	if (!isOpen())
 		return;
@@ -188,16 +191,20 @@ void Filepage::storeItem(std::string name, std::string data) {
 	fseek(m_pFile, m_FirstFree, SEEK_SET);
 	fwrite(data.c_str(), 1, data.size(), m_pFile);
 	m_FirstFree += data.size();
-
+printf("m_FirstFree %u\n", m_FirstFree);
 	/* Add index to content list */
 	contents[item.name] = std::pair<unsigned int, unsigned int>(item.item, item.size);
 
 	/* Increase elements */
 	m_Elements++;
 
+	/* Determine if this page is full */
+	shouldClose();
+
+	/* Flush page properties */
 	writeHeader();
 
-	fflush(m_pFile);
+	printf("Full? %d\n", m_pageFull);
 }
 
 std::vector<uint8_t> *Filepage::retrieveItem(std::string name) {

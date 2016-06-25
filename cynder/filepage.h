@@ -23,9 +23,11 @@ class Filepage {
 	FILE *m_pFile = nullptr;
 	const std::string m_File;
 	std::map<std::string, std::pair<unsigned int, unsigned int>> contents;
+	bool m_pageFull = false;
 
 	void writeHeader();
 	void growPage();
+	void shouldClose();
 
   public:
 	Filepage(const std::string& file) : m_File(file) {
@@ -48,7 +50,9 @@ class Filepage {
 	/* Remove item from page */
 	void removeItem(std::string name);
 
-	bool isFull();
+	bool isFull() {
+		return m_pageFull;
+	}
 
 	size_t size();
 
@@ -61,6 +65,7 @@ class Filepage {
 	}
 
 	~Filepage() {
+		writeHeader();
 		fclose(m_pFile);
 	}
 
