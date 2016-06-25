@@ -65,7 +65,7 @@ void performQueryRequest(StorageQuery& query) {
 }
 
 void initMaster() {
-	std::cout << "Master" << std::endl;
+	std::cout << "Starting master" << std::endl;
 
 	/* Prepare our context and socket */
 	zmq::context_t context(1);
@@ -81,7 +81,12 @@ void initMaster() {
 		zmq::message_t request;
 
 		/* Wait for next request from client */
-		socket.recv(&request);
+		try {
+			socket.recv(&request);
+		} catch (zmq::error_t &e) {
+			std::cout << "Exit gracefully" << std::endl;
+			break;
+		}
 
 		ScrapeData data;
 		data.ParseFromArray(request.data(), request.size());
@@ -94,25 +99,23 @@ void initMaster() {
 		query.set_queryaction(StorageQuery::INSERT);
 		query.set_queryresult(StorageQuery::SUCCESS);
 
-		for (int i = 0; i < data.meta_size(); i++) {
-			ScrapeData::MetaEntry skeygroup = data.meta(i);
+		/* Recursively copy */
+		std::function<void (const ScrapeData::MetaEntry *, StorageQuery::MetaEntry *)> copyMeta = [&] (const ScrapeData::MetaEntry *sourcekey, StorageQuery::MetaEntry *destkey) { 
+			destkey->set_key(sourcekey->key());
 
-			StorageQuery::MetaEntry *dkeygroup = query.add_meta();
-			dkeygroup->set_key(skeygroup.key());
-
-			if (skeygroup.has_value()) {
-				dkeygroup->set_value(skeygroup.value());
-			} else if (skeygroup.meta_size()) {
-
-				/* Decending */
-				for (int j = 0; j < skeygroup.meta_size(); j++) {
-					ScrapeData::MetaEntry skey = skeygroup.meta(j);
-
-					StorageQuery::MetaEntry *dkey = dkeygroup->add_meta();
-					dkey->set_key(skey.key());
-					dkey->set_value(skey.value());
-				}
+			if (sourcekey->meta_size()) {
+				StorageQuery::MetaEntry *_destkey = destkey->add_meta();
+				for (int i = 0; i < sourcekey->meta_size(); i++)
+					copyMeta(&sourcekey->meta(i), _destkey);
+			} else {
+				destkey->set_value(sourcekey->value());
 			}
+		};
+
+		for (int i = 0; i < data.meta_size(); ++i) {
+			StorageQuery::MetaEntry *destkey = query.add_meta();
+
+			copyMeta(&data.meta(i), destkey);
 		}
 
 		performQueryRequest(query);
@@ -125,9 +128,8 @@ void initMaster() {
 }
 
 void initSlave() {
-	std::cout << "Slave" << std::endl;
+	std::cout << "Starting worker" << std::endl;
 
-	// catalogus
 	Catalogus cat;
 	RecordIndex ari(cat.getVersionCount("ari"));
 	DataIndex adi(cat.getVersionCount("adi"));
@@ -171,7 +173,7 @@ void initSlave() {
 		/* Recursively insert meta data */
 		std::function<void (const StorageQuery::MetaEntry *)> traverseMeta = [&] (const StorageQuery::MetaEntry *key) { 
 			if (key->meta_size()) {
-				for (int i = 0; i < key->meta_size(); i++)
+				for (int i = 0; i < key->meta_size(); ++i)
 					traverseMeta(&key->meta(i));
 			} else {
 				uki.put(query.quid(), key->key(), key->value());
@@ -195,11 +197,6 @@ void initSlave() {
 				case StorageQuery::INSERT:
 					std::cout << "Request " << query.id() << " [INSERT] " << query.quid() << " named '" << query.name() << "'" << std::endl;
 					
-					/* Store content in LFB */
-					if (query.content().size() > ITEM_SIZE) {
-						std::cout << "Store in LFB" << std::endl;
-					}
-
 					/* Store content */
 					adi.put(query.quid(), query.content());
 
@@ -209,18 +206,61 @@ void initSlave() {
 					ari.put(query.quid(), serialized);
 
 					/* Store additional data in unclustered indexes */
-					for (int i = 0; i < query.meta_size(); i++)
+					for (int i = 0; i < query.meta_size(); ++i)
 						traverseMeta(&query.meta(i));
 
 					break;
 				case StorageQuery::UPDATE:
 					std::cout << "Request " << query.id() << " [UPDATE] " << query.quid() << " named '" << query.name() << "'" << std::endl;
-					/*datadb.put(query.quid(), query.name(), query.content(), true);*/
+
+					/* Override content */
+					adi.put(query.quid(), query.content(), true);
+
+					/* Override the record */
+					query.clear_content();
+					query.SerializeToString(&serialized);
+					ari.put(query.quid(), serialized, true);
+
+					/* Store duplicated additional data in unclustered indexes */
+					for (int i = 0; i < query.meta_size(); ++i)
+						traverseMeta(&query.meta(i));
 
 					break;
 				case StorageQuery::DELETE:
 					std::cout << "Request " << query.id() << " [DELETE] " << query.quid() << " named '" << query.name() << "'" << std::endl;
-					/*datadb.remove(query.quid(), query.name());*/
+
+					/* Remove content and record */
+					adi.remove(query.quid());
+					ari.remove(query.quid());
+
+					break;
+				case StorageQuery::SEARCH:
+					std::cout << "Request " << query.id() << " [SEARCH] " << query.quid() << " named '" << query.name() << "'" << std::endl;
+
+					std::cout << "Search for " << query.content() << std::endl;
+
+					std::list<std::string> quidList;
+
+					// TODO catch and ignore not found
+
+					uki.getMulti(query.content(), &quidList);
+					for(const std::string& value : quidList) {
+						// TODO catch and skip not found
+
+						/* Restore the record */
+						serialized = ari.get(value);
+						query.ParseFromArray(serialized.data(), serialized.size());
+
+						/* Restore content */
+						query.set_content(adi.get(value));
+
+						std::cout << "Name: " << query.name() << std::endl;
+						std::cout << "Id: " << query.id() << std::endl;
+						std::cout << "Quid: " << query.quid() << std::endl;
+						std::cout << "Content: " << query.content() << std::endl;
+					}
+
+					// TODO search fti
 
 					break;
 			}
@@ -265,6 +305,7 @@ int main(int argc, char *argv[]) {
 	options.add_options("Help")
 	("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
 	("m,master", "Promote node to master")
+	("single", "Run single instance for master and slave")
 	("v,version", "Framework version")
 	("h,help", "Print this help");
 
@@ -314,10 +355,18 @@ int main(int argc, char *argv[]) {
 
 	catch_signals();
 
-	if (options.count("master"))
-		initMaster();
-	else
-		initSlave();
+	if (options.count("master")) {
+		if (options.count("single")) {
+			std::stringstream ss; 
+			ss << argv[0] << " -s " << options["hbs"].as<std::string>();
+
+			system(ss.str().c_str());
+		}
+
+ 		initMaster();
+	} else {
+ 		initSlave();
+	}
 
 	return 0;
 }
