@@ -79,7 +79,7 @@ void initMaster() {
 	while (true) {
 		zmq::message_t request;
 
-		//  Wait for next request from client
+		/* Wait for next request from client */
 		socket.recv(&request);
 
 		ScrapeData data;

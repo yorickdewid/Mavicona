@@ -29,7 +29,7 @@ void TextIndex::getMulti(std::string key, std::list<std::string> *list) {
 	cursor.find(&_key, &_record);
 	size_t count = cursor.get_duplicate_count();
 
-	for(unsigned int i = 0; i < count; ++i) {
+	for (unsigned int i = 0; i < count; ++i) {
 		std::string content = std::string(reinterpret_cast<const char *>(_record.get_data()), _record.get_size());
 		std::string quid = content.substr(0, quidpp::Quid::unpackedSize());
 

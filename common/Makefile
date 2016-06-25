@@ -1,4 +1,4 @@
-OBJS = config.o
+OBJS = 
 CC = g++
 DEBUG = -g
 LIBS =
