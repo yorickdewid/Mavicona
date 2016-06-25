@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2016 Mavicona
- * All Rights Reserved.
+ * All rights reserved.
  *
  * Connector	Query storage data
  */
