@@ -93,7 +93,7 @@ void protobuf_AddDesc_processjob_2eproto() {
     "tent\030\004 \001(\014\022\021\n\tpartition\030\005 \002(\005\022%\n\tjobacti"
     "on\030\006 \002(\0162\022.ProcessJob.Action\022%\n\tjobresul"
     "t\030\007 \002(\0162\022.ProcessJob.Result\022\017\n\007runtime\030\010"
-    " \002(\005\022\025\n\nreturncode\030\t \002(\005:\0010\"+\n\006Action\022\013\n"
+    " \001(\005\022\025\n\nreturncode\030\t \001(\005:\0010\"+\n\006Action\022\013\n"
     "\007SOLICIT\020\000\022\010\n\004IDLE\020\001\022\n\n\006ACCEPT\020\002\"-\n\006Resu"
     "lt\022\013\n\007SUCCESS\020\000\022\010\n\004FAIL\020\001\022\014\n\010HARDFAIL\020\002", 319);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
@@ -406,7 +406,7 @@ bool ProcessJob::MergePartialFromCodedStream(
         break;
       }
 
-      // required int32 runtime = 8;
+      // optional int32 runtime = 8;
       case 8: {
         if (tag == 64) {
          parse_runtime:
@@ -421,7 +421,7 @@ bool ProcessJob::MergePartialFromCodedStream(
         break;
       }
 
-      // required int32 returncode = 9 [default = 0];
+      // optional int32 returncode = 9 [default = 0];
       case 9: {
         if (tag == 72) {
          parse_returncode:
@@ -509,12 +509,12 @@ void ProcessJob::SerializeWithCachedSizes(
       7, this->jobresult(), output);
   }
 
-  // required int32 runtime = 8;
+  // optional int32 runtime = 8;
   if (has_runtime()) {
     ::google::protobuf::internal::WireFormatLite::WriteInt32(8, this->runtime(), output);
   }
 
-  // required int32 returncode = 9 [default = 0];
+  // optional int32 returncode = 9 [default = 0];
   if (has_returncode()) {
     ::google::protobuf::internal::WireFormatLite::WriteInt32(9, this->returncode(), output);
   }
@@ -580,12 +580,12 @@ void ProcessJob::SerializeWithCachedSizes(
       7, this->jobresult(), target);
   }
 
-  // required int32 runtime = 8;
+  // optional int32 runtime = 8;
   if (has_runtime()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(8, this->runtime(), target);
   }
 
-  // required int32 returncode = 9 [default = 0];
+  // optional int32 returncode = 9 [default = 0];
   if (has_returncode()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(9, this->returncode(), target);
   }
@@ -649,7 +649,7 @@ int ProcessJob::ByteSize() const {
         ::google::protobuf::internal::WireFormatLite::EnumSize(this->jobresult());
     }
 
-    // required int32 runtime = 8;
+    // optional int32 runtime = 8;
     if (has_runtime()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
@@ -658,7 +658,7 @@ int ProcessJob::ByteSize() const {
 
   }
   if (_has_bits_[8 / 32] & (0xffu << (8 % 32))) {
-    // required int32 returncode = 9 [default = 0];
+    // optional int32 returncode = 9 [default = 0];
     if (has_returncode()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
@@ -738,7 +738,7 @@ void ProcessJob::CopyFrom(const ProcessJob& from) {
 }
 
 bool ProcessJob::IsInitialized() const {
-  if ((_has_bits_[0] & 0x000001f3) != 0x000001f3) return false;
+  if ((_has_bits_[0] & 0x00000073) != 0x00000073) return false;
 
   return true;
 }

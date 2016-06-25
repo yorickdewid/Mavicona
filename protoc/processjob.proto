@@ -21,6 +21,6 @@ message ProcessJob {
   }
 
   required Result jobresult = 7;
-  required int32 runtime = 8;  
-  required int32 returncode = 9 [default = 0];
+  optional int32 runtime = 8;  
+  optional int32 returncode = 9 [default = 0];
 }

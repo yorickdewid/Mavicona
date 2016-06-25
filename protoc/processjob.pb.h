@@ -243,14 +243,14 @@ class ProcessJob : public ::google::protobuf::Message {
   inline ::ProcessJob_Result jobresult() const;
   inline void set_jobresult(::ProcessJob_Result value);
 
-  // required int32 runtime = 8;
+  // optional int32 runtime = 8;
   inline bool has_runtime() const;
   inline void clear_runtime();
   static const int kRuntimeFieldNumber = 8;
   inline ::google::protobuf::int32 runtime() const;
   inline void set_runtime(::google::protobuf::int32 value);
 
-  // required int32 returncode = 9 [default = 0];
+  // optional int32 returncode = 9 [default = 0];
   inline bool has_returncode() const;
   inline void clear_returncode();
   static const int kReturncodeFieldNumber = 9;
@@ -631,7 +631,7 @@ inline void ProcessJob::set_jobresult(::ProcessJob_Result value) {
   // @@protoc_insertion_point(field_set:ProcessJob.jobresult)
 }
 
-// required int32 runtime = 8;
+// optional int32 runtime = 8;
 inline bool ProcessJob::has_runtime() const {
   return (_has_bits_[0] & 0x00000080u) != 0;
 }
@@ -655,7 +655,7 @@ inline void ProcessJob::set_runtime(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:ProcessJob.runtime)
 }
 
-// required int32 returncode = 9 [default = 0];
+// optional int32 returncode = 9 [default = 0];
 inline bool ProcessJob::has_returncode() const {
   return (_has_bits_[0] & 0x00000100u) != 0;
 }
