@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "common/util.h"
+#include "common/module.h"
 #include "common/config.h"
 #include "common/cxxopts.h"
 #include "protoc/task.pb.h"
@@ -55,6 +56,7 @@ int main(int argc, char *argv[]) {
 
 	options.add_options("Help")
 	("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
+	("v,version", "Framework version")
 	("h,help", "Print this help");
 
 	try {
@@ -62,6 +64,11 @@ int main(int argc, char *argv[]) {
 	} catch (const cxxopts::OptionException& e) {
 		std::cerr << "error parsing options: " << e.what() << std::endl;
 		return 1;
+	}
+
+	if (options.count("version")) {
+		std::cerr << Module::version() << std::endl;
+		return 0;
 	}
 
 	if (options.count("help")) {
