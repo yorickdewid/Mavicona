@@ -82,7 +82,7 @@ class Filebase {
 		filepages[pageNum]->removeItem(name);
 	}
 
-	inline unsigned int dbcount() {
+	inline unsigned int dbcount() const {
 		return counter;
 	}
 

@@ -1,4 +1,4 @@
-OBJS = cynder.o data_index.o key_index.o text_index.o filepage.o ../protoc/storagequery.pb.o ../protoc/scrapedata.pb.o ../third_party/upscaledb/src/.libs/libupscaledb.a  ../quid/libquid.a
+OBJS = cynder.o engine.o data_index.o key_index.o text_index.o filepage.o ../protoc/storagequery.pb.o ../protoc/scrapedata.pb.o ../third_party/upscaledb/src/.libs/libupscaledb.a  ../quid/libquid.a
 CC = g++
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq -lz -ldl -lboost_system -lboost_thread -lcrypto

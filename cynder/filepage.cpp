@@ -219,7 +219,7 @@ std::vector<uint8_t> *Filepage::retrieveItem(std::string name) {
 	fseek(m_pFile, pair.first, SEEK_SET);
 
 	std::vector<uint8_t> *buffer = new std::vector<uint8_t>(pair.second);
-	std::vector<uint8_t> &bufferref = *buffer;
+	std::vector<uint8_t>& bufferref = *buffer;
 	fread(&bufferref[0], sizeof(uint8_t), pair.second, m_pFile);
 
 	return buffer;

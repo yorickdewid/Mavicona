@@ -2,6 +2,7 @@
 #define ENGINE_H
 
 #include <map>
+#include <list>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -14,11 +15,9 @@
 constexpr char defaultDataDir[] = "data";
 
 class AbstractEngine {
-  protected:
 	upscaledb::env env;       /* upscaledb environment object */
 	upscaledb::db db;         /* upscaledb database object */
 
-  private:
 	const char *name_prefix;
 	unsigned int counter = 0;
 
@@ -35,8 +34,8 @@ class AbstractEngine {
 
   public:
 	AbstractEngine(const char *prefix, bool allow_duplicates = false, unsigned _counter = 0,
-		const char *datadir = defaultDataDir) : name_prefix(prefix), counter(_counter) {
-		
+	               const char *datadir = defaultDataDir) : name_prefix(prefix), counter(_counter) {
+
 		mkdir(datadir, 0700);
 
 		assert(strlen(name_prefix) == 3);
@@ -72,34 +71,14 @@ class AbstractEngine {
 		close();
 	}
 
-	virtual void put(std::string key, std::string value, bool override = false, bool duplicate = false) {
-		upscaledb::key _key((char *)key.c_str(), key.size());
-		upscaledb::record _record((char *)value.c_str(), value.size());
+	virtual void put(std::string key, std::string value, bool override = false, bool duplicate = false);
 
-		uint32_t flag = 0;
-		if (override)
-			flag = UPS_OVERWRITE;
-		else if (duplicate)
-			flag = UPS_DUPLICATE;
+	virtual std::string get(std::string key);
 
-		db.insert(&_key, &_record, flag);
-		env.flush();
-	}
+	virtual void remove(std::string key);
 
-	virtual std::string get(std::string key) {
-		upscaledb::key _key((char *)key.c_str(), key.size());
+	void getMulti(std::string key, std::list<std::string> *list);
 
-		upscaledb::record _record = db.find(&_key);
-
-		return std::string(reinterpret_cast<const char *>(_record.get_data()), _record.get_size());
-	}
-
-	virtual void remove(std::string key) {
-		upscaledb::key _key((char *)key.c_str(), key.size());
-
-		db.erase(&_key);
-		env.flush();
-	}
 };
 
 #endif // ENGINE_H
