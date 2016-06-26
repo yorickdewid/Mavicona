@@ -28,19 +28,29 @@ class Filebase {
 		return ss.str();
 	}
 
+	/* Substract counter from file */
 	unsigned int pagecounter(std::string path) {
 		std::string _dbname = path.substr(path.find_last_of("/") + 1);
 
 		return atoi(_dbname.substr(3, 4).c_str());
 	}
 
-	void acquirePage(const std::string& file) {
-		// TODO check if full
-		filepages[pagecounter(file)] = new Filepage(file);
+	unsigned int acquirePage(const std::string& file) {
+		unsigned int pageNum = pagecounter(file);
+		filepages[pageNum] = new Filepage(file);
+
+		return pageNum;
 	}
 
 	unsigned int applicablePage() {
-		return 0; // TODO Walk over applicable pages based on prio
+		for (auto const &v : filepages) {
+			if (v.second->isFull())
+				continue;
+
+			return v.first;
+		}
+		
+		return acquirePage(dbname(dir));
 	}
 
   public:
@@ -49,7 +59,7 @@ class Filebase {
 
 		assert(strlen(name_prefix) == 3);
 
-		/* Always one page */
+		/* At least one page */
 		acquirePage(dbname(dir));
 
 		/* Initialize all pages */
@@ -64,12 +74,12 @@ class Filebase {
 		return pageNum;
 	}
 
-	std::vector<uint8_t> *get(unsigned int page, std::string name) {
-		return filepages[page]->retrieveItem(name);
+	std::vector<uint8_t> *get(unsigned int pageNum, std::string name) {
+		return filepages[pageNum]->retrieveItem(name);
 	}
 
-	void remove(unsigned int page, std::string name) {
-		filepages[page]->removeItem(name);
+	void remove(unsigned int pageNum, std::string name) {
+		filepages[pageNum]->removeItem(name);
 	}
 
 	inline unsigned int dbcount() {

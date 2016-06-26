@@ -84,7 +84,7 @@ void Filepage::open() {
 
 	if (header.flags & PAGE_FLAG_FULL)
 		m_pageFull = true;
-printf("Full? %d\n", m_pageFull);
+
 	/* Pointer to current index */
 	m_LastIndex = sizeof(pageHeader);
 
@@ -160,7 +160,7 @@ void Filepage::shouldClose() {
 		return;
 
 	/* Close page if INT limit exceeds */
-	if (m_FirstFree + m_ItemSize > 25165824/*UINT_MAX*/)
+	if (m_FirstFree + m_ItemSize > UINT_MAX)
 		m_pageFull = true;
 }
 
@@ -191,7 +191,7 @@ void Filepage::storeItem(std::string name, std::string data) {
 	fseek(m_pFile, m_FirstFree, SEEK_SET);
 	fwrite(data.c_str(), 1, data.size(), m_pFile);
 	m_FirstFree += data.size();
-printf("m_FirstFree %u\n", m_FirstFree);
+
 	/* Add index to content list */
 	contents[item.name] = std::pair<unsigned int, unsigned int>(item.item, item.size);
 
@@ -203,8 +203,6 @@ printf("m_FirstFree %u\n", m_FirstFree);
 
 	/* Flush page properties */
 	writeHeader();
-
-	printf("Full? %d\n", m_pageFull);
 }
 
 std::vector<uint8_t> *Filepage::retrieveItem(std::string name) {
