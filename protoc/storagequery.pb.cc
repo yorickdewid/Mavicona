@@ -37,7 +37,7 @@ void protobuf_AssignDesc_storagequery_2eproto() {
       "storagequery.proto");
   GOOGLE_CHECK(file != NULL);
   StorageQuery_descriptor_ = file->message_type(0);
-  static const int StorageQuery_offsets_[7] = {
+  static const int StorageQuery_offsets_[8] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, quid_),
@@ -45,6 +45,7 @@ void protobuf_AssignDesc_storagequery_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, queryaction_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, queryresult_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, meta_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StorageQuery, next_),
   };
   StorageQuery_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -110,17 +111,18 @@ void protobuf_AddDesc_storagequery_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\022storagequery.proto\"\216\003\n\014StorageQuery\022\014\n"
+    "\n\022storagequery.proto\"\253\003\n\014StorageQuery\022\014\n"
     "\004name\030\001 \002(\t\022\n\n\002id\030\002 \002(\005\022\014\n\004quid\030\003 \002(\t\022\017\n"
     "\007content\030\004 \001(\014\022)\n\013queryaction\030\005 \002(\0162\024.St"
     "orageQuery.Action\022)\n\013queryresult\030\006 \002(\0162\024"
     ".StorageQuery.Result\022%\n\004meta\030\007 \003(\0132\027.Sto"
-    "rageQuery.MetaEntry\032N\n\tMetaEntry\022\013\n\003key\030"
-    "\001 \002(\t\022\r\n\005value\030\002 \001(\014\022%\n\004meta\030\003 \003(\0132\027.Sto"
-    "rageQuery.MetaEntry\"D\n\006Action\022\n\n\006SELECT\020"
-    "\000\022\n\n\006INSERT\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE\020\003\022\n\n"
-    "\006SEARCH\020\004\"2\n\006Result\022\013\n\007SUCCESS\020\000\022\014\n\010NOTF"
-    "OUND\020\001\022\r\n\tDUPLICATE\020\002", 421);
+    "rageQuery.MetaEntry\022\033\n\004next\030\010 \003(\0132\r.Stor"
+    "ageQuery\032N\n\tMetaEntry\022\013\n\003key\030\001 \002(\t\022\r\n\005va"
+    "lue\030\002 \001(\014\022%\n\004meta\030\003 \003(\0132\027.StorageQuery.M"
+    "etaEntry\"D\n\006Action\022\n\n\006SELECT\020\000\022\n\n\006INSERT"
+    "\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE\020\003\022\n\n\006SEARCH\020\004\"2"
+    "\n\006Result\022\013\n\007SUCCESS\020\000\022\014\n\010NOTFOUND\020\001\022\r\n\tD"
+    "UPLICATE\020\002", 450);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "storagequery.proto", &protobuf_RegisterTypes);
   StorageQuery::default_instance_ = new StorageQuery();
@@ -530,6 +532,7 @@ const int StorageQuery::kContentFieldNumber;
 const int StorageQuery::kQueryactionFieldNumber;
 const int StorageQuery::kQueryresultFieldNumber;
 const int StorageQuery::kMetaFieldNumber;
+const int StorageQuery::kNextFieldNumber;
 #endif  // !_MSC_VER
 
 StorageQuery::StorageQuery()
@@ -635,6 +638,7 @@ void StorageQuery::Clear() {
 #undef ZR_
 
   meta_.Clear();
+  next_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -760,6 +764,20 @@ bool StorageQuery::MergePartialFromCodedStream(
           goto handle_unusual;
         }
         if (input->ExpectTag(58)) goto parse_meta;
+        if (input->ExpectTag(66)) goto parse_next;
+        break;
+      }
+
+      // repeated .StorageQuery next = 8;
+      case 8: {
+        if (tag == 66) {
+         parse_next:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+                input, add_next()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(66)) goto parse_next;
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -838,6 +856,12 @@ void StorageQuery::SerializeWithCachedSizes(
       7, this->meta(i), output);
   }
 
+  // repeated .StorageQuery next = 8;
+  for (int i = 0; i < this->next_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      8, this->next(i), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -901,6 +925,13 @@ void StorageQuery::SerializeWithCachedSizes(
         7, this->meta(i), target);
   }
 
+  // repeated .StorageQuery next = 8;
+  for (int i = 0; i < this->next_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        8, this->next(i), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -962,6 +993,14 @@ int StorageQuery::ByteSize() const {
         this->meta(i));
   }
 
+  // repeated .StorageQuery next = 8;
+  total_size += 1 * this->next_size();
+  for (int i = 0; i < this->next_size(); i++) {
+    total_size +=
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        this->next(i));
+  }
+
   if (!unknown_fields().empty()) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
@@ -988,6 +1027,7 @@ void StorageQuery::MergeFrom(const ::google::protobuf::Message& from) {
 void StorageQuery::MergeFrom(const StorageQuery& from) {
   GOOGLE_CHECK_NE(&from, this);
   meta_.MergeFrom(from.meta_);
+  next_.MergeFrom(from.next_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_name()) {
       set_name(from.name());
@@ -1027,6 +1067,7 @@ bool StorageQuery::IsInitialized() const {
   if ((_has_bits_[0] & 0x00000037) != 0x00000037) return false;
 
   if (!::google::protobuf::internal::AllAreInitialized(this->meta())) return false;
+  if (!::google::protobuf::internal::AllAreInitialized(this->next())) return false;
   return true;
 }
 
@@ -1039,6 +1080,7 @@ void StorageQuery::Swap(StorageQuery* other) {
     std::swap(queryaction_, other->queryaction_);
     std::swap(queryresult_, other->queryresult_);
     meta_.Swap(&other->meta_);
+    next_.Swap(&other->next_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

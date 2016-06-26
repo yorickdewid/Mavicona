@@ -30,4 +30,5 @@ message StorageQuery {
   }
 
   repeated MetaEntry meta = 7;
+  repeated StorageQuery next = 8;
 }

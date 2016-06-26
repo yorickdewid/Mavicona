@@ -367,6 +367,18 @@ class StorageQuery : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry >*
       mutable_meta();
 
+  // repeated .StorageQuery next = 8;
+  inline int next_size() const;
+  inline void clear_next();
+  static const int kNextFieldNumber = 8;
+  inline const ::StorageQuery& next(int index) const;
+  inline ::StorageQuery* mutable_next(int index);
+  inline ::StorageQuery* add_next();
+  inline const ::google::protobuf::RepeatedPtrField< ::StorageQuery >&
+      next() const;
+  inline ::google::protobuf::RepeatedPtrField< ::StorageQuery >*
+      mutable_next();
+
   // @@protoc_insertion_point(class_scope:StorageQuery)
  private:
   inline void set_has_name();
@@ -392,6 +404,7 @@ class StorageQuery : public ::google::protobuf::Message {
   int queryaction_;
   ::std::string* content_;
   ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry > meta_;
+  ::google::protobuf::RepeatedPtrField< ::StorageQuery > next_;
   int queryresult_;
   friend void  protobuf_AddDesc_storagequery_2eproto();
   friend void protobuf_AssignDesc_storagequery_2eproto();
@@ -923,6 +936,36 @@ inline ::google::protobuf::RepeatedPtrField< ::StorageQuery_MetaEntry >*
 StorageQuery::mutable_meta() {
   // @@protoc_insertion_point(field_mutable_list:StorageQuery.meta)
   return &meta_;
+}
+
+// repeated .StorageQuery next = 8;
+inline int StorageQuery::next_size() const {
+  return next_.size();
+}
+inline void StorageQuery::clear_next() {
+  next_.Clear();
+}
+inline const ::StorageQuery& StorageQuery::next(int index) const {
+  // @@protoc_insertion_point(field_get:StorageQuery.next)
+  return next_.Get(index);
+}
+inline ::StorageQuery* StorageQuery::mutable_next(int index) {
+  // @@protoc_insertion_point(field_mutable:StorageQuery.next)
+  return next_.Mutable(index);
+}
+inline ::StorageQuery* StorageQuery::add_next() {
+  // @@protoc_insertion_point(field_add:StorageQuery.next)
+  return next_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::StorageQuery >&
+StorageQuery::next() const {
+  // @@protoc_insertion_point(field_list:StorageQuery.next)
+  return next_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::StorageQuery >*
+StorageQuery::mutable_next() {
+  // @@protoc_insertion_point(field_mutable_list:StorageQuery.next)
+  return &next_;
 }
 
 

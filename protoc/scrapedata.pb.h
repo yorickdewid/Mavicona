@@ -433,6 +433,18 @@ class ScrapeData : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry >*
       mutable_meta();
 
+  // repeated .ScrapeData next = 8;
+  inline int next_size() const;
+  inline void clear_next();
+  static const int kNextFieldNumber = 8;
+  inline const ::ScrapeData& next(int index) const;
+  inline ::ScrapeData* mutable_next(int index);
+  inline ::ScrapeData* add_next();
+  inline const ::google::protobuf::RepeatedPtrField< ::ScrapeData >&
+      next() const;
+  inline ::google::protobuf::RepeatedPtrField< ::ScrapeData >*
+      mutable_next();
+
   // @@protoc_insertion_point(class_scope:ScrapeData)
  private:
   inline void set_has_name();
@@ -459,6 +471,7 @@ class ScrapeData : public ::google::protobuf::Message {
   ::std::string* zone_;
   ::ScrapeData_Data* content_;
   ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry > meta_;
+  ::google::protobuf::RepeatedPtrField< ::ScrapeData > next_;
   friend void  protobuf_AddDesc_scrapedata_2eproto();
   friend void protobuf_AssignDesc_scrapedata_2eproto();
   friend void protobuf_ShutdownFile_scrapedata_2eproto();
@@ -1185,6 +1198,36 @@ inline ::google::protobuf::RepeatedPtrField< ::ScrapeData_MetaEntry >*
 ScrapeData::mutable_meta() {
   // @@protoc_insertion_point(field_mutable_list:ScrapeData.meta)
   return &meta_;
+}
+
+// repeated .ScrapeData next = 8;
+inline int ScrapeData::next_size() const {
+  return next_.size();
+}
+inline void ScrapeData::clear_next() {
+  next_.Clear();
+}
+inline const ::ScrapeData& ScrapeData::next(int index) const {
+  // @@protoc_insertion_point(field_get:ScrapeData.next)
+  return next_.Get(index);
+}
+inline ::ScrapeData* ScrapeData::mutable_next(int index) {
+  // @@protoc_insertion_point(field_mutable:ScrapeData.next)
+  return next_.Mutable(index);
+}
+inline ::ScrapeData* ScrapeData::add_next() {
+  // @@protoc_insertion_point(field_add:ScrapeData.next)
+  return next_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::ScrapeData >&
+ScrapeData::next() const {
+  // @@protoc_insertion_point(field_list:ScrapeData.next)
+  return next_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::ScrapeData >*
+ScrapeData::mutable_next() {
+  // @@protoc_insertion_point(field_mutable_list:ScrapeData.next)
+  return &next_;
 }
 
 

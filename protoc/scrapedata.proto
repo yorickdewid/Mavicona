@@ -28,4 +28,5 @@ message ScrapeData {
   }
 
   repeated MetaEntry meta = 7;
+  repeated ScrapeData next = 8;
 }

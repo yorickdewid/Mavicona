@@ -39,7 +39,7 @@ void protobuf_AssignDesc_scrapedata_2eproto() {
       "scrapedata.proto");
   GOOGLE_CHECK(file != NULL);
   ScrapeData_descriptor_ = file->message_type(0);
-  static const int ScrapeData_offsets_[7] = {
+  static const int ScrapeData_offsets_[8] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, quid_),
@@ -47,6 +47,7 @@ void protobuf_AssignDesc_scrapedata_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, content_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, meta_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ScrapeData, next_),
   };
   ScrapeData_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -132,16 +133,17 @@ void protobuf_AddDesc_scrapedata_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\020scrapedata.proto\"\366\002\n\nScrapeData\022\014\n\004nam"
+    "\n\020scrapedata.proto\"\221\003\n\nScrapeData\022\014\n\004nam"
     "e\030\001 \002(\t\022\n\n\002id\030\002 \002(\005\022\014\n\004quid\030\003 \001(\t\022\014\n\004zon"
     "e\030\004 \001(\t\022)\n\004type\030\005 \002(\0162\024.ScrapeData.DataT"
     "ype:\005PLAIN\022!\n\007content\030\006 \002(\0132\020.ScrapeData"
     ".Data\022#\n\004meta\030\007 \003(\0132\025.ScrapeData.MetaEnt"
-    "ry\0328\n\004Data\022\017\n\007payload\030\001 \002(\014\022\014\n\004size\030\002 \001("
-    "\004\022\021\n\textension\030\003 \001(\t\032L\n\tMetaEntry\022\013\n\003key"
-    "\030\001 \002(\t\022\r\n\005value\030\002 \001(\014\022#\n\004meta\030\003 \003(\0132\025.Sc"
-    "rapeData.MetaEntry\"7\n\010DataType\022\t\n\005PLAIN\020"
-    "\000\022\010\n\004FILE\020\001\022\n\n\006BINARY\020\002\022\n\n\006STREAM\020\003", 395);
+    "ry\022\031\n\004next\030\010 \003(\0132\013.ScrapeData\0328\n\004Data\022\017\n"
+    "\007payload\030\001 \002(\014\022\014\n\004size\030\002 \001(\004\022\021\n\textensio"
+    "n\030\003 \001(\t\032L\n\tMetaEntry\022\013\n\003key\030\001 \002(\t\022\r\n\005val"
+    "ue\030\002 \001(\014\022#\n\004meta\030\003 \003(\0132\025.ScrapeData.Meta"
+    "Entry\"7\n\010DataType\022\t\n\005PLAIN\020\000\022\010\n\004FILE\020\001\022\n"
+    "\n\006BINARY\020\002\022\n\n\006STREAM\020\003", 422);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "scrapedata.proto", &protobuf_RegisterTypes);
   ScrapeData::default_instance_ = new ScrapeData();
@@ -860,6 +862,7 @@ const int ScrapeData::kZoneFieldNumber;
 const int ScrapeData::kTypeFieldNumber;
 const int ScrapeData::kContentFieldNumber;
 const int ScrapeData::kMetaFieldNumber;
+const int ScrapeData::kNextFieldNumber;
 #endif  // !_MSC_VER
 
 ScrapeData::ScrapeData()
@@ -969,6 +972,7 @@ void ScrapeData::Clear() {
 #undef ZR_
 
   meta_.Clear();
+  next_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -1091,6 +1095,20 @@ bool ScrapeData::MergePartialFromCodedStream(
           goto handle_unusual;
         }
         if (input->ExpectTag(58)) goto parse_meta;
+        if (input->ExpectTag(66)) goto parse_next;
+        break;
+      }
+
+      // repeated .ScrapeData next = 8;
+      case 8: {
+        if (tag == 66) {
+         parse_next:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+                input, add_next()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(66)) goto parse_next;
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -1173,6 +1191,12 @@ void ScrapeData::SerializeWithCachedSizes(
       7, this->meta(i), output);
   }
 
+  // repeated .ScrapeData next = 8;
+  for (int i = 0; i < this->next_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      8, this->next(i), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -1241,6 +1265,13 @@ void ScrapeData::SerializeWithCachedSizes(
         7, this->meta(i), target);
   }
 
+  // repeated .ScrapeData next = 8;
+  for (int i = 0; i < this->next_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        8, this->next(i), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -1303,6 +1334,14 @@ int ScrapeData::ByteSize() const {
         this->meta(i));
   }
 
+  // repeated .ScrapeData next = 8;
+  total_size += 1 * this->next_size();
+  for (int i = 0; i < this->next_size(); i++) {
+    total_size +=
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        this->next(i));
+  }
+
   if (!unknown_fields().empty()) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
@@ -1329,6 +1368,7 @@ void ScrapeData::MergeFrom(const ::google::protobuf::Message& from) {
 void ScrapeData::MergeFrom(const ScrapeData& from) {
   GOOGLE_CHECK_NE(&from, this);
   meta_.MergeFrom(from.meta_);
+  next_.MergeFrom(from.next_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_name()) {
       set_name(from.name());
@@ -1371,6 +1411,7 @@ bool ScrapeData::IsInitialized() const {
     if (!this->content().IsInitialized()) return false;
   }
   if (!::google::protobuf::internal::AllAreInitialized(this->meta())) return false;
+  if (!::google::protobuf::internal::AllAreInitialized(this->next())) return false;
   return true;
 }
 
@@ -1383,6 +1424,7 @@ void ScrapeData::Swap(ScrapeData* other) {
     std::swap(type_, other->type_);
     std::swap(content_, other->content_);
     meta_.Swap(&other->meta_);
+    next_.Swap(&other->next_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
