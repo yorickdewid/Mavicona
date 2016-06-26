@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <list>
 #include <csignal>
 #include <quidpp.h>
 
@@ -139,10 +140,6 @@ void initSlave() {
 
 	/* Cross data references */
 	adi.attach(&lfb);
-	uki.attach(&ari);
-	uki.attach(&adi);
-	fti.attach(&ari);
-	fti.attach(&adi);
 
 	/* Prepare our context and socket */
 	zmq::context_t context(1);
@@ -175,6 +172,7 @@ void initSlave() {
 			if (key->meta_size()) {
 				for (int i = 0; i < key->meta_size(); ++i)
 					traverseMeta(&key->meta(i));
+			} else {
 				uki.put(query.quid(), key->key(), key->value());
 				fti.put(query.quid(), key->value(), key->key());
 			}
@@ -238,28 +236,25 @@ void initSlave() {
 
 					std::cout << "Search for " << query.content() << std::endl;
 
-					std::list<std::string> quidList;
+					std::list<std::string> keyList;
+					uki.getMulti(query.content(), &keyList);
+					fti.getMulti(query.content(), &keyList);
 
-					// TODO catch and ignore not found
-
-					uki.getMulti(query.content(), &quidList);
-					for (const std::string& value : quidList) {
-						// TODO catch and skip not found
-
+					for (const std::string& value : keyList) {
 						/* Restore the record */
-						serialized = ari.get(value);
-						query.ParseFromArray(serialized.data(), serialized.size());
+						serialized = ari.get(value); // TODO catch and skip not found
+
+						StorageQuery *next = query.add_next();
+						next->ParseFromArray(serialized.data(), serialized.size());
 
 						/* Restore content */
-						query.set_content(adi.get(value));
+						next->set_content(adi.get(value));
 
-						std::cout << "Name: " << query.name() << std::endl;
-						std::cout << "Id: " << query.id() << std::endl;
-						std::cout << "Quid: " << query.quid() << std::endl;
-						std::cout << "Content: " << query.content() << std::endl;
+						std::cout << "Name: " << next->name() << std::endl;
+						std::cout << "Id: " << next->id() << std::endl;
+						std::cout << "Quid: " << next->quid() << std::endl;
+						std::cout << "Content: " << next->content() << std::endl;
 					}
-
-					// TODO search fti
 
 					break;
 			}

@@ -1,0 +1,35 @@
+{
+	"folders": [{
+		"path": "."
+	}],
+	"word_wrap": false,
+	"spell_check": true,
+	"show_encoding": true,
+	"show_line_endings": true,
+	"settings": {
+		"AStyleFormatter": {
+			"options_default": {
+				"indent": "tab",
+				"indent-spaces": 4,
+				"style": "google",
+				"attach-namespaces": true,
+				"attach-classes": true,
+				"attach-extern-c": true,
+				"indent-modifiers": true,
+				"indent-switches": true,
+				"indent-col1-comments": true,
+				"pad-oper": true,
+				"pad-header": true,
+				"align-pointer": "name",
+				"align-reference": "type",
+				"close-templates": true,
+			},
+			"options_c": {
+				"use_only_additional_options": false
+			},
+			"options_c++": {
+				"use_only_additional_options": false
+			}
+		}
+	}
+}

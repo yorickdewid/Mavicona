@@ -23,12 +23,14 @@ void DataIndex::put(std::string quid, std::string value, bool override) {
 		}
 	}
 
+	// TODO check if key exist
+
 	StorageType type;
 	type.magic = DATA_MAGIC;
 	type.flags = DATA_FLAG_ADI;
 
 	/* Store content in LFB */
-	if (value.size() > 240000 /*ITEM_SIZE*/) {
+	if (value.size() > 240000 /*ITEM_SIZE*/) { //TODO
 		type.flags = DATA_FLAG_LFB;
 		type.page = lfb->put(quid, value);
 
@@ -49,7 +51,7 @@ std::string DataIndex::get(std::string quid) {
 			return "";
 		}
 	}
-	
+
 	std::string data = AbstractEngine::get(quid);
 	size_t data_end = data.size() - sizeof(StorageType);
 
