@@ -43,13 +43,13 @@ class Filebase {
 	}
 
 	unsigned int applicablePage() {
-		for (auto const &v : filepages) {
+		for (auto const& v : filepages) {
 			if (v.second->isFull())
 				continue;
 
 			return v.first;
 		}
-		
+
 		return acquirePage(dbname(dir));
 	}
 

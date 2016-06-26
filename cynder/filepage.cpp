@@ -102,7 +102,7 @@ void Filepage::open() {
 		if (item.flags & INDEX_FLAG_DEL)
 			continue;
 
-		contents[item.name] = std::pair<unsigned int, unsigned int>(item.item, item.size);
+		contents[std::string(item.name, 36)] = std::pair<unsigned int, unsigned int>(item.item, item.size);
 	}
 
 	m_Elements = header.elements;
@@ -193,7 +193,7 @@ void Filepage::storeItem(std::string name, std::string data) {
 	m_FirstFree += data.size();
 
 	/* Add index to content list */
-	contents[item.name] = std::pair<unsigned int, unsigned int>(item.item, item.size);
+	contents[name] = std::pair<unsigned int, unsigned int>(item.item, item.size);
 
 	/* Increase elements */
 	m_Elements++;

@@ -38,6 +38,8 @@ void KeyIndex::getMulti(std::string key, std::list<std::string> *list) {
 		if (found)
 			continue;
 
+		//TODO we can query adi,ari here
+
 		list->push_back(quid);
 		cursor.move_next(&_key, &_record);
 	}

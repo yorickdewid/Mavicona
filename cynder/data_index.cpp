@@ -29,30 +29,31 @@ void DataIndex::put(std::string quid, std::string value, bool override) {
 
 	/* Store content in LFB */
 	if (value.size() > 240000 /*ITEM_SIZE*/) {
-		std::cout << "Store in LFB <" << value.size() << ">" << std::endl;
-
 		type.flags = DATA_FLAG_LFB;
 		type.page = lfb->put(quid, value);
-		printf("Page at %d\n", type.page); //just kidding, this is always 0
 
 		value.clear();
 		value.reserve(sizeof(StorageType));
 	}
 
-	std::cout << value.size() << std::endl;
 	value.append((const char *)&type, sizeof(StorageType));
-	std::cout << value.size() << std::endl;
 
 	AbstractEngine::put(quid, value, override);
 }
 
-std::string DataIndex::get(std::string key) {
-	std::string data = AbstractEngine::get(key);
+std::string DataIndex::get(std::string quid) {
+	if (quid.size() != quidpp::Quid::unpackedSize()) {
+		quid = quidpp::Quid::crop(quid);
+		if (quid.empty()) {
+			std::cerr << "Invalid QUID concatenation" << std::endl;
+			return "";
+		}
+	}
+	
+	std::string data = AbstractEngine::get(quid);
 	size_t data_end = data.size() - sizeof(StorageType);
 
 	StorageType type;
-
-	std::cout << data.size() << std::endl;
 	data.copy((char *)&type, sizeof(StorageType), data_end);
 
 	if (type.magic != DATA_MAGIC) {
@@ -62,11 +63,11 @@ std::string DataIndex::get(std::string key) {
 
 	/* Retrieve content from LFB */
 	if (type.flags == DATA_FLAG_LFB) {
-		std::cout << "Retrieve from LFB with page " << type.page << std::endl;
+		std::vector<uint8_t> *value = lfb->get(type.page, quid);
+		data = std::string(value->begin(), value->end());
+	} else {
+		data.resize(data_end);
 	}
-
-	data.resize(data_end);
-	std::cout << data.size() << std::endl;
 
 	return data;
 }

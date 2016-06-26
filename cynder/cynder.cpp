@@ -33,12 +33,12 @@ void signal_handler(int signum) {
 }
 
 static void catch_signals() {
-    struct sigaction action;
-    action.sa_handler = signal_handler;
-    action.sa_flags = 0;
-    sigemptyset(&action.sa_mask);
-    sigaction(SIGINT, &action, NULL);
-    sigaction(SIGTERM, &action, NULL);
+	struct sigaction action;
+	action.sa_handler = signal_handler;
+	action.sa_flags = 0;
+	sigemptyset(&action.sa_mask);
+	sigaction(SIGINT, &action, NULL);
+	sigaction(SIGTERM, &action, NULL);
 }
 
 void performQueryRequest(StorageQuery& query) {
@@ -83,7 +83,7 @@ void initMaster() {
 		/* Wait for next request from client */
 		try {
 			socket.recv(&request);
-		} catch (zmq::error_t &e) {
+		} catch (zmq::error_t& e) {
 			std::cout << "Exit gracefully" << std::endl;
 			break;
 		}
@@ -100,7 +100,7 @@ void initMaster() {
 		query.set_queryresult(StorageQuery::SUCCESS);
 
 		/* Recursively copy */
-		std::function<void (const ScrapeData::MetaEntry *, StorageQuery::MetaEntry *)> copyMeta = [&] (const ScrapeData::MetaEntry *sourcekey, StorageQuery::MetaEntry *destkey) { 
+		std::function<void (const ScrapeData::MetaEntry *, StorageQuery::MetaEntry *)> copyMeta = [&] (const ScrapeData::MetaEntry * sourcekey, StorageQuery::MetaEntry * destkey) {
 			destkey->set_key(sourcekey->key());
 
 			if (sourcekey->meta_size()) {
@@ -161,7 +161,7 @@ void initSlave() {
 		/* Wait for next request from client */
 		try {
 			socket.recv(&request);
-		} catch (zmq::error_t &e) {
+		} catch (zmq::error_t& e) {
 			std::cout << "Exit gracefully" << std::endl;
 			break;
 		}
@@ -171,11 +171,10 @@ void initSlave() {
 		query.set_queryresult(StorageQuery::SUCCESS);
 
 		/* Recursively insert meta data */
-		std::function<void (const StorageQuery::MetaEntry *)> traverseMeta = [&] (const StorageQuery::MetaEntry *key) { 
+		std::function<void (const StorageQuery::MetaEntry *)> traverseMeta = [&] (const StorageQuery::MetaEntry * key) {
 			if (key->meta_size()) {
 				for (int i = 0; i < key->meta_size(); ++i)
 					traverseMeta(&key->meta(i));
-			} else {
 				uki.put(query.quid(), key->key(), key->value());
 				fti.put(query.quid(), key->value(), key->key());
 			}
@@ -185,7 +184,7 @@ void initSlave() {
 			switch (query.queryaction()) {
 				case StorageQuery::SELECT:
 					std::cout << "Request " << query.id() << " [SELECT] " << query.quid() << " named '" << query.name() << "'" << std::endl;
-					
+
 					/* Restore the record */
 					serialized = ari.get(query.quid());
 					query.ParseFromArray(serialized.data(), serialized.size());
@@ -196,7 +195,7 @@ void initSlave() {
 					break;
 				case StorageQuery::INSERT:
 					std::cout << "Request " << query.id() << " [INSERT] " << query.quid() << " named '" << query.name() << "'" << std::endl;
-					
+
 					/* Store content */
 					adi.put(query.quid(), query.content());
 
@@ -244,7 +243,7 @@ void initSlave() {
 					// TODO catch and ignore not found
 
 					uki.getMulti(query.content(), &quidList);
-					for(const std::string& value : quidList) {
+					for (const std::string& value : quidList) {
 						// TODO catch and skip not found
 
 						/* Restore the record */
@@ -264,7 +263,7 @@ void initSlave() {
 
 					break;
 			}
-		} catch (upscaledb::error &error) {
+		} catch (upscaledb::error& error) {
 			switch (error.get_errno()) {
 				case UPS_KEY_NOT_FOUND:
 					query.set_queryresult(StorageQuery::NOTFOUND);
@@ -357,15 +356,15 @@ int main(int argc, char *argv[]) {
 
 	if (options.count("master")) {
 		if (options.count("single")) {
-			std::stringstream ss; 
+			std::stringstream ss;
 			ss << argv[0] << " -s " << options["hbs"].as<std::string>();
 
 			system(ss.str().c_str());
 		}
 
- 		initMaster();
+		initMaster();
 	} else {
- 		initSlave();
+		initSlave();
 	}
 
 	return 0;
