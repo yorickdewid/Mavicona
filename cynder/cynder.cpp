@@ -241,26 +241,24 @@ void initSlave() {
 				case StorageQuery::SEARCH:
 					std::cout << "Request " << query.id() << " [SEARCH] " << query.quid() << " named '" << query.name() << "'" << std::endl;
 
-					std::cout << "Search for " << query.content() << std::endl;
-
 					std::list<std::string> keyList;
 					uki.getMulti(query.content(), &keyList);
 					fti.getMulti(query.content(), &keyList);
 
 					for (const std::string& value : keyList) {
-						/* Restore the record */
-						serialized = ari.get(value); // TODO catch and skip not found
+						try {
+							/* Restore the record */
+							serialized = ari.get(value);
 
-						StorageQuery *next = query.add_next();
-						next->ParseFromArray(serialized.data(), serialized.size());
+							StorageQuery *next = query.add_next();
+							next->ParseFromArray(serialized.data(), serialized.size());
 
-						/* Restore content */
-						next->set_content(adi.get(value));
-
-						std::cout << "Name: " << next->name() << std::endl;
-						std::cout << "Id: " << next->id() << std::endl;
-						std::cout << "Quid: " << next->quid() << std::endl;
-						std::cout << "Content: " << next->content() << std::endl;
+							/* Restore content */
+							next->set_content(adi.get(value));
+						} catch (upscaledb::error& error) {
+							if (error.get_errno() == UPS_KEY_NOT_FOUND)
+								continue;
+						}
 					}
 
 					break;
