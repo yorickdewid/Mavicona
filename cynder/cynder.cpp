@@ -115,16 +115,23 @@ void initMaster() {
 
 		for (int i = 0; i < data.meta_size(); ++i) {
 			StorageQuery::MetaEntry *destkey = query.add_meta();
-
 			copyMeta(&data.meta(i), destkey);
 		}
 
 		performQueryRequest(query);
 
+		// TODO copy results back to scrapedata
+
 		/* Send reply back to client */
-		zmq::message_t reply(5);
-		memcpy(reply.data(), "DONE", 5);
-		socket.send(reply);
+		if (query.queryresult() == StorageQuery::SUCCESS) {
+			zmq::message_t reply(5);
+			memcpy(reply.data(), "DONE", 5);
+			socket.send(reply);
+		} else {
+			zmq::message_t reply(5);
+			memcpy(reply.data(), "FAIL", 5);
+			socket.send(reply);
+		}
 	}
 }
 
