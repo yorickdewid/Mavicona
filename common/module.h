@@ -5,8 +5,8 @@
 #include <string>
 
 // Auto generated <
-#define MAV_VERSION	"a357f61"
-#define MAV_BUILD	"2016-06-25:15:38:24"
+#define MAV_VERSION	""
+#define MAV_BUILD	""
 // >
 
 class Module {
