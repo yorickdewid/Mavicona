@@ -23,7 +23,6 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
-#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 
@@ -34,46 +33,6 @@ void protobuf_ShutdownFile_processjob_2eproto();
 
 class ProcessJob;
 
-enum ProcessJob_Action {
-  ProcessJob_Action_SOLICIT = 0,
-  ProcessJob_Action_IDLE = 1,
-  ProcessJob_Action_ACCEPT = 2
-};
-bool ProcessJob_Action_IsValid(int value);
-const ProcessJob_Action ProcessJob_Action_Action_MIN = ProcessJob_Action_SOLICIT;
-const ProcessJob_Action ProcessJob_Action_Action_MAX = ProcessJob_Action_ACCEPT;
-const int ProcessJob_Action_Action_ARRAYSIZE = ProcessJob_Action_Action_MAX + 1;
-
-const ::google::protobuf::EnumDescriptor* ProcessJob_Action_descriptor();
-inline const ::std::string& ProcessJob_Action_Name(ProcessJob_Action value) {
-  return ::google::protobuf::internal::NameOfEnum(
-    ProcessJob_Action_descriptor(), value);
-}
-inline bool ProcessJob_Action_Parse(
-    const ::std::string& name, ProcessJob_Action* value) {
-  return ::google::protobuf::internal::ParseNamedEnum<ProcessJob_Action>(
-    ProcessJob_Action_descriptor(), name, value);
-}
-enum ProcessJob_Result {
-  ProcessJob_Result_SUCCESS = 0,
-  ProcessJob_Result_FAIL = 1,
-  ProcessJob_Result_HARDFAIL = 2
-};
-bool ProcessJob_Result_IsValid(int value);
-const ProcessJob_Result ProcessJob_Result_Result_MIN = ProcessJob_Result_SUCCESS;
-const ProcessJob_Result ProcessJob_Result_Result_MAX = ProcessJob_Result_HARDFAIL;
-const int ProcessJob_Result_Result_ARRAYSIZE = ProcessJob_Result_Result_MAX + 1;
-
-const ::google::protobuf::EnumDescriptor* ProcessJob_Result_descriptor();
-inline const ::std::string& ProcessJob_Result_Name(ProcessJob_Result value) {
-  return ::google::protobuf::internal::NameOfEnum(
-    ProcessJob_Result_descriptor(), value);
-}
-inline bool ProcessJob_Result_Parse(
-    const ::std::string& name, ProcessJob_Result* value) {
-  return ::google::protobuf::internal::ParseNamedEnum<ProcessJob_Result>(
-    ProcessJob_Result_descriptor(), name, value);
-}
 // ===================================================================
 
 class ProcessJob : public ::google::protobuf::Message {
@@ -127,56 +86,6 @@ class ProcessJob : public ::google::protobuf::Message {
 
   // nested types ----------------------------------------------------
 
-  typedef ProcessJob_Action Action;
-  static const Action SOLICIT = ProcessJob_Action_SOLICIT;
-  static const Action IDLE = ProcessJob_Action_IDLE;
-  static const Action ACCEPT = ProcessJob_Action_ACCEPT;
-  static inline bool Action_IsValid(int value) {
-    return ProcessJob_Action_IsValid(value);
-  }
-  static const Action Action_MIN =
-    ProcessJob_Action_Action_MIN;
-  static const Action Action_MAX =
-    ProcessJob_Action_Action_MAX;
-  static const int Action_ARRAYSIZE =
-    ProcessJob_Action_Action_ARRAYSIZE;
-  static inline const ::google::protobuf::EnumDescriptor*
-  Action_descriptor() {
-    return ProcessJob_Action_descriptor();
-  }
-  static inline const ::std::string& Action_Name(Action value) {
-    return ProcessJob_Action_Name(value);
-  }
-  static inline bool Action_Parse(const ::std::string& name,
-      Action* value) {
-    return ProcessJob_Action_Parse(name, value);
-  }
-
-  typedef ProcessJob_Result Result;
-  static const Result SUCCESS = ProcessJob_Result_SUCCESS;
-  static const Result FAIL = ProcessJob_Result_FAIL;
-  static const Result HARDFAIL = ProcessJob_Result_HARDFAIL;
-  static inline bool Result_IsValid(int value) {
-    return ProcessJob_Result_IsValid(value);
-  }
-  static const Result Result_MIN =
-    ProcessJob_Result_Result_MIN;
-  static const Result Result_MAX =
-    ProcessJob_Result_Result_MAX;
-  static const int Result_ARRAYSIZE =
-    ProcessJob_Result_Result_ARRAYSIZE;
-  static inline const ::google::protobuf::EnumDescriptor*
-  Result_descriptor() {
-    return ProcessJob_Result_descriptor();
-  }
-  static inline const ::std::string& Result_Name(Result value) {
-    return ProcessJob_Result_Name(value);
-  }
-  static inline bool Result_Parse(const ::std::string& name,
-      Result* value) {
-    return ProcessJob_Result_Parse(name, value);
-  }
-
   // accessors -------------------------------------------------------
 
   // required string name = 1;
@@ -229,34 +138,6 @@ class ProcessJob : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 partition() const;
   inline void set_partition(::google::protobuf::int32 value);
 
-  // required .ProcessJob.Action jobaction = 6;
-  inline bool has_jobaction() const;
-  inline void clear_jobaction();
-  static const int kJobactionFieldNumber = 6;
-  inline ::ProcessJob_Action jobaction() const;
-  inline void set_jobaction(::ProcessJob_Action value);
-
-  // required .ProcessJob.Result jobresult = 7;
-  inline bool has_jobresult() const;
-  inline void clear_jobresult();
-  static const int kJobresultFieldNumber = 7;
-  inline ::ProcessJob_Result jobresult() const;
-  inline void set_jobresult(::ProcessJob_Result value);
-
-  // optional int32 runtime = 8;
-  inline bool has_runtime() const;
-  inline void clear_runtime();
-  static const int kRuntimeFieldNumber = 8;
-  inline ::google::protobuf::int32 runtime() const;
-  inline void set_runtime(::google::protobuf::int32 value);
-
-  // optional int32 returncode = 9 [default = 0];
-  inline bool has_returncode() const;
-  inline void clear_returncode();
-  static const int kReturncodeFieldNumber = 9;
-  inline ::google::protobuf::int32 returncode() const;
-  inline void set_returncode(::google::protobuf::int32 value);
-
   // @@protoc_insertion_point(class_scope:ProcessJob)
  private:
   inline void set_has_name();
@@ -269,14 +150,6 @@ class ProcessJob : public ::google::protobuf::Message {
   inline void clear_has_content();
   inline void set_has_partition();
   inline void clear_has_partition();
-  inline void set_has_jobaction();
-  inline void clear_has_jobaction();
-  inline void set_has_jobresult();
-  inline void clear_has_jobresult();
-  inline void set_has_runtime();
-  inline void clear_has_runtime();
-  inline void set_has_returncode();
-  inline void clear_has_returncode();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -287,10 +160,6 @@ class ProcessJob : public ::google::protobuf::Message {
   ::google::protobuf::int32 id_;
   ::google::protobuf::int32 partition_;
   ::std::string* content_;
-  int jobaction_;
-  int jobresult_;
-  ::google::protobuf::int32 runtime_;
-  ::google::protobuf::int32 returncode_;
   friend void  protobuf_AddDesc_processjob_2eproto();
   friend void protobuf_AssignDesc_processjob_2eproto();
   friend void protobuf_ShutdownFile_processjob_2eproto();
@@ -581,104 +450,6 @@ inline void ProcessJob::set_partition(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:ProcessJob.partition)
 }
 
-// required .ProcessJob.Action jobaction = 6;
-inline bool ProcessJob::has_jobaction() const {
-  return (_has_bits_[0] & 0x00000020u) != 0;
-}
-inline void ProcessJob::set_has_jobaction() {
-  _has_bits_[0] |= 0x00000020u;
-}
-inline void ProcessJob::clear_has_jobaction() {
-  _has_bits_[0] &= ~0x00000020u;
-}
-inline void ProcessJob::clear_jobaction() {
-  jobaction_ = 0;
-  clear_has_jobaction();
-}
-inline ::ProcessJob_Action ProcessJob::jobaction() const {
-  // @@protoc_insertion_point(field_get:ProcessJob.jobaction)
-  return static_cast< ::ProcessJob_Action >(jobaction_);
-}
-inline void ProcessJob::set_jobaction(::ProcessJob_Action value) {
-  assert(::ProcessJob_Action_IsValid(value));
-  set_has_jobaction();
-  jobaction_ = value;
-  // @@protoc_insertion_point(field_set:ProcessJob.jobaction)
-}
-
-// required .ProcessJob.Result jobresult = 7;
-inline bool ProcessJob::has_jobresult() const {
-  return (_has_bits_[0] & 0x00000040u) != 0;
-}
-inline void ProcessJob::set_has_jobresult() {
-  _has_bits_[0] |= 0x00000040u;
-}
-inline void ProcessJob::clear_has_jobresult() {
-  _has_bits_[0] &= ~0x00000040u;
-}
-inline void ProcessJob::clear_jobresult() {
-  jobresult_ = 0;
-  clear_has_jobresult();
-}
-inline ::ProcessJob_Result ProcessJob::jobresult() const {
-  // @@protoc_insertion_point(field_get:ProcessJob.jobresult)
-  return static_cast< ::ProcessJob_Result >(jobresult_);
-}
-inline void ProcessJob::set_jobresult(::ProcessJob_Result value) {
-  assert(::ProcessJob_Result_IsValid(value));
-  set_has_jobresult();
-  jobresult_ = value;
-  // @@protoc_insertion_point(field_set:ProcessJob.jobresult)
-}
-
-// optional int32 runtime = 8;
-inline bool ProcessJob::has_runtime() const {
-  return (_has_bits_[0] & 0x00000080u) != 0;
-}
-inline void ProcessJob::set_has_runtime() {
-  _has_bits_[0] |= 0x00000080u;
-}
-inline void ProcessJob::clear_has_runtime() {
-  _has_bits_[0] &= ~0x00000080u;
-}
-inline void ProcessJob::clear_runtime() {
-  runtime_ = 0;
-  clear_has_runtime();
-}
-inline ::google::protobuf::int32 ProcessJob::runtime() const {
-  // @@protoc_insertion_point(field_get:ProcessJob.runtime)
-  return runtime_;
-}
-inline void ProcessJob::set_runtime(::google::protobuf::int32 value) {
-  set_has_runtime();
-  runtime_ = value;
-  // @@protoc_insertion_point(field_set:ProcessJob.runtime)
-}
-
-// optional int32 returncode = 9 [default = 0];
-inline bool ProcessJob::has_returncode() const {
-  return (_has_bits_[0] & 0x00000100u) != 0;
-}
-inline void ProcessJob::set_has_returncode() {
-  _has_bits_[0] |= 0x00000100u;
-}
-inline void ProcessJob::clear_has_returncode() {
-  _has_bits_[0] &= ~0x00000100u;
-}
-inline void ProcessJob::clear_returncode() {
-  returncode_ = 0;
-  clear_has_returncode();
-}
-inline ::google::protobuf::int32 ProcessJob::returncode() const {
-  // @@protoc_insertion_point(field_get:ProcessJob.returncode)
-  return returncode_;
-}
-inline void ProcessJob::set_returncode(::google::protobuf::int32 value) {
-  set_has_returncode();
-  returncode_ = value;
-  // @@protoc_insertion_point(field_set:ProcessJob.returncode)
-}
-
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -686,16 +457,6 @@ inline void ProcessJob::set_returncode(::google::protobuf::int32 value) {
 namespace google {
 namespace protobuf {
 
-template <> struct is_proto_enum< ::ProcessJob_Action> : ::google::protobuf::internal::true_type {};
-template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::ProcessJob_Action>() {
-  return ::ProcessJob_Action_descriptor();
-}
-template <> struct is_proto_enum< ::ProcessJob_Result> : ::google::protobuf::internal::true_type {};
-template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::ProcessJob_Result>() {
-  return ::ProcessJob_Result_descriptor();
-}
 
 }  // namespace google
 }  // namespace protobuf

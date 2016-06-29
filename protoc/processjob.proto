@@ -5,22 +5,4 @@ message ProcessJob {
 
   optional bytes content = 4;
   required int32 partition = 5;
-
-  enum Action {
-    SOLICIT = 0;
-    IDLE = 1;
-    ACCEPT = 2;
-  }
-
-  required Action jobaction = 6;
-
-  enum Result {
-    SUCCESS = 0;
-    FAIL = 1;
-    HARDFAIL = 2;
-  }
-
-  required Result jobresult = 7;
-  optional int32 runtime = 8;  
-  optional int32 returncode = 9 [default = 0];
 }

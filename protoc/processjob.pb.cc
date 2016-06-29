@@ -21,8 +21,6 @@ namespace {
 const ::google::protobuf::Descriptor* ProcessJob_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   ProcessJob_reflection_ = NULL;
-const ::google::protobuf::EnumDescriptor* ProcessJob_Action_descriptor_ = NULL;
-const ::google::protobuf::EnumDescriptor* ProcessJob_Result_descriptor_ = NULL;
 
 }  // namespace
 
@@ -34,16 +32,12 @@ void protobuf_AssignDesc_processjob_2eproto() {
       "processjob.proto");
   GOOGLE_CHECK(file != NULL);
   ProcessJob_descriptor_ = file->message_type(0);
-  static const int ProcessJob_offsets_[9] = {
+  static const int ProcessJob_offsets_[5] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, quid_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, content_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, partition_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, jobaction_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, jobresult_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, runtime_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, returncode_),
   };
   ProcessJob_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -56,8 +50,6 @@ void protobuf_AssignDesc_processjob_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(ProcessJob));
-  ProcessJob_Action_descriptor_ = ProcessJob_descriptor_->enum_type(0);
-  ProcessJob_Result_descriptor_ = ProcessJob_descriptor_->enum_type(1);
 }
 
 namespace {
@@ -88,14 +80,9 @@ void protobuf_AddDesc_processjob_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\020processjob.proto\"\252\002\n\nProcessJob\022\014\n\004nam"
-    "e\030\001 \002(\t\022\n\n\002id\030\002 \002(\005\022\014\n\004quid\030\003 \001(\t\022\017\n\007con"
-    "tent\030\004 \001(\014\022\021\n\tpartition\030\005 \002(\005\022%\n\tjobacti"
-    "on\030\006 \002(\0162\022.ProcessJob.Action\022%\n\tjobresul"
-    "t\030\007 \002(\0162\022.ProcessJob.Result\022\017\n\007runtime\030\010"
-    " \001(\005\022\025\n\nreturncode\030\t \001(\005:\0010\"+\n\006Action\022\013\n"
-    "\007SOLICIT\020\000\022\010\n\004IDLE\020\001\022\n\n\006ACCEPT\020\002\"-\n\006Resu"
-    "lt\022\013\n\007SUCCESS\020\000\022\010\n\004FAIL\020\001\022\014\n\010HARDFAIL\020\002", 319);
+    "\n\020processjob.proto\"X\n\nProcessJob\022\014\n\004name"
+    "\030\001 \002(\t\022\n\n\002id\030\002 \002(\005\022\014\n\004quid\030\003 \001(\t\022\017\n\007cont"
+    "ent\030\004 \001(\014\022\021\n\tpartition\030\005 \002(\005", 108);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "processjob.proto", &protobuf_RegisterTypes);
   ProcessJob::default_instance_ = new ProcessJob();
@@ -112,62 +99,12 @@ struct StaticDescriptorInitializer_processjob_2eproto {
 
 // ===================================================================
 
-const ::google::protobuf::EnumDescriptor* ProcessJob_Action_descriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return ProcessJob_Action_descriptor_;
-}
-bool ProcessJob_Action_IsValid(int value) {
-  switch(value) {
-    case 0:
-    case 1:
-    case 2:
-      return true;
-    default:
-      return false;
-  }
-}
-
-#ifndef _MSC_VER
-const ProcessJob_Action ProcessJob::SOLICIT;
-const ProcessJob_Action ProcessJob::IDLE;
-const ProcessJob_Action ProcessJob::ACCEPT;
-const ProcessJob_Action ProcessJob::Action_MIN;
-const ProcessJob_Action ProcessJob::Action_MAX;
-const int ProcessJob::Action_ARRAYSIZE;
-#endif  // _MSC_VER
-const ::google::protobuf::EnumDescriptor* ProcessJob_Result_descriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return ProcessJob_Result_descriptor_;
-}
-bool ProcessJob_Result_IsValid(int value) {
-  switch(value) {
-    case 0:
-    case 1:
-    case 2:
-      return true;
-    default:
-      return false;
-  }
-}
-
-#ifndef _MSC_VER
-const ProcessJob_Result ProcessJob::SUCCESS;
-const ProcessJob_Result ProcessJob::FAIL;
-const ProcessJob_Result ProcessJob::HARDFAIL;
-const ProcessJob_Result ProcessJob::Result_MIN;
-const ProcessJob_Result ProcessJob::Result_MAX;
-const int ProcessJob::Result_ARRAYSIZE;
-#endif  // _MSC_VER
 #ifndef _MSC_VER
 const int ProcessJob::kNameFieldNumber;
 const int ProcessJob::kIdFieldNumber;
 const int ProcessJob::kQuidFieldNumber;
 const int ProcessJob::kContentFieldNumber;
 const int ProcessJob::kPartitionFieldNumber;
-const int ProcessJob::kJobactionFieldNumber;
-const int ProcessJob::kJobresultFieldNumber;
-const int ProcessJob::kRuntimeFieldNumber;
-const int ProcessJob::kReturncodeFieldNumber;
 #endif  // !_MSC_VER
 
 ProcessJob::ProcessJob()
@@ -194,10 +131,6 @@ void ProcessJob::SharedCtor() {
   quid_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   content_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   partition_ = 0;
-  jobaction_ = 0;
-  jobresult_ = 0;
-  runtime_ = 0;
-  returncode_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -252,9 +185,8 @@ void ProcessJob::Clear() {
     ::memset(&first, 0, n);                                \
   } while (0)
 
-  if (_has_bits_[0 / 32] & 255) {
+  if (_has_bits_[0 / 32] & 31) {
     ZR_(id_, partition_);
-    ZR_(jobaction_, runtime_);
     if (has_name()) {
       if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         name_->clear();
@@ -271,7 +203,6 @@ void ProcessJob::Clear() {
       }
     }
   }
-  returncode_ = 0;
 
 #undef OFFSET_OF_FIELD_
 #undef ZR_
@@ -362,76 +293,6 @@ bool ProcessJob::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(48)) goto parse_jobaction;
-        break;
-      }
-
-      // required .ProcessJob.Action jobaction = 6;
-      case 6: {
-        if (tag == 48) {
-         parse_jobaction:
-          int value;
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
-                 input, &value)));
-          if (::ProcessJob_Action_IsValid(value)) {
-            set_jobaction(static_cast< ::ProcessJob_Action >(value));
-          } else {
-            mutable_unknown_fields()->AddVarint(6, value);
-          }
-        } else {
-          goto handle_unusual;
-        }
-        if (input->ExpectTag(56)) goto parse_jobresult;
-        break;
-      }
-
-      // required .ProcessJob.Result jobresult = 7;
-      case 7: {
-        if (tag == 56) {
-         parse_jobresult:
-          int value;
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
-                 input, &value)));
-          if (::ProcessJob_Result_IsValid(value)) {
-            set_jobresult(static_cast< ::ProcessJob_Result >(value));
-          } else {
-            mutable_unknown_fields()->AddVarint(7, value);
-          }
-        } else {
-          goto handle_unusual;
-        }
-        if (input->ExpectTag(64)) goto parse_runtime;
-        break;
-      }
-
-      // optional int32 runtime = 8;
-      case 8: {
-        if (tag == 64) {
-         parse_runtime:
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
-                 input, &runtime_)));
-          set_has_runtime();
-        } else {
-          goto handle_unusual;
-        }
-        if (input->ExpectTag(72)) goto parse_returncode;
-        break;
-      }
-
-      // optional int32 returncode = 9 [default = 0];
-      case 9: {
-        if (tag == 72) {
-         parse_returncode:
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
-                 input, &returncode_)));
-          set_has_returncode();
-        } else {
-          goto handle_unusual;
-        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -497,28 +358,6 @@ void ProcessJob::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(5, this->partition(), output);
   }
 
-  // required .ProcessJob.Action jobaction = 6;
-  if (has_jobaction()) {
-    ::google::protobuf::internal::WireFormatLite::WriteEnum(
-      6, this->jobaction(), output);
-  }
-
-  // required .ProcessJob.Result jobresult = 7;
-  if (has_jobresult()) {
-    ::google::protobuf::internal::WireFormatLite::WriteEnum(
-      7, this->jobresult(), output);
-  }
-
-  // optional int32 runtime = 8;
-  if (has_runtime()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(8, this->runtime(), output);
-  }
-
-  // optional int32 returncode = 9 [default = 0];
-  if (has_returncode()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(9, this->returncode(), output);
-  }
-
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -568,28 +407,6 @@ void ProcessJob::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(5, this->partition(), target);
   }
 
-  // required .ProcessJob.Action jobaction = 6;
-  if (has_jobaction()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
-      6, this->jobaction(), target);
-  }
-
-  // required .ProcessJob.Result jobresult = 7;
-  if (has_jobresult()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
-      7, this->jobresult(), target);
-  }
-
-  // optional int32 runtime = 8;
-  if (has_runtime()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(8, this->runtime(), target);
-  }
-
-  // optional int32 returncode = 9 [default = 0];
-  if (has_returncode()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(9, this->returncode(), target);
-  }
-
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -637,34 +454,6 @@ int ProcessJob::ByteSize() const {
           this->partition());
     }
 
-    // required .ProcessJob.Action jobaction = 6;
-    if (has_jobaction()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::EnumSize(this->jobaction());
-    }
-
-    // required .ProcessJob.Result jobresult = 7;
-    if (has_jobresult()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::EnumSize(this->jobresult());
-    }
-
-    // optional int32 runtime = 8;
-    if (has_runtime()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
-          this->runtime());
-    }
-
-  }
-  if (_has_bits_[8 / 32] & (0xffu << (8 % 32))) {
-    // optional int32 returncode = 9 [default = 0];
-    if (has_returncode()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
-          this->returncode());
-    }
-
   }
   if (!unknown_fields().empty()) {
     total_size +=
@@ -707,20 +496,6 @@ void ProcessJob::MergeFrom(const ProcessJob& from) {
     if (from.has_partition()) {
       set_partition(from.partition());
     }
-    if (from.has_jobaction()) {
-      set_jobaction(from.jobaction());
-    }
-    if (from.has_jobresult()) {
-      set_jobresult(from.jobresult());
-    }
-    if (from.has_runtime()) {
-      set_runtime(from.runtime());
-    }
-  }
-  if (from._has_bits_[8 / 32] & (0xffu << (8 % 32))) {
-    if (from.has_returncode()) {
-      set_returncode(from.returncode());
-    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -738,7 +513,7 @@ void ProcessJob::CopyFrom(const ProcessJob& from) {
 }
 
 bool ProcessJob::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000073) != 0x00000073) return false;
+  if ((_has_bits_[0] & 0x00000013) != 0x00000013) return false;
 
   return true;
 }
@@ -750,10 +525,6 @@ void ProcessJob::Swap(ProcessJob* other) {
     std::swap(quid_, other->quid_);
     std::swap(content_, other->content_);
     std::swap(partition_, other->partition_);
-    std::swap(jobaction_, other->jobaction_);
-    std::swap(jobresult_, other->jobresult_);
-    std::swap(runtime_, other->runtime_);
-    std::swap(returncode_, other->returncode_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
