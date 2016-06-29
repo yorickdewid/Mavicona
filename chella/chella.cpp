@@ -14,6 +14,7 @@
 #include "controlclient.h"
 
 static std::string masterNode;
+static std::string masterIPC;
 static bool interrupted = false;
 
 void signal_handler(int signum) {
@@ -29,22 +30,75 @@ static void catch_signals() {
 	sigaction(SIGTERM, &action, NULL);
 }
 
+#define within(num) (int) ((float)num * random () / (RAND_MAX + 1.0))
+#include <unistd.h>
+
 void initMaster() {
 	std::cout << "Starting master" << std::endl;
 
 	NodeManager master;
 	master.start();
 
-	int c = getchar();
+	{
+		zmq::message_t message(10);
+		zmq::context_t context(1);
+
+		/* Socket to send messages on */
+		zmq::socket_t sender(context, ZMQ_PUSH);
+		sender.bind("tcp://*:5555");
+
+		/* Initialize random number generator */
+		srandom((unsigned)time(NULL));
+
+		/* Send 100 tasks */
+		int total_msec = 0;     //  Total expected cost in msecs
+		for (int task_nbr = 0; task_nbr < 100; task_nbr++) {
+
+			//  Random workload from 1 to 100msecs
+			int workload = within(100) + 1;
+			total_msec += workload;
+
+			message.rebuild(10);
+			memset(message.data(), '\0', 10);
+			sprintf((char *)message.data(), "%d", workload);
+			sender.send(message);
+
+			std::cout << ">" << workload << std::endl;
+			sleep(1);
+		}
+	}
 }
 
 void initSlave() {
 	std::cout << "Running worker" << std::endl;
 
 	ControlClient control;
-	control.setMaster(masterNode);
+	control.setMaster(masterIPC);
 	control.setTimeout(10 /* 1min */);
 	control.start();
+
+	mkdir("cache", 0700);
+
+	zmq::context_t context(1);
+	zmq::socket_t receiver(context, ZMQ_PULL);
+	receiver.connect(("tcp://" + masterNode).c_str());
+
+	/* Process tasks forever */
+	while (1) {
+		zmq::message_t message;
+
+		receiver.recv(&message);
+		std::string smessage(static_cast<char *>(message.data()), message.size());
+
+		std::cout << ">" << smessage << std::endl;
+
+		/* Do the work */
+		sleep(1);
+
+		/* Send results to sink */
+		message.rebuild();
+		// sender.send(message);
+	}
 
 	int c = getchar();
 }
@@ -91,13 +145,14 @@ int main(int argc, char *argv[]) {
 			std::cerr << "Must be at least 1 chella master listed" << std::endl;
 			return 1;
 		}
+		masterNode = config.get<std::string>("chella-master", "");
 
 		if (!config.exist("chella-ipc")) {
 			std::cerr << "Must be at least 1 chella IPC listed" << std::endl;
 			return 1;
 		}
 
-		masterNode = config.get<std::string>("chella-ipc", "");
+		masterIPC = config.get<std::string>("chella-ipc", "");
 	} else {
 		std::cerr << "HBS config is required for this service" << std::endl;
 		return 1;
