@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <csignal>
+#include <unistd.h>
 
 #include "common/util.h"
 #include "common/module.h"
@@ -12,6 +13,8 @@
 #include "protoc/processjob.pb.h"
 #include "nodemanager.h"
 #include "controlclient.h"
+#include "sha1.h"
+#include "exec.h"
 
 static std::string masterNode;
 static std::string masterIPC;
@@ -30,43 +33,51 @@ static void catch_signals() {
 	sigaction(SIGTERM, &action, NULL);
 }
 
-#define within(num) (int) ((float)num * random () / (RAND_MAX + 1.0))
-#include <unistd.h>
-
 void initMaster() {
 	std::cout << "Starting master" << std::endl;
 
 	NodeManager master;
 	master.start();
 
-	{
-		zmq::message_t message(10);
-		zmq::context_t context(1);
+	zmq::message_t message;
+	zmq::context_t context(1);
 
-		/* Socket to send messages on */
-		zmq::socket_t sender(context, ZMQ_PUSH);
-		sender.bind("tcp://*:5555");
+	/* Socket to send messages on */
+	zmq::socket_t sender(context, ZMQ_PUSH);
+	sender.bind("tcp://*:5555");
 
-		/* Initialize random number generator */
-		srandom((unsigned)time(NULL));
+	/* Send 10 tasks */
+	for (int task_nbr = 0; task_nbr < 5; task_nbr++) {
+		// {
+		std::ifstream t("datenr");
+		std::string str;
 
-		/* Send 100 tasks */
-		int total_msec = 0;     //  Total expected cost in msecs
-		for (int task_nbr = 0; task_nbr < 100; task_nbr++) {
+		t.seekg(0, std::ios::end);
+		str.reserve(t.tellg());
+		t.seekg(0, std::ios::beg);
 
-			//  Random workload from 1 to 100msecs
-			int workload = within(100) + 1;
-			total_msec += workload;
+		str.assign((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+		// }
 
-			message.rebuild(10);
-			memset(message.data(), '\0', 10);
-			sprintf((char *)message.data(), "%d", workload);
-			sender.send(message);
+		ProcessJob job;
+		job.set_name("woei");
+		job.set_id(task_nbr);
+		job.set_quid("834275");
+		job.set_content(str);
+		job.set_partition(0);
 
-			std::cout << ">" << workload << std::endl;
-			sleep(1);
-		}
+		std::string serialized;
+		job.SerializeToString(&serialized);
+
+		/* Send reply back to client */
+		message.rebuild(serialized.size());
+		memcpy(reinterpret_cast<void *>(message.data()), serialized.c_str(), serialized.size());
+		sender.send(message);
+
+		sleep(1);
 	}
+
+	getchar();
 }
 
 void initSlave() {
@@ -77,6 +88,12 @@ void initSlave() {
 	control.setTimeout(10 /* 1min */);
 	control.start();
 
+	/* Continue when accepted */
+	while (!control.isAccepted()) {
+		sleep(5);
+	}
+
+	/* Create cache directory */
 	mkdir("cache", 0700);
 
 	zmq::context_t context(1);
@@ -85,22 +102,31 @@ void initSlave() {
 
 	/* Process tasks forever */
 	while (1) {
+		SHA1 sha1;
 		zmq::message_t message;
 
 		receiver.recv(&message);
-		std::string smessage(static_cast<char *>(message.data()), message.size());
 
-		std::cout << ">" << smessage << std::endl;
+		ProcessJob job;
+		job.ParseFromArray(message.data(), message.size());
 
-		/* Do the work */
+		std::cout << "Job " << job.id() << std::endl;
+
+		sha1.update(job.content());
+
+		/* Store in cache */
+		std::string exeName = sha1.final();
+		std::ofstream file(("cache/" + exeName).c_str());
+		file.write(job.content().c_str(), job.content().size());
+		file.close();
+
+		/* Run procedure */
+		Execute::run(exeName);
+
 		sleep(1);
-
-		/* Send results to sink */
-		message.rebuild();
-		// sender.send(message);
 	}
 
-	int c = getchar();
+	getchar();
 }
 
 int main(int argc, char *argv[]) {
