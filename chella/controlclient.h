@@ -13,6 +13,7 @@ class ControlClient {
 	std::thread _mainRunner;
 	bool _run = false;
 	bool _active = false;
+	bool _accepted = false;
 	unsigned int _counter = 0;
 	unsigned int _timeout;
 	std::string _masterNode;
@@ -49,6 +50,10 @@ class ControlClient {
 
 	inline void resume() {
 		_active = true;
+	}
+
+	inline bool isAccepted() {
+		return _accepted;
 	}
 
 	inline void stop() {

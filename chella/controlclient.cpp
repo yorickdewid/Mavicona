@@ -31,13 +31,14 @@ void ControlClient::runTask() {
 	if (msg.action() == ControlMessage::CONFIRMED) {
 		std::cout << "Solicit accepted, assigned worker-" << msg.id() << std::endl;
 		this->_counter = msg.id();
+		this->_accepted = true;
 	}
 
 	while (_active) {
 		std::this_thread::sleep_for(std::chrono::seconds(this->_timeout));
 
 		msg.set_id(this->_counter);
-		msg.set_quid("7234679823aeb");
+		msg.set_quid("7234679823aeb");// TODO
 		msg.set_action(ControlMessage::IDLE);
 
 		std::string serialized;
