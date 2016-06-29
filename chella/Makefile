@@ -1,7 +1,7 @@
-OBJS = chella.o ../protoc/processjob.pb.o
+OBJS = chella.o nodemanager.o controlclient.o ../protoc/processjob.pb.o ../protoc/controlmessage.pb.o
 CC = g++
 DEBUG = -g -O0
-LIBS = -lprotobuf -lzmq
+LIBS = -lprotobuf -lzmq -pthread
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. -I../quid -I../third_party/upscaledb/include
 LFLAGS = -Wall $(DEBUG) $(LIBS)
 
