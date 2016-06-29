@@ -1,0 +1,18 @@
+message ControlMessage {
+  required int32 id = 1;
+  required string quid = 2;
+
+  enum Action {
+    SOLICIT = 0;
+    IDLE = 1;
+    ACCEPTED = 2;
+    STARTUP = 3;
+    RUNNING = 4;
+    TEARDOWN = 5;
+    CONFIRMED = 99;
+  }
+
+  required Action action = 3;
+  optional int32 process = 4;
+  repeated string workers = 5;
+}
