@@ -28,7 +28,7 @@ std::multimap<std::string, std::string> datastack;
 
 void dispatch_commit() {
 	unsigned int complete = 0;
-	for (auto const &ent : datastack) {
+	for (auto const& ent : datastack) {
 		quidpp::Quid quid;
 
 		/* Create meta data object */
@@ -76,7 +76,7 @@ static PyObject *mav_push(PyObject *self, PyObject *args) {
 	if (!PyArg_ParseTuple(args, "st#", &name, &data, &data_len))
 		return NULL;
 
-	std::string bytea(reinterpret_cast<char const*>(data), data_len);
+	std::string bytea(reinterpret_cast<char const *>(data), data_len);
 	datastack.insert(std::pair<std::string, std::string>(name, bytea));
 
 	return Py_True;
@@ -167,7 +167,7 @@ void dsorunner(const char *libname, int argc, char *argv[]) {
 	}
 
 	for (unsigned int i = 0; i < return_stack->size; ++i) {
-		std::string bytea(reinterpret_cast<char const*>(return_stack->data[i].data), return_stack->data[i].size);
+		std::string bytea(reinterpret_cast<char const *>(return_stack->data[i].data), return_stack->data[i].size);
 		datastack.insert(std::pair<std::string, std::string>(return_stack->data[i].name, bytea));
 
 		free(return_stack->data[i].name);

@@ -39,7 +39,7 @@ int init_string(struct string *s) {
 
 size_t write_buffer(void *ptr, size_t size, size_t nmemb, struct string *s) {
 	size_t new_len = s->len + (size * nmemb);
-	s->ptr = (char *)realloc(s->ptr, new_len+1);
+	s->ptr = (char *)realloc(s->ptr, new_len + 1);
 	if (s->ptr == NULL) {
 		fprintf(stderr, "realloc() failed\n");
 		return 0;
@@ -62,7 +62,7 @@ int imap_call(string *buffer, const char *username, const char *password, const 
 	strcat(uri, "/INBOX/;UID=1");
 
 	curl = curl_easy_init();
-	if(curl) {
+	if (curl) {
 		/* Set username and password */
 		curl_easy_setopt(curl, CURLOPT_USERNAME, username);
 		curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
@@ -86,7 +86,7 @@ int imap_call(string *buffer, const char *username, const char *password, const 
 		res = curl_easy_perform(curl);
 
 		/* Check for errors */
-		if(res != CURLE_OK)
+		if (res != CURLE_OK)
 			fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 
 		/* Always cleanup */
@@ -97,20 +97,20 @@ int imap_call(string *buffer, const char *username, const char *password, const 
 }
 
 static int handler(void *cnf, const char *section, const char *name, const char *value) {
-    configuration *pconfig = (configuration *)cnf;
+	configuration *pconfig = (configuration *)cnf;
 
-    #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
-    if (MATCH("general", "host")) {
-        pconfig->host = strdup(value);
-    } else if (MATCH("user", "username")) {
-        pconfig->username = strdup(value);
-    } else if (MATCH("user", "password")) {
-        pconfig->password = strdup(value);
-    } else {
-        return 0;  /* unknown section/name, error */
-    }
+#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+	if (MATCH("general", "host")) {
+		pconfig->host = strdup(value);
+	} else if (MATCH("user", "username")) {
+		pconfig->username = strdup(value);
+	} else if (MATCH("user", "password")) {
+		pconfig->password = strdup(value);
+	} else {
+		return 0;  /* unknown section/name, error */
+	}
 
-    return 1;
+	return 1;
 }
 
 int mav_main(int argc, char *argv[]) {
@@ -125,10 +125,10 @@ int mav_main(int argc, char *argv[]) {
 	if (!init_string(&s))
 		return 1;
 
-    if (ini_parse(argv[1], handler, &config) < 0) {
-        fprintf(stderr, "Cannot load '%s'\n", argv[1]);
-        return 1;
-    }
+	if (ini_parse(argv[1], handler, &config) < 0) {
+		fprintf(stderr, "Cannot load '%s'\n", argv[1]);
+		return 1;
+	}
 
 	if (!imap_call(&s, config.username, config.password, config.host))
 		return 1;
