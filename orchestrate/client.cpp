@@ -333,7 +333,7 @@ bool CClient::RecvRequest(CHeader &Header) {
 		Header.Set(buffer);
 
 	/* Delete buffer */
-	delete buffer;
+	delete[] buffer;
 
 	return (res > 0) ? true : false;
 }
