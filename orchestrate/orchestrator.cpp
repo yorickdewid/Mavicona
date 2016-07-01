@@ -10,18 +10,19 @@
 /* Global variables */
 static CServer *Server = nullptr;
 static unsigned short port = 5500;
+static bool interrupted = false;
 
-void Quit(int dummy) {
-	std::cout << "Terminating..." << std::endl;
+void signal_handler(int signum) {
+	interrupted = true;
+}
 
-	/* Stop server */
-	Server->Stop();
-
-	/* Delete server */
-	delete Server;
-
-	/* Exit */
-	exit(0);
+static void catch_signals() {
+	struct sigaction action;
+	action.sa_handler = signal_handler;
+	action.sa_flags = 0;
+	sigemptyset(&action.sa_mask);
+	sigaction(SIGINT, &action, NULL);
+	sigaction(SIGTERM, &action, NULL);
 }
 
 int main(int argc, char *argv[]) {
@@ -37,7 +38,6 @@ int main(int argc, char *argv[]) {
 	("h,help", "Print this help");
 
 	try {
-		// options.parse_positional("positional");
 		options.parse(argc, argv);
 	} catch (const cxxopts::OptionException& e) {
 		std::cerr << "error parsing options: " << e.what() << std::endl;
@@ -76,15 +76,21 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* Register signal */
-	signal(SIGINT, Quit);
+	catch_signals();
 
 	std::cout << "Waiting for connections" << std::endl;
 
 	/* Keep waiting for connections */
-	while (Server->Accept());
+	while (Server->Accept() && !interrupted);
 
 	/* Quit */
-	Quit(0);
+	std::cout << "Terminating..." << std::endl;
+
+	/* Stop server */
+	Server->Stop();
+
+	/* Delete server */
+	delete Server;
 
 	return 0;
 }
