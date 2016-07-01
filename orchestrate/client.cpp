@@ -317,23 +317,15 @@ out:
 }
 
 bool CClient::RecvRequest(CHeader &Header) {
-	char   *buffer;
+	char   buffer[HDR_MAXLEN];
 	ssize_t res;
 
-	/* Allocate buffer */
-	buffer = new char[HDR_MAXLEN];
-	if (!buffer)
-		return false;
-
 	/* Read data */
-	res = Read(buffer, HDR_MAXLEN);
+	res = Read(&buffer, HDR_MAXLEN);
 
 	/* Set header string */
 	if (res > 0)
-		Header.Set(buffer);
-
-	/* Delete buffer */
-	delete[] buffer;
+		Header.Set(std::string(buffer));
 
 	return (res > 0) ? true : false;
 }

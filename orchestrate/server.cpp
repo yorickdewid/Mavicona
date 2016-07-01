@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <errno.h>
 #include <unistd.h>
 
@@ -25,7 +26,7 @@ CServer::~CServer() {
 }
 
 void *CServer::Handler(void *client) {
-	CClient *Client = static_cast<CClient *>(client);
+	std::auto_ptr<CClient> Client(static_cast<CClient *>(client));
 	bool     res;
 
 	/* Thread loop */
@@ -73,9 +74,6 @@ void *CServer::Handler(void *client) {
 
 	/* Disconnect client */
 	Client->Disconnect();
-
-	/* Delete client */
-	delete Client;
 
 	return NULL;
 }
