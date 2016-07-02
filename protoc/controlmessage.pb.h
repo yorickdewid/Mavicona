@@ -38,7 +38,7 @@ enum ControlMessage_Action {
   ControlMessage_Action_SOLICIT = 0,
   ControlMessage_Action_IDLE = 1,
   ControlMessage_Action_ACCEPTED = 2,
-  ControlMessage_Action_STARTUP = 3,
+  ControlMessage_Action_SETUP = 3,
   ControlMessage_Action_RUNNING = 4,
   ControlMessage_Action_TEARDOWN = 5,
   ControlMessage_Action_CONFIRMED = 99
@@ -115,7 +115,7 @@ class ControlMessage : public ::google::protobuf::Message {
   static const Action SOLICIT = ControlMessage_Action_SOLICIT;
   static const Action IDLE = ControlMessage_Action_IDLE;
   static const Action ACCEPTED = ControlMessage_Action_ACCEPTED;
-  static const Action STARTUP = ControlMessage_Action_STARTUP;
+  static const Action SETUP = ControlMessage_Action_SETUP;
   static const Action RUNNING = ControlMessage_Action_RUNNING;
   static const Action TEARDOWN = ControlMessage_Action_TEARDOWN;
   static const Action CONFIRMED = ControlMessage_Action_CONFIRMED;

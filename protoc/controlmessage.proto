@@ -6,7 +6,7 @@ message ControlMessage {
     SOLICIT = 0;
     IDLE = 1;
     ACCEPTED = 2;
-    STARTUP = 3;
+    SETUP = 3;
     RUNNING = 4;
     TEARDOWN = 5;
     CONFIRMED = 99;
