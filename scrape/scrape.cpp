@@ -2,7 +2,9 @@
 #include <string>
 #include <iostream>
 #include <map>
+#ifdef LIBPYTHON
 #include <Python.h>
+#endif
 #include <dlfcn.h>
 #include <quidpp.h>
 
@@ -67,6 +69,8 @@ void dispatch_commit() {
 	}
 }
 
+#ifdef LIBPYTHON
+
 /* Push data on the stack */
 static PyObject *mav_push(PyObject *self, PyObject *args) {
 	const char *name;
@@ -120,6 +124,8 @@ void pyrunner(const char *name) {
 
 	Py_Finalize();
 }
+
+#endif
 
 void dsorunner(const char *libname, int argc, char *argv[]) {
 	void *handle = dlopen(libname, RTLD_LAZY);
@@ -250,15 +256,21 @@ int main(int argc, char *argv[]) {
 	srand(time(NULL));
 	itemCount = rand() % 10000;
 
-	//std::string name = std::string(argv[1]);
-	if (name.substr(name.find_last_of(".") + 1) == "py") {
-
-		/* When python file defined */
-		pyrunner(name.c_str());
-	} else if (name.substr(name.find_last_of(".") + 1) == "so" || name.substr(name.find_last_of(".") + 1) == "dll") {
-
+	if (name.substr(name.find_last_of(".") + 1) == "so" || name.substr(name.find_last_of(".") + 1) == "dll") {
 		/* When dSO defined */
 		dsorunner(name.c_str(), argc, argv);
+	}
+
+#ifdef LIBPYTHON
+	else if (name.substr(name.find_last_of(".") + 1) == "py") {
+
+		/* When python file given */
+		pyrunner(name.c_str());
+	}
+#endif
+
+	else {
+		std::cerr << "Invalid file" << std::endl;
 	}
 
 	return 0;
