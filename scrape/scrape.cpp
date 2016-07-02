@@ -144,10 +144,11 @@ void dsorunner(const char *libname, int argc, char *argv[]) {
 	typedef int (*main_t)(int, char **);
 	typedef struct s_datastack *(*commit_t)();
 
-	init_t exec_init = (init_t)dlsym(handle, "mav_init");
+	init_t exec_init = (init_t)dlsym(handle, "mav_init"); //TODO err handling
 	main_t exec_main = (main_t)dlsym(handle, "mav_main");
 	commit_t exec_commit = (commit_t)dlsym(handle, "mav_commit");
-	const char *dlsym_error = dlerror();
+
+	const char *dlsym_error = dlerror(); //TODO no way, this is UGLY!
 	if (dlsym_error) {
 		logger << FileLogger::error() << "Cannot load symbol 'mav_main': " << dlsym_error << FileLogger::endl();
 		dlclose(handle);
@@ -160,7 +161,6 @@ void dsorunner(const char *libname, int argc, char *argv[]) {
 	struct s_datastack *return_stack = (struct s_datastack *) exec_commit();
 
 	assert(return_stack->magic == MAGIC_CHECK);
-
 	if (return_code != 0) {
 		logger << FileLogger::warning() << "Module exit with non-zero return " << return_code << FileLogger::endl();
 		return;

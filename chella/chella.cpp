@@ -49,7 +49,7 @@ void initMaster() {
 	/* Send 10 tasks */
 	for (int task_nbr = 0; task_nbr < 5; task_nbr++) {
 		// {
-		std::ifstream t("datenr");
+		std::ifstream t("libdso_example.so");
 		std::string str;
 
 		t.seekg(0, std::ios::end);
@@ -90,7 +90,7 @@ void initSlave() {
 
 	/* Continue when accepted */
 	while (!control.isAccepted()) {
-		sleep(5);
+		sleep(1);
 	}
 
 	/* Create cache directory */
@@ -116,9 +116,11 @@ void initSlave() {
 
 		/* Store in cache */
 		std::string exeName = sha1.final();
-		std::ofstream file(("cache/" + exeName).c_str());
-		file.write(job.content().c_str(), job.content().size());
-		file.close();
+		if (!file_exist("cache/" + exeName)) {
+			std::ofstream file(("cache/" + exeName).c_str());
+			file.write(job.content().c_str(), job.content().size());
+			file.close();
+		}
 
 		/* Run procedure */
 		Execute::run(exeName);

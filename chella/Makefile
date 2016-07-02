@@ -12,6 +12,9 @@ dso:
 	$(CC) -c -I. -fPIC dso_example.cpp -o dso_example.o
 	$(CC) dso_example.o -shared -o libdso_example.so
 
+jobexec:
+	$(CC) -Wall -std=c++11 -g -O0 jobexec.cpp -ldl -o jobexec
+
 clean:
 	$(RM) -rf *.o *.so
-	$(RM) -rf chella
+	$(RM) -rf chella jobexec
