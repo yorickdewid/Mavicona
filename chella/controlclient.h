@@ -52,6 +52,10 @@ class ControlClient {
 		_active = true;
 	}
 
+	inline unsigned int workerIdent() {
+		return _counter;
+	}
+
 	inline bool isAccepted() {
 		return _accepted;
 	}

@@ -62,7 +62,7 @@ void initMaster() {
 		ProcessJob job;
 		job.set_name("woei");
 		job.set_id(task_nbr);
-		job.set_quid("834275");
+		job.set_quid("429c00e5-290e-406f-8e54-65591ccace21");
 		job.set_content(str);
 		job.set_partition(0);
 
@@ -112,9 +112,8 @@ void initSlave() {
 
 		std::cout << "Job " << job.id() << std::endl;
 
-		sha1.update(job.content());
-
 		/* Store in cache */
+		sha1.update(job.content());
 		std::string exeName = sha1.final();
 		if (!file_exist("cache/" + exeName)) {
 			std::ofstream file(("cache/" + exeName).c_str());
@@ -122,8 +121,16 @@ void initSlave() {
 			file.close();
 		}
 
+		/* Gather parameters for job */
+		Execute::Parameter parameters;
+		parameters.jobid = job.id();
+		parameters.jobname = job.name();
+		parameters.jobquid = job.quid();
+		parameters.jobpartition = job.partition();
+		parameters.workerid = control.workerIdent();
+
 		/* Run procedure */
-		Execute::run(exeName);
+		Execute::run(exeName, parameters);
 
 		sleep(1);
 	}

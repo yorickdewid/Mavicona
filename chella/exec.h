@@ -7,7 +7,15 @@ class Execute {
   public:
 	Execute() {}
 
-	static void run(const std::string& name);
+	struct Parameter {
+		unsigned int jobid;
+		unsigned int jobpartition;
+		std::string jobname;
+		std::string jobquid;
+		unsigned int workerid;
+	};
+
+	static void run(const std::string& name, Parameter& param);
 };
 
 #endif // EXEC_H

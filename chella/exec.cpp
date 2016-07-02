@@ -7,8 +7,12 @@
 typedef int (*regclass_t)();
 typedef Ace::Job *(*retrieve_t)();
 
-void Execute::run(const std::string& name) {
+void Execute::run(const std::string& name, Parameter& param) {
+	Ace::Environment env;
+
 	std::cout << "Running module " << std::endl;
+
+	env.SetWorkerIdent(param.workerid);
 
 	if (!file_exist("cache/" + name)) {
 		std::cerr << "Cannot access library" << std::endl;
@@ -26,6 +30,7 @@ void Execute::run(const std::string& name) {
 
 	assert(exec_register() == ACE_MAGIC);
 	Ace::Job *jobObject = (Ace::Job *)exec_retrieve();
+	jobObject->Inject(env, param.jobid, param.jobname, param.jobquid, param.jobpartition);
 	jobObject->Setup();
 	jobObject->Run();
 	jobObject->Teardown();
