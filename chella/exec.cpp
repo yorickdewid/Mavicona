@@ -8,7 +8,7 @@ typedef int (*regclass_t)();
 typedef Ace::Job *(*retrieve_t)();
 
 void Execute::run(const std::string& name) {
-	std::cout << "Running module " << name << std::endl;
+	std::cout << "Running module " << std::endl;
 
 	if (!file_exist("cache/" + name)) {
 		std::cerr << "Cannot access library" << std::endl;
