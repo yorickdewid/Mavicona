@@ -26,7 +26,7 @@ CServer::~CServer() {
 }
 
 void *CServer::Handler(void *client) {
-	std::auto_ptr<CClient> Client(static_cast<CClient *>(client));
+	std::unique_ptr<CClient> Client(static_cast<CClient *>(client));
 	bool     res;
 
 	/* Thread loop */
@@ -112,7 +112,7 @@ bool CServer::Start() {
 
 void CServer::Stop(bool cleanup) {
 	/* Destroy threads */
-	for (unsigned int i = 0; i < (cleanup ? threads.size()/2 : threads.size()); ++i) {
+	for (unsigned int i = 0; i < (cleanup ? threads.size() / 2 : threads.size()); ++i) {
 		CThread *Thread = threads[i];
 
 		/* Destroy thread */
