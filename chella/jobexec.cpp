@@ -1,26 +1,25 @@
 #include <dlfcn.h>
-#include <cassert>
-#include <iostream>
-#include <stdio.h>
+#include <assert.h>
 #include <stdio.h>
 #include <sys/stat.h>
+
+#include <iostream>
 #include "ace/interface.h"
 
 typedef int (*regclass_t)();
 typedef Ace::Job *(*retrieve_t)();
 
-void load(const char *file) {
-
+extern "C" int load(const char *file) {
 	struct stat buffer;
 	if (stat(file, &buffer) != 0) {
 		fprintf(stderr, "%s not found\n", file);
-		return;
+		return 1;
 	}
 
-	void *handle = dlopen("cache/a7b281e46da3f2e9bdcab91ed46ab72c4ba8c275", RTLD_LAZY);
+	void *handle = dlopen(file, RTLD_LAZY);
 	if (!handle) {
-		std::cerr << "Cannot open library: " << dlerror() << std::endl;
-		return;
+		fprintf(stderr, "Cannot open library: %s\n ", dlerror());
+		return 1;
 	}
 
 	regclass_t exec_register = (int (*)()) dlsym(handle, "register_class");
@@ -34,7 +33,7 @@ void load(const char *file) {
 
 	dlclose(handle);
 
-	return;
+	return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -43,6 +42,5 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	load(argv[1]);
-	return 0;
+	return load(argv[1]);
 }
