@@ -13,6 +13,7 @@ message ControlMessage {
   }
 
   required Action action = 3;
-  optional int32 process = 4;
-  repeated string workers = 5;
+  optional int32 progress = 4;
+  optional int32 cluster_jobs = 5;
+  repeated string cluster_workers = 6;
 }

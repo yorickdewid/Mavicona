@@ -168,28 +168,35 @@ class ControlMessage : public ::google::protobuf::Message {
   inline ::ControlMessage_Action action() const;
   inline void set_action(::ControlMessage_Action value);
 
-  // optional int32 process = 4;
-  inline bool has_process() const;
-  inline void clear_process();
-  static const int kProcessFieldNumber = 4;
-  inline ::google::protobuf::int32 process() const;
-  inline void set_process(::google::protobuf::int32 value);
+  // optional int32 progress = 4;
+  inline bool has_progress() const;
+  inline void clear_progress();
+  static const int kProgressFieldNumber = 4;
+  inline ::google::protobuf::int32 progress() const;
+  inline void set_progress(::google::protobuf::int32 value);
 
-  // repeated string workers = 5;
-  inline int workers_size() const;
-  inline void clear_workers();
-  static const int kWorkersFieldNumber = 5;
-  inline const ::std::string& workers(int index) const;
-  inline ::std::string* mutable_workers(int index);
-  inline void set_workers(int index, const ::std::string& value);
-  inline void set_workers(int index, const char* value);
-  inline void set_workers(int index, const char* value, size_t size);
-  inline ::std::string* add_workers();
-  inline void add_workers(const ::std::string& value);
-  inline void add_workers(const char* value);
-  inline void add_workers(const char* value, size_t size);
-  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& workers() const;
-  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_workers();
+  // optional int32 cluster_jobs = 5;
+  inline bool has_cluster_jobs() const;
+  inline void clear_cluster_jobs();
+  static const int kClusterJobsFieldNumber = 5;
+  inline ::google::protobuf::int32 cluster_jobs() const;
+  inline void set_cluster_jobs(::google::protobuf::int32 value);
+
+  // repeated string cluster_workers = 6;
+  inline int cluster_workers_size() const;
+  inline void clear_cluster_workers();
+  static const int kClusterWorkersFieldNumber = 6;
+  inline const ::std::string& cluster_workers(int index) const;
+  inline ::std::string* mutable_cluster_workers(int index);
+  inline void set_cluster_workers(int index, const ::std::string& value);
+  inline void set_cluster_workers(int index, const char* value);
+  inline void set_cluster_workers(int index, const char* value, size_t size);
+  inline ::std::string* add_cluster_workers();
+  inline void add_cluster_workers(const ::std::string& value);
+  inline void add_cluster_workers(const char* value);
+  inline void add_cluster_workers(const char* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& cluster_workers() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_cluster_workers();
 
   // @@protoc_insertion_point(class_scope:ControlMessage)
  private:
@@ -199,8 +206,10 @@ class ControlMessage : public ::google::protobuf::Message {
   inline void clear_has_quid();
   inline void set_has_action();
   inline void clear_has_action();
-  inline void set_has_process();
-  inline void clear_has_process();
+  inline void set_has_progress();
+  inline void clear_has_progress();
+  inline void set_has_cluster_jobs();
+  inline void clear_has_cluster_jobs();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -209,8 +218,9 @@ class ControlMessage : public ::google::protobuf::Message {
   ::std::string* quid_;
   ::google::protobuf::int32 id_;
   int action_;
-  ::google::protobuf::RepeatedPtrField< ::std::string> workers_;
-  ::google::protobuf::int32 process_;
+  ::google::protobuf::int32 progress_;
+  ::google::protobuf::int32 cluster_jobs_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> cluster_workers_;
   friend void  protobuf_AddDesc_controlmessage_2eproto();
   friend void protobuf_AssignDesc_controlmessage_2eproto();
   friend void protobuf_ShutdownFile_controlmessage_2eproto();
@@ -350,82 +360,106 @@ inline void ControlMessage::set_action(::ControlMessage_Action value) {
   // @@protoc_insertion_point(field_set:ControlMessage.action)
 }
 
-// optional int32 process = 4;
-inline bool ControlMessage::has_process() const {
+// optional int32 progress = 4;
+inline bool ControlMessage::has_progress() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
-inline void ControlMessage::set_has_process() {
+inline void ControlMessage::set_has_progress() {
   _has_bits_[0] |= 0x00000008u;
 }
-inline void ControlMessage::clear_has_process() {
+inline void ControlMessage::clear_has_progress() {
   _has_bits_[0] &= ~0x00000008u;
 }
-inline void ControlMessage::clear_process() {
-  process_ = 0;
-  clear_has_process();
+inline void ControlMessage::clear_progress() {
+  progress_ = 0;
+  clear_has_progress();
 }
-inline ::google::protobuf::int32 ControlMessage::process() const {
-  // @@protoc_insertion_point(field_get:ControlMessage.process)
-  return process_;
+inline ::google::protobuf::int32 ControlMessage::progress() const {
+  // @@protoc_insertion_point(field_get:ControlMessage.progress)
+  return progress_;
 }
-inline void ControlMessage::set_process(::google::protobuf::int32 value) {
-  set_has_process();
-  process_ = value;
-  // @@protoc_insertion_point(field_set:ControlMessage.process)
+inline void ControlMessage::set_progress(::google::protobuf::int32 value) {
+  set_has_progress();
+  progress_ = value;
+  // @@protoc_insertion_point(field_set:ControlMessage.progress)
 }
 
-// repeated string workers = 5;
-inline int ControlMessage::workers_size() const {
-  return workers_.size();
+// optional int32 cluster_jobs = 5;
+inline bool ControlMessage::has_cluster_jobs() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
 }
-inline void ControlMessage::clear_workers() {
-  workers_.Clear();
+inline void ControlMessage::set_has_cluster_jobs() {
+  _has_bits_[0] |= 0x00000010u;
 }
-inline const ::std::string& ControlMessage::workers(int index) const {
-  // @@protoc_insertion_point(field_get:ControlMessage.workers)
-  return workers_.Get(index);
+inline void ControlMessage::clear_has_cluster_jobs() {
+  _has_bits_[0] &= ~0x00000010u;
 }
-inline ::std::string* ControlMessage::mutable_workers(int index) {
-  // @@protoc_insertion_point(field_mutable:ControlMessage.workers)
-  return workers_.Mutable(index);
+inline void ControlMessage::clear_cluster_jobs() {
+  cluster_jobs_ = 0;
+  clear_has_cluster_jobs();
 }
-inline void ControlMessage::set_workers(int index, const ::std::string& value) {
-  // @@protoc_insertion_point(field_set:ControlMessage.workers)
-  workers_.Mutable(index)->assign(value);
+inline ::google::protobuf::int32 ControlMessage::cluster_jobs() const {
+  // @@protoc_insertion_point(field_get:ControlMessage.cluster_jobs)
+  return cluster_jobs_;
 }
-inline void ControlMessage::set_workers(int index, const char* value) {
-  workers_.Mutable(index)->assign(value);
-  // @@protoc_insertion_point(field_set_char:ControlMessage.workers)
+inline void ControlMessage::set_cluster_jobs(::google::protobuf::int32 value) {
+  set_has_cluster_jobs();
+  cluster_jobs_ = value;
+  // @@protoc_insertion_point(field_set:ControlMessage.cluster_jobs)
 }
-inline void ControlMessage::set_workers(int index, const char* value, size_t size) {
-  workers_.Mutable(index)->assign(
+
+// repeated string cluster_workers = 6;
+inline int ControlMessage::cluster_workers_size() const {
+  return cluster_workers_.size();
+}
+inline void ControlMessage::clear_cluster_workers() {
+  cluster_workers_.Clear();
+}
+inline const ::std::string& ControlMessage::cluster_workers(int index) const {
+  // @@protoc_insertion_point(field_get:ControlMessage.cluster_workers)
+  return cluster_workers_.Get(index);
+}
+inline ::std::string* ControlMessage::mutable_cluster_workers(int index) {
+  // @@protoc_insertion_point(field_mutable:ControlMessage.cluster_workers)
+  return cluster_workers_.Mutable(index);
+}
+inline void ControlMessage::set_cluster_workers(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:ControlMessage.cluster_workers)
+  cluster_workers_.Mutable(index)->assign(value);
+}
+inline void ControlMessage::set_cluster_workers(int index, const char* value) {
+  cluster_workers_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:ControlMessage.cluster_workers)
+}
+inline void ControlMessage::set_cluster_workers(int index, const char* value, size_t size) {
+  cluster_workers_.Mutable(index)->assign(
     reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:ControlMessage.workers)
+  // @@protoc_insertion_point(field_set_pointer:ControlMessage.cluster_workers)
 }
-inline ::std::string* ControlMessage::add_workers() {
-  return workers_.Add();
+inline ::std::string* ControlMessage::add_cluster_workers() {
+  return cluster_workers_.Add();
 }
-inline void ControlMessage::add_workers(const ::std::string& value) {
-  workers_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add:ControlMessage.workers)
+inline void ControlMessage::add_cluster_workers(const ::std::string& value) {
+  cluster_workers_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:ControlMessage.cluster_workers)
 }
-inline void ControlMessage::add_workers(const char* value) {
-  workers_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add_char:ControlMessage.workers)
+inline void ControlMessage::add_cluster_workers(const char* value) {
+  cluster_workers_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:ControlMessage.cluster_workers)
 }
-inline void ControlMessage::add_workers(const char* value, size_t size) {
-  workers_.Add()->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_add_pointer:ControlMessage.workers)
+inline void ControlMessage::add_cluster_workers(const char* value, size_t size) {
+  cluster_workers_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:ControlMessage.cluster_workers)
 }
 inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
-ControlMessage::workers() const {
-  // @@protoc_insertion_point(field_list:ControlMessage.workers)
-  return workers_;
+ControlMessage::cluster_workers() const {
+  // @@protoc_insertion_point(field_list:ControlMessage.cluster_workers)
+  return cluster_workers_;
 }
 inline ::google::protobuf::RepeatedPtrField< ::std::string>*
-ControlMessage::mutable_workers() {
-  // @@protoc_insertion_point(field_mutable_list:ControlMessage.workers)
-  return &workers_;
+ControlMessage::mutable_cluster_workers() {
+  // @@protoc_insertion_point(field_mutable_list:ControlMessage.cluster_workers)
+  return &cluster_workers_;
 }
 
 
