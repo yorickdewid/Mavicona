@@ -13,6 +13,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	std::cout << "Running module " << std::endl;
 
 	env.SetWorkerIdent(param.workerid);
+	env.SetModule(name);
 
 	if (!file_exist("cache/" + name)) {
 		std::cerr << "Cannot access library" << std::endl;

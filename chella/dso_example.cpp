@@ -28,6 +28,8 @@ class Example : public Job {
 		std::cout << "Hostname: " << Env()->Hostname() << std::endl;
 		std::cout << "Login: " << Env()->Login() << std::endl;
 		std::cout << "Worker: " << Env()->WorkerIdent() << std::endl;
+		std::cout << "Worker: " << Env()->Worker() << std::endl;
+		std::cout << "Module: " << Env()->Module() << std::endl;
 	}
 
 	/* The actual execution of the job */

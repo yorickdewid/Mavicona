@@ -1,0 +1,795 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"Process",
+				"processjob"
+			],
+			[
+				"file",
+				"filepages"
+			],
+			[
+				"is",
+				"isFull"
+			],
+			[
+				"M",
+				"MAV_BUILD"
+			],
+			[
+				"master",
+				"masterNode"
+			],
+			[
+				"jon",
+				"json_decode"
+			],
+			[
+				"json_",
+				"json_encode"
+			],
+			[
+				"isn",
+				"is_null"
+			],
+			[
+				"fun",
+				"function"
+			],
+			[
+				"rou",
+				"route"
+			],
+			[
+				"rout",
+				"routes"
+			],
+			[
+				"con",
+				"controller"
+			],
+			[
+				"print",
+				"print_r"
+			],
+			[
+				"file_",
+				"file_get_contents"
+			],
+			[
+				"clas",
+				"classes"
+			],
+			[
+				"end",
+				"endl"
+			],
+			[
+				"m_",
+				"m_Elements"
+			],
+			[
+				"M_",
+				"m_Grow"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "chella/chella.cpp",
+			"settings":
+			{
+				"buffer_size": 4329,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "chella/exec.cpp",
+			"settings":
+			{
+				"buffer_size": 1097,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "chella/jobexec.cpp",
+			"settings":
+			{
+				"buffer_size": 872,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "chella/Makefile",
+			"settings":
+			{
+				"buffer_size": 573,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scrape/scrape.cpp",
+			"settings":
+			{
+				"buffer_size": 6712,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "chella/ace/interface.h",
+			"settings":
+			{
+				"buffer_size": 1048,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "chella/ace/job.h",
+			"settings":
+			{
+				"buffer_size": 224,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "chella/dso_example.cpp",
+			"settings":
+			{
+				"buffer_size": 238,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "chella/nodemanager.h",
+			"settings":
+			{
+				"buffer_size": 947,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "chella/nodemanager.cpp",
+			"settings":
+			{
+				"buffer_size": 1254,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "chella/controlclient.h",
+			"settings":
+			{
+				"buffer_size": 1120,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "chella/controlclient.cpp",
+			"settings":
+			{
+				"buffer_size": 1478,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 404.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/eve/Projects/mavicona",
+		"/home/eve/Projects/mavicona/chella",
+		"/home/eve/Projects/mavicona/common",
+		"/home/eve/Projects/mavicona/extract",
+		"/home/eve/Projects/mavicona/scrape"
+	],
+	"file_history":
+	[
+		"/home/eve/Projects/mavicona/chella/Makefile",
+		"/home/eve/Projects/mavicona/chella/ace/io.h",
+		"/home/eve/Projects/mavicona/chella/ace/cache.h",
+		"/home/eve/Projects/mavicona/chella/ace/environment.h",
+		"/home/eve/Projects/mavicona/chella/datenr.c",
+		"/home/eve/Projects/mavicona/chella/exec.h",
+		"/home/eve/Projects/mavicona/chella/ace/IO.h",
+		"/home/eve/Projects/mavicona/chella/exec.cpp",
+		"/home/eve/Projects/mavicona/scrape/mavdso.h",
+		"/home/eve/Projects/mavicona/scrape/scrape.cpp",
+		"/home/eve/Projects/mavicona/scrape/ini.h",
+		"/home/eve/Projects/mavicona/scrape/ini.c",
+		"/home/eve/Projects/mavicona/scrape/imap_ext.c",
+		"/home/eve/Projects/mavicona/scrape/example_ext.c",
+		"/home/eve/Projects/mavicona/chella/ace/interface.h",
+		"/home/eve/Projects/mavicona/chella/framework/interface.h",
+		"/home/eve/Projects/mavicona/chella/sha1.h",
+		"/home/eve/Projects/mavicona/chella/sha1.cpp",
+		"/home/eve/Projects/mavicona/protoc/processjob.proto",
+		"/home/eve/Projects/mavicona/protoc/controlmessage.proto",
+		"/home/eve/Projects/mavicona/protoc/ControlMessage.proto",
+		"/home/eve/Projects/mavicona/common/module.h",
+		"/home/eve/Projects/mavicona/pitch/provision.h",
+		"/home/eve/Projects/mavicona/cynder/engine.cpp",
+		"/home/eve/Projects/mavicona/cynder/cynder.cpp",
+		"/home/eve/Projects/mavicona/cynder/data_index.cpp",
+		"/home/eve/Projects/mavicona/cynder/Makefile",
+		"/home/eve/Projects/mavicona/cynder/engine.h",
+		"/home/eve/Projects/mavicona/cynder/text_index.cpp",
+		"/home/eve/Projects/mavicona/cynder/text_index.h",
+		"/home/eve/Projects/mavicona/cynder/key_index.cpp",
+		"/home/eve/Projects/mavicona/cynder/key_index.h",
+		"/home/eve/Projects/mavicona/cynder/additional_index.h",
+		"/home/eve/Projects/mavicona/protoc/storagequery.proto",
+		"/home/eve/Projects/mavicona/protoc/scrapedata.proto",
+		"/home/eve/Projects/mavicona/cynder/filepage.cpp",
+		"/home/eve/Projects/mavicona/cynder/filepage.h",
+		"/home/eve/Projects/mavicona/cynder/filebase.h",
+		"/home/eve/.config/sublime-text-3/Packages/SublimeAStyleFormatter/SublimeAStyleFormatter.sublime-settings",
+		"/home/eve/Projects/mavicona/cynder/data_index.h",
+		"/home/eve/Projects/mavicona/mav.sublime-project",
+		"/home/eve/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings",
+		"/home/eve/.config/sublime-text-3/Packages/User/SublimeAStyleFormatter.sublime-settings",
+		"/home/eve/Projects/mavicona/utils/genquid.c",
+		"/home/eve/Projects/mavicona/utils/Makefile",
+		"/home/eve/Projects/mavicona/utils/.gitignore",
+		"/home/eve/Projects/mavicona/connect/connector.cpp",
+		"/home/eve/Projects/mavicona/hbs.conf",
+		"/home/eve/Projects/mavicona/pitch/pitcher.cpp",
+		"/home/eve/Projects/mavicona/chella/.gitignore",
+		"/home/eve/Projects/mavicona/orchestrate/orchestrator.cpp",
+		"/home/eve/Projects/mavicona/chella/chella.cpp",
+		"/home/eve/Projects/mavicona/extract/extractor.cpp",
+		"/home/eve/Projects/mavicona/upver.sh",
+		"/home/eve/Projects/mavicona/Makefile",
+		"/home/eve/Projects/mavicona/common/Makefile",
+		"/home/eve/Projects/mavicona/protoc/task.proto",
+		"/home/eve/Projects/mavicona/cynder/catalogus.h",
+		"/home/eve/Projects/mavicona/cynder/record_index.h",
+		"/home/eve/Projects/mavicona/py_auxiliary.py",
+		"/home/eve/Projects/mavicona/common/util.h",
+		"/home/eve/Projects/mavicona/quid/quidpp.h",
+		"/home/eve/Projects/mavicona/ecoli/backend/public/index.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/app/Application.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/controller/ApiController.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/app/Database.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/app/Config.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/app/Log.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/app/Router.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/.gitignore",
+		"/home/eve/Projects/mavicona/ecoli/backend/.conf",
+		"/home/eve/Projects/mavicona/ecoli/backend/.conf.example",
+		"/home/eve/Projects/mavicona/ecoli/backend/Ecoli.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/app/SingletonContract.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/app/Response.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/controller/MainController.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/app/Request.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/index.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/Application.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/ApiController.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/Request.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/Response.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/Router.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/Config.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/Log.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/SingletonContract.php",
+		"/home/eve/Projects/mavicona/ecoli/backend/app.php",
+		"/home/eve/Projects/mavicona/cynder/node.h",
+		"/home/eve/Projects/mavicona/INSTALL",
+		"/home/eve/Projects/mavicona/INSTALL.md"
+	],
+	"find":
+	{
+		"height": 34.0
+	},
+	"find_in_files":
+	{
+		"height": 90.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"stdlin",
+			"NodeManager",
+			">\n",
+			"\"\n",
+			"Ecoli",
+			"(\n",
+			"ITEM_SIZE",
+			"*/\n",
+			"Last"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "chella/chella.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4329,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2719,
+								2719
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1511.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "chella/exec.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1097,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								715,
+								715
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "chella/jobexec.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 872,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								103,
+								103
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "chella/Makefile",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 573,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								573,
+								573
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Makefile/Makefile.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "scrape/scrape.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6712,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3476,
+								3476
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1785.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "chella/ace/interface.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1048,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								949,
+								949
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "chella/ace/job.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 224,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								99,
+								99
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "chella/dso_example.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 238,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								193,
+								193
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "chella/nodemanager.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 947,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								316,
+								316
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "chella/nodemanager.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1254,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								507,
+								507
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "chella/controlclient.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1120,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								954,
+								954
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "chella/controlclient.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1478,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								674,
+								674
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.astyle_error_message":
+	{
+		"height": 0.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.unsaved_changes":
+	{
+		"height": 100.0
+	},
+	"pinned_build_system": "",
+	"project": "mav.sublime-project",
+	"replace":
+	{
+		"height": 42.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 302.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

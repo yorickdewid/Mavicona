@@ -15,6 +15,7 @@ class ControlClient {
 	bool _active = false;
 	bool _accepted = false;
 	unsigned int _counter = 0;
+	unsigned int _cluster_jobs = 0;
 	unsigned int _timeout;
 	std::string _masterNode;
 	FileLogger *_logger = nullptr;

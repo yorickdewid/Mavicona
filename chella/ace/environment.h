@@ -2,6 +2,7 @@
 #define ENVIRONMENT_H
 
 #include <ctime>
+#include <string>
 #include <sstream>
 #include <limits.h>
 #include <unistd.h>
@@ -12,6 +13,7 @@ namespace Ace {
 
 class Environment {
 	unsigned int workerid;
+	std::string module;
 
   public:
 	Environment() {}
@@ -56,8 +58,22 @@ class Environment {
 		workerid = id;
 	}
 
-	unsigned int WorkerIdent() {
+	inline unsigned int WorkerIdent() {
 		return workerid;
+	}
+
+	std::string Worker() {
+		std::ostringstream ss;
+		ss << "worker-" << workerid;
+		return ss.str();
+	}
+
+	void SetModule(const std::string& name) {
+		module = name;
+	}
+
+	inline std::string Module() {
+		return module;
 	}
 
 };

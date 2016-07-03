@@ -85,7 +85,7 @@ void initSlave() {
 
 	ControlClient control;
 	control.setMaster(masterIPC);
-	control.setTimeout(10 /* 1min */);
+	control.setTimeout(5 /* 5sec */);
 	control.start();
 
 	/* Continue when accepted */
@@ -109,8 +109,6 @@ void initSlave() {
 
 		ProcessJob job;
 		job.ParseFromArray(message.data(), message.size());
-
-		std::cout << "Job " << job.id() << std::endl;
 
 		/* Store in cache */
 		sha1.update(job.content());

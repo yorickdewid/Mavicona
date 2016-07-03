@@ -38,7 +38,7 @@ void ControlClient::runTask() {
 		std::this_thread::sleep_for(std::chrono::seconds(this->_timeout));
 
 		msg.set_id(this->_counter);
-		msg.set_quid("7234679823aeb");// TODO
+		msg.set_quid("5a04a669-dfd7-4c6b-a86a-d230af26c868");// TODO
 		msg.set_action(ControlMessage::IDLE);
 
 		std::string serialized;
@@ -51,5 +51,9 @@ void ControlClient::runTask() {
 		/* Get the reply */
 		zmq::message_t reply;
 		socket.recv(&reply);
+
+		msg.ParseFromArray(reply.data(), reply.size());
+		this->_cluster_jobs = msg.cluster_jobs();
+		std::cout << this->_cluster_jobs << std::endl; ...
 	}
 }
