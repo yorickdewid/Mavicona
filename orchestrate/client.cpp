@@ -143,7 +143,7 @@ bool CClient::SendRedirect(const std::string& location) {
 	return true;
 }
 
-bool CClient::SendHeader(CHeader &Header) {
+bool CClient::SendHeader(CHeader& Header) {
 	std::string  hdr;
 	int len, res;
 
@@ -170,14 +170,25 @@ bool CClient::ParseUri(std::string filepath) {
 		nlohmann::json object;
 
 		object["active"] = true;
+		object["rev"] = 100;
+		object["server"] = std::string(APP_NAME) + "/" + std::string(APP_VERSION);
 		object["operation"] = "default";
 		object["type"] = "jsonrpc";
 		object["success"] = true;
 		object["message"] = nullptr;
-		object["parameters"] = {"calls", {
-			{"status", "Server status"},
-			{"solicit", "Register instance"}
-		}};
+		object["quid"] = "5f9dc3e1-513f-44f3-af8e-8ab5ecada188";
+		object["parameters"] = {"procedure", {
+				{"jobcount", "Number of active chella jobs"},
+				{"queue", "Items in queue"},
+				{"nodes", "List active cluster nodes"},
+				{"status", "Server status"},
+				{"info", "Cluster information"},
+				{"solicit", "Register instance"},
+				{"quid", "Request new quid"},
+				{"log", "Service logs"},
+				{"service", "Service control"},
+			}
+		};
 		std::string s = object.dump(4);
 
 		buffer = s.c_str();
@@ -218,12 +229,12 @@ bool CClient::ParseUri(std::string filepath) {
 			while ((index = dir.find("::")) != std::string::npos)
 				dir.replace(index, 2, "/");
 
-  			dir.substr(0, dir.find_last_of('#'));
+			dir.substr(0, dir.find_last_of('#'));
 
 			SendFile(dir);
 			return true;
 		}
-		
+
 		SendFile("index.html");
 
 		return true;
@@ -231,7 +242,7 @@ bool CClient::ParseUri(std::string filepath) {
 
 	if (!filepath.compare("/favicon.ico") || !filepath.compare("/sitemap.xml")) {
 		HandleError(REPLY_NOENT);
-		
+
 		return true;
 	}
 
@@ -316,7 +327,7 @@ out:
 	return res;
 }
 
-bool CClient::RecvRequest(CHeader &Header) {
+bool CClient::RecvRequest(CHeader& Header) {
 	char   buffer[HDR_MAXLEN];
 	ssize_t res;
 

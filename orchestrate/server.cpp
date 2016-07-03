@@ -27,7 +27,7 @@ CServer::~CServer() {
 
 void *CServer::Handler(void *client) {
 	std::unique_ptr<CClient> Client(static_cast<CClient *>(client));
-	bool     res;
+	bool res;
 
 	/* Thread loop */
 	while (1) {
@@ -103,7 +103,7 @@ bool CServer::Start() {
 	}
 
 	if (chdir("wwwroot")) {
-		(*logger) << FileLogger::error() << "Cannot change directory" << FileLogger::endl();
+		(*logger) << FileLogger::error() << "Cannot change directory to wwwroot/" << FileLogger::endl();
 		return false;
 	}
 
