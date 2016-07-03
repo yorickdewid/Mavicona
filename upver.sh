@@ -3,7 +3,7 @@
 # Inject version into module header
 
 FILE=common/module.h
-DATE=`date +%Y-%m-%d:%H:%M:%S`
+DATE=`date +%Y-%m-%d %H:%M:%S`
 
 echo -n "New version: "
 read nversion

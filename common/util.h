@@ -5,8 +5,8 @@
 #include <sys/stat.h>
 
 inline bool file_exist(const std::string& name) {
-	struct stat buffer;   
-	return (stat(name.c_str(), &buffer) == 0); 
+	struct stat buffer;
+	return (stat(name.c_str(), &buffer) == 0);
 }
 
 inline std::string normalize(std::string& str) {

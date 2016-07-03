@@ -11,10 +11,12 @@ all: $(OBJS)
 dso:
 	$(CC) -c -I. -fPIC dso_example.cpp -o dso_example.o
 	$(CC) dso_example.o -shared -o libdso_example.so
+	$(CC) -c -I. -fPIC dso_counter.cpp -o dso_counter.o
+	$(CC) dso_counter.o -shared -o libdso_counter.so
 
-jobexec:
-	$(CC) -Wall -std=c++11 -g -O0 jobexec.cpp -ldl -o jobexec
+jobify:
+	$(CC) -Wall -std=c++11 -I../third_party/upscaledb/include -g -O0 jobify.cpp -ldl -o jobify
 
 clean:
 	$(RM) -rf *.o *.so
-	$(RM) -rf chella jobexec
+	$(RM) -rf chella jobify
