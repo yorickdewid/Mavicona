@@ -2,6 +2,7 @@
 #define EXEC_H
 
 #include <iostream>
+#include "controlclient.h"
 
 class Execute {
   public:
@@ -12,10 +13,9 @@ class Execute {
 		unsigned int jobpartition;
 		std::string jobname;
 		std::string jobquid;
-		unsigned int workerid;
 	};
 
-	static void run(const std::string& name, Parameter& param);
+	static void run(const std::string& name, Parameter& param, ControlClient& control);
 };
 
 #endif // EXEC_H

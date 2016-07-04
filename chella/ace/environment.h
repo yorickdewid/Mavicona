@@ -13,6 +13,7 @@ namespace Ace {
 
 class Environment {
 	unsigned int workerid;
+	unsigned int clusterjobs;
 	std::string module;
 
   public:
@@ -60,6 +61,14 @@ class Environment {
 
 	inline unsigned int WorkerIdent() {
 		return workerid;
+	}
+
+	void SetClusterJobs(unsigned int jobs) {
+		clusterjobs = jobs;
+	}
+
+	inline unsigned int ClusterJobs() {
+		return clusterjobs;
 	}
 
 	std::string Worker() {

@@ -13,7 +13,7 @@ class NodeManager {
 	std::thread _mainRunner;
 	bool _run = false;
 	bool _active = false;
-	// Queue<Task> *_queue = nullptr;
+	std::vector <unsigned int> _workers;
 	unsigned int _counter = 0;
 	unsigned int _timeout;
 	FileLogger *_logger = nullptr;
@@ -24,10 +24,6 @@ class NodeManager {
 	}
 
 	void runTask();
-
-	// inline void setQueuer(Queue<Task> *queue) {
-	// 	this->_queue = queue;
-	// }
 
 	inline void setTimeout(unsigned int sec) {
 		this->_timeout = sec;

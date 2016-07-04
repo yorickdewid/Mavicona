@@ -60,7 +60,7 @@ class ClassGuard {
 
 extern "C" int register_class();
 
-extern "C" Ace::Job *retrieve_object() {
+extern "C" Ace::Job *object_facade() {
 	ClassGuard& cg = ClassGuard::getInstance();
 	return cg.getObject();
 }

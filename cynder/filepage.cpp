@@ -3,7 +3,7 @@
 
 #include "filepage.h"
 
-#define PAGE_MAGIC		"LFBX01E"	/* Magic checkup */
+#define PAGE_MAGIC		"LFBX01E"	/* Magic check */
 
 #define PAGE_FLAG_NIL	0x0
 #define PAGE_FLAG_INV	0x1

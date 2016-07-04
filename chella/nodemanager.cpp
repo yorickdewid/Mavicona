@@ -28,13 +28,29 @@ void NodeManager::runTask() {
 				msg.set_id(_counter++);
 				msg.set_action(ControlMessage::CONFIRMED);
 				(*_logger) << "Accept: Solicit from worker, assigned worker-" << msg.id() << FileLogger::endl();
+				_workers.push_back(msg.id());
 				break;
 			case ControlMessage::IDLE:
-				puts("Checkin");
+				printf("worker-%d -> IDLE\n", msg.id());
+				break;
+			case ControlMessage::ACCEPTED:
+				printf("worker-%d -> ACCEPTED\n", msg.id());
+				break;
+			case ControlMessage::SETUP:
+				printf("worker-%d -> SETUP\n", msg.id());
+				break;
+			case ControlMessage::RUNNING:
+				printf("worker-%d -> RUNNING %.1f%%\n", msg.id(), (float)((float)msg.progress() / (float)10));
+				break;
+			case ControlMessage::TEARDOWN:
+				printf("worker-%d -> TEARDOWN\n", msg.id());
 				break;
 			default:
 				break;
 		}
+
+		msg.set_cluster_jobs(_workers.size());
+		// msg.cluster_workers();
 
 		std::string serialized;
 		msg.SerializeToString(&serialized);

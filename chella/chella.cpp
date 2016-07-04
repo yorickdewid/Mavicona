@@ -85,7 +85,6 @@ void initSlave() {
 
 	ControlClient control;
 	control.setMaster(masterIPC);
-	control.setTimeout(5 /* 5sec */);
 	control.start();
 
 	/* Continue when accepted */
@@ -125,10 +124,9 @@ void initSlave() {
 		parameters.jobname = job.name();
 		parameters.jobquid = job.quid();
 		parameters.jobpartition = job.partition();
-		parameters.workerid = control.workerIdent();
 
 		/* Run procedure */
-		Execute::run(exeName, parameters);
+		Execute::run(exeName, parameters, control);
 
 		sleep(1);
 	}

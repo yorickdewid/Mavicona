@@ -1,7 +1,6 @@
 #include <zmq.hpp>
 
 #include "controlclient.h"
-#include "protoc/controlmessage.pb.h"
 
 void ControlClient::runTask() {
 	/* Prepare our context and socket */
@@ -32,14 +31,19 @@ void ControlClient::runTask() {
 		std::cout << "Solicit accepted, assigned worker-" << msg.id() << std::endl;
 		this->_counter = msg.id();
 		this->_accepted = true;
+		this->_cluster_jobs = msg.cluster_jobs();
+		this->_state = ControlMessage::IDLE;
 	}
 
 	while (_active) {
-		std::this_thread::sleep_for(std::chrono::seconds(this->_timeout));
+		std::this_thread::sleep_for(std::chrono::milliseconds(this->_timeout));
+
+		assert(this->_progress >= 0 && this->_progress <= 1000);
 
 		msg.set_id(this->_counter);
 		msg.set_quid("5a04a669-dfd7-4c6b-a86a-d230af26c868");// TODO
-		msg.set_action(ControlMessage::IDLE);
+		msg.set_action(this->_state);
+		msg.set_progress(this->_progress);
 
 		std::string serialized;
 		msg.SerializeToString(&serialized);
@@ -54,6 +58,5 @@ void ControlClient::runTask() {
 
 		msg.ParseFromArray(reply.data(), reply.size());
 		this->_cluster_jobs = msg.cluster_jobs();
-		std::cout << this->_cluster_jobs << std::endl; ...
 	}
 }
