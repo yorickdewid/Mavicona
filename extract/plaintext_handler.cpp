@@ -1,6 +1,7 @@
 #include <ctime>
 #include <algorithm>
 
+#include "common/url.h"
 #include "plaintext_handler.h"
 
 bool isNumber(const std::string& s) {
@@ -16,7 +17,7 @@ bool isHex(const std::string& s) {
 }
 
 std::string timestampToString(const time_t rawtime) {
-	struct tm * dt;
+	struct tm *dt;
 	char buffer [30];
 	dt = localtime(&rawtime);
 	strftime(buffer, sizeof(buffer), "%FT%TZ", dt);
@@ -26,7 +27,7 @@ std::string timestampToString(const time_t rawtime) {
 void PlainTextHandler::handle() {
 	const ScrapeData::Data *data = getPayload();
 
-	// std::cout << "Item[" << getId() << "] handler [plaintxt]" << std::endl;
+	std::cout << "Item[" << getId() << "] handler [plaintxt]" << std::endl;
 
 	switch (data->payload().size()) {
 		case 32:
@@ -54,4 +55,14 @@ void PlainTextHandler::handle() {
 		}
 	}
 
+	/* Find protocols */
+	if (data->payload().find("tp://") != std::string::npos || data->payload().find("tps://") != std::string::npos) {
+		url urlparse(data->payload());
+
+		if (!urlparse.protocol().empty())
+			addMeta("protocol", urlparse.protocol());
+
+		if (!urlparse.host().empty())
+			addMeta("domain", urlparse.host());
+	}
 }
