@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2016 Mavicona
+ * All rights reserved.
+ *
+ * IMAP_Ext:	IMAP client scaper
+ */
+
 #include <stdio.h>
 #include <curl/curl.h>
 

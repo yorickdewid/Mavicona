@@ -1,10 +1,17 @@
+/**
+ * Copyright (c) 2016 Mavicona
+ * All rights reserved.
+ *
+ * Example_Ext:	A DSO example
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <pwd.h>
 
-// #define DEBUG
+#define DEBUG
 
 #include <mavdso.h>
 

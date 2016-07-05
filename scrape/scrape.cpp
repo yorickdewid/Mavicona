@@ -1,3 +1,7 @@
+#ifdef STATIC
+#undef LIBPYTHON
+#endif
+
 #include <zmq.hpp>
 #include <string>
 #include <iostream>
@@ -5,6 +9,7 @@
 #ifdef LIBPYTHON
 #include <Python.h>
 #endif
+#include <csignal>
 #include <dlfcn.h>
 #include <quidpp.h>
 
@@ -28,6 +33,19 @@ FileLogger logger("scrape");
 
 std::multimap<std::string, std::string> datastack;
 
+void signal_handler(int signum) {
+
+}
+
+static void catch_signals() {
+	struct sigaction action;
+	action.sa_handler = signal_handler;
+	action.sa_flags = 0;
+	sigemptyset(&action.sa_mask);
+	sigaction(SIGINT, &action, NULL);
+	sigaction(SIGTERM, &action, NULL);
+}
+
 void dispatch_commit() {
 	unsigned int complete = 0;
 	for (auto const& ent : datastack) {
@@ -49,16 +67,22 @@ void dispatch_commit() {
 		std::string serialized;
 		data.SerializeToString(&serialized);
 
-		zmq::message_t request(serialized.size());
-		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		socket.send(request);
+		try {
+			zmq::message_t request(serialized.size());
+			memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+			socket.send(request);
 
-		// Get the reply
-		zmq::message_t reply;
-		socket.recv(&reply);
+			// Get the reply
+			zmq::message_t reply;
+			socket.recv(&reply);
 
-		if (!strcmp((const char *)reply.data(), "DONE"))
-			complete++;
+			if (!strcmp((const char *)reply.data(), "DONE"))
+				complete++;
+		} catch (zmq::error_t& e) {
+			std::cout << "Exit gracefully" << std::endl;
+			std::cout << "Data NOT submitted to extractor" << std::endl;
+			return;
+		}
 	}
 
 	if (complete == datastack.size()) {
@@ -125,8 +149,9 @@ void pyrunner(const char *name) {
 	Py_Finalize();
 }
 
-#endif
+#endif // LIBPYTHON
 
+#ifndef STATIC
 void dsorunner(const char *libname, int argc, char *argv[]) {
 	void *handle = dlopen(libname, RTLD_LAZY);
 	if (!handle) {
@@ -186,12 +211,59 @@ void dsorunner(const char *libname, int argc, char *argv[]) {
 
 	dlclose(handle);
 }
+#else
+extern "C" {
+	typedef struct  {
+		char *name;
+		void *data;
+		size_t size;
+	} item_t;
+
+	struct s_datastack {
+		unsigned int magic;
+		item_t *data;
+		size_t size;
+	};
+
+	unsigned int mav_init();
+	int mav_main(int argc, char *argv[]);
+	struct s_datastack *mav_commit();
+}
+
+void slorunner(int argc, char *argv[]) {
+	assert(mav_init() == MAGIC_CHECK);
+	int return_code = mav_main(argc, argv);
+	struct s_datastack *return_stack = mav_commit();
+
+	assert(return_stack->magic == MAGIC_CHECK);
+	if (return_code != 0) {
+		logger << FileLogger::warning() << "Module exit with non-zero return " << return_code << FileLogger::endl();
+		return;
+	}
+
+	for (unsigned int i = 0; i < return_stack->size; ++i) {
+		std::string bytea(reinterpret_cast<char const *>(return_stack->data[i].data), return_stack->data[i].size);
+		datastack.insert(std::pair<std::string, std::string>(return_stack->data[i].name, bytea));
+
+		free(return_stack->data[i].name);
+		free(return_stack->data[i].data);
+	}
+
+	free(return_stack->data);
+
+	dispatch_commit();
+}
+#endif // STATIC
 
 int main(int argc, char *argv[]) {
 
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
+#ifdef STATIC
+	cxxopts::Options options(argv[0], "");
+#else
 	cxxopts::Options options(argv[0], " [FILE]");
+#endif
 
 	options.add_options("Help")
 	("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
@@ -219,6 +291,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
+#ifndef STATIC
 	if (!options.count("positional")) {
 		std::cerr << options.help({"Help"}) << std::endl;
 		return 1;
@@ -229,6 +302,7 @@ int main(int argc, char *argv[]) {
 		std::cerr << "error: " << name << ": No such file or directory" << std::endl;
 		return 1;
 	}
+#endif
 
 	std::string host = DEFAULT_EXTRACTOR_HOST;
 	if (options.count("hbs")) {
@@ -256,6 +330,11 @@ int main(int argc, char *argv[]) {
 	srand(time(NULL));
 	itemCount = rand() % 10000;
 
+	catch_signals();
+
+#ifdef STATIC
+	slorunner(argc, argv);
+#else
 	if (name.substr(name.find_last_of(".") + 1) == "so" || name.substr(name.find_last_of(".") + 1) == "dll") {
 		/* When dSO defined */
 		dsorunner(name.c_str(), argc, argv);
@@ -267,11 +346,12 @@ int main(int argc, char *argv[]) {
 		/* When python file given */
 		pyrunner(name.c_str());
 	}
-#endif
+#endif // LIBPYTHON
 
 	else {
 		std::cerr << "Invalid file" << std::endl;
 	}
+#endif // STATIC
 
 	return 0;
 }

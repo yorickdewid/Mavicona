@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
 		/* Wait for next request from client */
 		try {
 			socket.recv(&request);
-		} catch (zmq::error_t &e) {
+		} catch (zmq::error_t& e) {
 			std::cout << "Exit gracefully" << std::endl;
 			break;
 		}
