@@ -10,7 +10,6 @@
 #include <iostream>
 #include <map>
 #include <memory>
-#include <regex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -697,13 +696,7 @@ namespace {
 constexpr int OPTION_LONGEST = 30;
 constexpr int OPTION_DESC_GAP = 2;
 
-std::basic_regex<char> option_matcher("--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([a-zA-Z]+)");
-
-String
-format_option
-(
-    const HelpOptionDetails& o
-) {
+String format_option(const HelpOptionDetails& o) {
 	auto& s = o.s;
 	auto& l = o.l;
 
@@ -732,13 +725,7 @@ format_option
 	return result;
 }
 
-String
-format_description
-(
-    const HelpOptionDetails& o,
-    size_t start,
-    size_t width
-) {
+String format_description(const HelpOptionDetails& o, size_t start, size_t width) {
 	auto desc = o.desc;
 
 	if (o.has_default) {
@@ -812,8 +799,7 @@ OptionAdder::operator()
 	return *this;
 }
 
-void
-Options::parse_option
+void Options::parse_option
 (
     std::shared_ptr<OptionDetails> value,
     const std::string& /*name*/,
@@ -822,8 +808,7 @@ Options::parse_option
 	value->parse(arg);
 }
 
-void
-Options::checked_parse_arg
+void Options::checked_parse_arg
 (
     int argc,
     char *argv[],
@@ -847,8 +832,7 @@ Options::checked_parse_arg
 	}
 }
 
-void
-Options::add_to_option(const std::string& option, const std::string& arg) {
+void Options::add_to_option(const std::string& option, const std::string& arg) {
 	auto iter = m_options.find(option);
 
 	if (iter == m_options.end()) {
@@ -858,8 +842,7 @@ Options::add_to_option(const std::string& option, const std::string& arg) {
 	parse_option(iter->second, option, arg);
 }
 
-bool
-Options::consume_positional(std::string a) {
+bool Options::consume_positional(std::string a) {
 	if (m_next_positional != m_positional.end()) {
 		add_to_option(*m_next_positional, a);
 
@@ -873,108 +856,90 @@ Options::consume_positional(std::string a) {
 	}
 }
 
-void
-Options::parse_positional(std::string option) {
+void Options::parse_positional(std::string option) {
 	parse_positional(std::vector<std::string> {option});
 }
 
-void
-Options::parse_positional(std::vector<std::string> options) {
+void Options::parse_positional(std::vector<std::string> options) {
 	m_positional = std::move(options);
 	m_next_positional = m_positional.begin();
 }
 
-void
-Options::parse(int& argc, char **& argv) {
+void Options::parse(int& argc, char **& argv) {
 	int current = 1;
-
 	int nextKeep = 1;
-
 	bool consume_remaining = false;
 
 	while (current != argc) {
-		if (strcmp(argv[current], "--") == 0) {
+		if (!strcmp(argv[current], "--")) {
 			consume_remaining = true;
 			++current;
 			break;
 		}
 
-		std::match_results<const char *> result;
-		std::regex_match(argv[current], result, option_matcher);
+		if (strlen(argv[current]) < 2) {
+			throw option_not_exists_exception(argv[current]);
+		}
 
-		if (result.empty()) {
-			//not a flag
+		/* Long options */
+		if (!strncmp(argv[current], "--", 2)) {
+			const std::string& name(argv[current] + 2);
 
-			//if true is returned here then it was consumed, otherwise it is
-			//ignored
-			if (consume_positional(argv[current])) {
-			} else {
-				argv[nextKeep] = argv[current];
-				++nextKeep;
+			auto iter = m_options.find(name);
+			if (iter == m_options.end()) {
+				throw option_not_exists_exception(name);
 			}
-			//if we return from here then it was parsed successfully, so continue
-		} else {
-			//short or long option?
-			if (result[4].length() != 0) {
-				const std::string& s = result[4];
 
-				for (std::size_t i = 0; i != s.size(); ++i) {
-					std::string name(1, s[i]);
-					auto iter = m_options.find(name);
+			auto opt = iter->second;
 
-					if (iter == m_options.end()) {
-						throw option_not_exists_exception(name);
-					}
+			if (opt->has_arg()) {
+				//parse the next argument
+				checked_parse_arg(argc, argv, current, opt, name);
+			} else {
+				//parse with empty argument
+				parse_option(opt, name);
+			}
 
-					auto value = iter->second;
+			++current;
+			continue;
+		}
 
-					//if no argument then just add it
-					if (!value->has_arg()) {
-						parse_option(value, name);
-					} else {
-						//it must be the last argument
-						if (i + 1 == s.size()) {
-							checked_parse_arg(argc, argv, current, value, name);
-						} else if (value->value().has_implicit()) {
-							parse_option(value, name, "");
-						} else {
-							//error
-							throw option_requires_argument_exception(name);
-						}
-					}
-				}
-			} else if (result[1].length() != 0) {
-				const std::string& name = result[1];
+		if (argv[current][0] == '-') {
+			const std::string& s(argv[current] + 1);
+
+			for (std::size_t i = 0; i != s.size(); ++i) {
+				std::string name(1, s[i]);
 
 				auto iter = m_options.find(name);
-
 				if (iter == m_options.end()) {
 					throw option_not_exists_exception(name);
 				}
 
-				auto opt = iter->second;
+				auto value = iter->second;
 
-				//equals provided for long option?
-				if (result[3].length() != 0) {
-					//parse the option given
-
-					//but if it doesn't take an argument, this is an error
-					if (!opt->has_arg()) {
-						throw option_not_has_argument_exception(name, result[3]);
-					}
-
-					parse_option(opt, name, result[3]);
+				//if no argument then just add it
+				if (!value->has_arg()) {
+					parse_option(value, name);
 				} else {
-					if (opt->has_arg()) {
-						//parse the next argument
-						checked_parse_arg(argc, argv, current, opt, name);
+					//it must be the last argument
+					if (i + 1 == s.size()) {
+						checked_parse_arg(argc, argv, current, value, name);
+					} else if (value->value().has_implicit()) {
+						parse_option(value, name, "");
 					} else {
-						//parse with empty argument
-						parse_option(opt, name);
+						throw option_requires_argument_exception(name);
 					}
 				}
 			}
 
+			++current;
+			continue;
+		}
+
+		if (consume_positional(argv[current])) {
+		} else {
+			argv[nextKeep] = argv[current];
+			++nextKeep;
 		}
 
 		++current;
@@ -997,7 +962,6 @@ Options::parse(int& argc, char **& argv) {
 	}
 
 	argc = nextKeep;
-
 }
 
 void
