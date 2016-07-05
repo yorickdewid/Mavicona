@@ -8,9 +8,6 @@ class Example : public Job {
 	Example() {}
 
 	void Setup() {
-		// SetId(17);
-		// SetName("test");
-
 		std::cout << std::endl;
 
 		/* Print job info */
@@ -19,22 +16,44 @@ class Example : public Job {
 		std::cout << "Job quid: " << Quid() << std::endl;
 		std::cout << "Job partition: " << Partition() << std::endl;
 
-		std::cout << std::endl;
-
 		/* Print the environment */
 		std::cout << "Working dir: " << Env()->CurrentDirectory() << std::endl;
 		std::cout << "Cache dir: " << Env()->CacheDirectory() << std::endl;
 		std::cout << "Datetime: " << Env()->CurrentDateTime() << std::endl;
 		std::cout << "Hostname: " << Env()->Hostname() << std::endl;
 		std::cout << "Login: " << Env()->Login() << std::endl;
-		std::cout << "Worker: " << Env()->WorkerIdent() << std::endl;
-		std::cout << "Worker: " << Env()->Worker() << std::endl;
-		std::cout << "Module: " << Env()->Module() << std::endl;
+
+		/* Print cluster info */
+		std::cout << "Worker: " << WorkerId() << std::endl;
+		std::cout << "Worker: " << Worker() << std::endl;
+		std::cout << "Module: " << Module() << std::endl;
+		std::cout << "Jobs: " << ClusterJobs() << std::endl;
+
+		std::cout << std::endl;
+
+		sleep(2);
 	}
 
 	/* The actual execution of the job */
 	void Run() {
+		updateProgress(250);
+
+		std::cout << "Doing the work..." << std::endl;
+
+		sleep(1);
+		updateProgress(384);
+		sleep(2);
+		updateProgress(532);
+		sleep(1);
+
 		std::cout << "Cheese is awesome!" << std::endl;
+		updateProgress(862);
+	}
+
+	void Teardown() {
+		sleep(2);
+
+		std::cout << "Goodbye" << std::endl;
 	}
 
 };

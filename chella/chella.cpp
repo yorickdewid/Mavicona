@@ -99,6 +99,8 @@ void initSlave() {
 	zmq::socket_t receiver(context, ZMQ_PULL);
 	receiver.connect(("tcp://" + masterNode).c_str());
 
+	Execute::init(&control);
+
 	/* Process tasks forever */
 	while (1) {
 		SHA1 sha1;
@@ -126,7 +128,7 @@ void initSlave() {
 		parameters.jobpartition = job.partition();
 
 		/* Run procedure */
-		Execute::run(exeName, parameters, control);
+		Execute::run(exeName, parameters);
 
 		sleep(1);
 	}

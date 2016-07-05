@@ -7,17 +7,22 @@
 typedef int (*regclass_t)();
 typedef Ace::Job *(*facade_t)();
 
-void Execute::run(const std::string& name, Parameter& param, ControlClient& control) {
-	Ace::Environment env;
+void Execute::run(const std::string& name, Parameter& param) {
+	Execute *exec = &Execute::getInstance();
 
 	std::cout << "Running module " << std::endl;
 
 	/* Move worker in accept mode */
-	control.setStateAccepted();
+	exec->jobcontrol->setStateAccepted();
 
-	env.SetModule(name);
-	env.SetWorkerIdent(control.workerIdent());
-	env.SetClusterJobs(control.clusterJobs());
+	/* Set members of shared object via callback */
+	exec->workerid = exec->jobcontrol->workerId();
+	exec->clusterjobs = exec->jobcontrol->clusterJobs();
+	exec->module = name;
+	exec->jobid = param.jobid;
+	exec->jobname = param.jobname;
+	exec->jobquid = param.jobquid;
+	exec->jobpartition = param.jobpartition;
 
 	if (!file_exist("cache/" + name)) {
 		std::cerr << "Cannot access library" << std::endl;
@@ -35,18 +40,18 @@ void Execute::run(const std::string& name, Parameter& param, ControlClient& cont
 
 	assert(exec_register() == ACE_MAGIC);
 	Ace::Job *jobObject = (Ace::Job *)exec_facade();
-	jobObject->Inject(env, param.jobid, param.jobname, param.jobquid, param.jobpartition);
+	jobObject->Inject(exec);
 
 	/* Call setup routine */
-	control.setStateSetup();
+	exec->jobcontrol->setStateSetup();
 	jobObject->Setup();
 
 	/* Call main routine */
-	control.setStateRunning(256);
+	exec->jobcontrol->setStateRunning();
 	jobObject->Run();
 
 	/* Call teardown routine */
-	control.setStateTeardown();
+	exec->jobcontrol->setStateTeardown();
 	jobObject->Teardown();
 
 	int r = dlclose(handle);
@@ -54,7 +59,7 @@ void Execute::run(const std::string& name, Parameter& param, ControlClient& cont
 		dlclose(handle);
 
 	/* Move worker in idle mode */
-	control.setStateIdle();
+	exec->jobcontrol->setStateIdle();
 
 	return;
 }

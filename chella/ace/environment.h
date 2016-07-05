@@ -12,10 +12,6 @@
 namespace Ace {
 
 class Environment {
-	unsigned int workerid;
-	unsigned int clusterjobs;
-	std::string module;
-
   public:
 	Environment() {}
 
@@ -53,36 +49,6 @@ class Environment {
 		getlogin_r(username, LOGIN_NAME_MAX);
 
 		return username;
-	}
-
-	void SetWorkerIdent(unsigned int id) {
-		workerid = id;
-	}
-
-	inline unsigned int WorkerIdent() {
-		return workerid;
-	}
-
-	void SetClusterJobs(unsigned int jobs) {
-		clusterjobs = jobs;
-	}
-
-	inline unsigned int ClusterJobs() {
-		return clusterjobs;
-	}
-
-	std::string Worker() {
-		std::ostringstream ss;
-		ss << "worker-" << workerid;
-		return ss.str();
-	}
-
-	void SetModule(const std::string& name) {
-		module = name;
-	}
-
-	inline std::string Module() {
-		return module;
 	}
 
 };

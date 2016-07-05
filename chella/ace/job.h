@@ -4,47 +4,55 @@
 namespace Ace {
 
 class Job {
-	unsigned int jobid;
-	unsigned int jobpartition;
-	std::string jobname;
-	std::string jobquid;
 	Environment jobenv;
+	Callback *cb;
 
   public:
 	Job() {}
 
 	virtual ~Job() {}
 
-	void Inject(Environment env, unsigned int id, const std::string& name, const std::string& quid, unsigned int partition) {
-		jobid = id;
-		jobname = name;
-		jobquid = quid;
-		jobenv = env;
-		jobpartition = partition;
+	void Inject(Callback *_cb) {
+		cb = _cb;
+		cb->progress = 0;
+	}
+
+	std::string Module() const {
+		return cb->module;
 	}
 
 	unsigned int Partition() const {
-		return jobpartition;
+		return cb->jobpartition;
 	}
 
 	unsigned int Id() const {
-		return jobid;
-	}
-
-	virtual void SetId(unsigned int id) {
-		jobid = id;
+		return cb->jobid;
 	}
 
 	std::string Name() const {
-		return jobname;
-	}
-
-	virtual void SetName(const std::string& name) {
-		jobname = name;
+		return cb->jobname;
 	}
 
 	std::string Quid() const {
-		return jobquid;
+		return cb->jobquid;
+	}
+
+	unsigned int WorkerId() const {
+		return cb->workerid;
+	}
+
+	std::string Worker() {
+		std::ostringstream ss;
+		ss << "worker-" << cb->workerid;
+		return ss.str();
+	}
+
+	unsigned int ClusterJobs() const {
+		return cb->clusterjobs;
+	}
+
+	void updateProgress(unsigned short progress) {
+		cb->updateProgress(progress);
 	}
 
 	Environment *Env() {

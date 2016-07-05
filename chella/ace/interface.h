@@ -1,6 +1,7 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
+#include "../callback.h"
 #include "environment.h"
 #include "io.h"
 #include "cache.h"

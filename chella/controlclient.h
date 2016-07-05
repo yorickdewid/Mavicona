@@ -59,7 +59,7 @@ class ControlClient {
 		_active = true;
 	}
 
-	inline unsigned int workerIdent() {
+	inline unsigned int workerId() {
 		return _counter;
 	}
 
@@ -88,8 +88,11 @@ class ControlClient {
 		this->_state = ControlMessage::SETUP;
 	}
 
-	inline void setStateRunning(const unsigned int progress) {
+	inline void setStateRunning() {
 		this->_state = ControlMessage::RUNNING;
+	}
+
+	inline void updateStateRunning(const unsigned int progress) {
 		this->_progress = progress;
 	}
 
