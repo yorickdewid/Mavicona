@@ -1,4 +1,4 @@
-OBJS = client.o error_page.o file.o header.o http.o orchestrator.o server.o socket.o thread.o
+OBJS = client.o error_page.o file.o header.o http.o orchestrator.o server.o socket.o thread.o ../quid/libquid.a
 CC = g++
 DEBUG = -g -O0
 LIBS = -lpthread

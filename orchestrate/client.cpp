@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <quidpp.h>
 
 #include "common/json.h"
 #include "client.h"
@@ -176,7 +177,7 @@ bool CClient::ParseUri(std::string filepath) {
 		object["type"] = "jsonrpc";
 		object["success"] = true;
 		object["message"] = nullptr;
-		object["quid"] = "5f9dc3e1-513f-44f3-af8e-8ab5ecada188";
+		object["quid"] = quidpp::Quid().toString();
 		object["parameters"] = {"procedure", {
 				{"jobcount", "Number of active chella jobs"},
 				{"queue", "Items in queue"},

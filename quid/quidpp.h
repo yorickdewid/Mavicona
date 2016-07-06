@@ -38,7 +38,7 @@ class Quid {
 	static std::string crop(const std::string& cquid) {
 		if (cquid.size() == (UNPACKED_LENGTH + 2) && cquid[0] == '{' && cquid[UNPACKED_LENGTH + 1] == '}')
 			return cquid.substr(1, UNPACKED_LENGTH);
-		
+
 		return "";
 	}
 
@@ -59,11 +59,11 @@ class Quid {
 		return std::string(s);
 	}
 
-	bool operator==(const Quid & quid2) {
+	bool operator==(const Quid& quid2) {
 		return quidcmp(&this->quid, &quid2.quid) == 0;
 	}
 
-	friend std::ostream& operator<<(std::ostream & os, const Quid & qt) {
+	friend std::ostream& operator<<(std::ostream& os, const Quid& qt) {
 		os << qt.toString();
 		return os;
 	}
