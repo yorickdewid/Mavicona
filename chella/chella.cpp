@@ -33,6 +33,10 @@ static void catch_signals() {
 	sigaction(SIGTERM, &action, NULL);
 }
 
+void setupGuard() {
+
+}
+
 void initMaster() {
 	std::cout << "Starting master" << std::endl;
 
@@ -76,8 +80,6 @@ void initMaster() {
 
 		sleep(1);
 	}
-
-	getchar();
 }
 
 void initSlave() {
@@ -94,6 +96,9 @@ void initSlave() {
 
 	/* Create cache directory */
 	mkdir("cache", 0700);
+
+	/* Guard the process */
+	setupGuard();
 
 	zmq::context_t context(1);
 	zmq::socket_t receiver(context, ZMQ_PULL);
@@ -132,8 +137,6 @@ void initSlave() {
 
 		sleep(1);
 	}
-
-	getchar();
 }
 
 int main(int argc, char *argv[]) {
