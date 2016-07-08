@@ -16,9 +16,12 @@
 #include "sha1.h"
 #include "exec.h"
 
+#define FORK 	1
+
 static std::string masterNode;
 static std::string masterIPC;
 static bool interrupted = false;
+static char **init_argv = NULL;
 
 void signal_handler(int signum) {
 	interrupted = true;
@@ -33,8 +36,44 @@ static void catch_signals() {
 	sigaction(SIGTERM, &action, NULL);
 }
 
-void setupGuard() {
+void setGuard(pid_t id) {
+	std::cout << "Setting guard" << std::endl;
 
+	while (1) {
+		sleep(10);
+		if (kill(id, 0) < 0) {
+			std::cout << "Worker not running, reboot..." << std::endl;
+
+			if (execv(init_argv[0], init_argv)) {
+				/* ERROR, handle this yourself */
+				puts("Errur");
+			}
+
+			break;
+		}
+	}
+}
+
+int setupGuard() {
+#ifdef FORK
+	pid_t id = getpid();
+	pid_t pid = fork();
+	if (pid == 0) {
+
+		/* Guarding process */
+		setGuard(id);
+		return pid;
+	} else if (pid < 0) {
+
+		/* Fork failed */
+		std::cerr << "fork failed" << std::endl;
+		return 0;
+	}
+
+	return pid;
+#else
+	return 1;
+#endif
 }
 
 void initMaster() {
@@ -51,7 +90,7 @@ void initMaster() {
 	sender.bind("tcp://*:5555");
 
 	/* Send 10 tasks */
-	for (int task_nbr = 0; task_nbr < 5; task_nbr++) {
+	for (int task_nbr = 0; task_nbr < 1; task_nbr++) {
 		// {
 		std::ifstream t("libdso_example.so");
 		std::string str;
@@ -80,6 +119,9 @@ void initMaster() {
 
 		sleep(1);
 	}
+
+	/* Keep node manager running */
+	getchar();
 }
 
 void initSlave() {
@@ -98,7 +140,8 @@ void initSlave() {
 	mkdir("cache", 0700);
 
 	/* Guard the process */
-	setupGuard();
+	if (!setupGuard())
+		return;
 
 	zmq::context_t context(1);
 	zmq::socket_t receiver(context, ZMQ_PULL);
@@ -144,6 +187,7 @@ int main(int argc, char *argv[]) {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	cxxopts::Options options(argv[0], "");
+	init_argv = argv;
 
 	options.add_options("Help")
 	("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
