@@ -42,6 +42,7 @@ class Execute : public Callback {
 	}
 
 	void cachePut(const std::string& key, const std::string value);
+	void cacheDelete(const std::string& key);
 	std::string cacheGet(const std::string& key);
 
 	static void init(ControlClient *control) {

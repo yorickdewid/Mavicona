@@ -73,6 +73,13 @@ void Execute::cachePut(const std::string& key, const std::string value) {
 	art_insert(this->cache, (unsigned char *)key.c_str(), key.size(), new std::string(value));
 }
 
+void Execute::cacheDelete(const std::string& key) {
+	if (!this->cache)
+		return;
+
+	art_delete(this->cache, (unsigned char *)key.c_str(), key.size());
+}
+
 std::string Execute::cacheGet(const std::string& key) {
 	if (!this->cache)
 		return "";
