@@ -1,5 +1,5 @@
-#ifndef CACHE_H
-#define CACHE_H
+#ifndef CACHEAT_H
+#define CACHEAT_H
 
 namespace Ace {
 
@@ -9,11 +9,11 @@ class CacheArt {
   public:
 	CacheArt() {}
 
-	void put(const std::string& key, const std::string& value) {
+	void Put(const std::string& key, const std::string& value) {
 		cb->cachePut(key, value);
 	}
 
-	std::string get(const std::string& key) {
+	std::string Get(const std::string& key) {
 		return cb->cacheGet(key);
 	}
 
@@ -24,4 +24,4 @@ class CacheArt {
 
 }
 
-#endif // CACHE_H
+#endif // CACHEAT_H

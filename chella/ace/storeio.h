@@ -1,5 +1,5 @@
-#ifndef IO_H
-#define IO_H
+#ifndef STOREIO_H
+#define STOREIO_H
 
 namespace Ace {
 
@@ -9,23 +9,23 @@ class StoreIO {
   public:
 	StoreIO() {}
 
-	void querySelect() {
+	void QuerySelect() {
 
 	}
 
-	void queryInsert() {
+	void QueryInsert() {
 
 	}
 
-	void queryUpdate() {
+	void QueryUpdate() {
 
 	}
 
-	void queryDelete() {
+	void QueryDelete() {
 
 	}
 
-	void querySearch() {
+	void QuerySearch() {
 
 	}
 
@@ -36,4 +36,4 @@ class StoreIO {
 
 }
 
-#endif // IO_H
+#endif // STOREIO_H
