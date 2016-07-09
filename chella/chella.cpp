@@ -154,7 +154,12 @@ void initSlave() {
 		SHA1 sha1;
 		zmq::message_t message;
 
-		receiver.recv(&message);
+		try {
+			receiver.recv(&message);
+		} catch (zmq::error_t& e) {
+			std::cout << "Exit gracefully" << std::endl;
+			break;
+		}
 
 		ProcessJob job;
 		job.ParseFromArray(message.data(), message.size());
