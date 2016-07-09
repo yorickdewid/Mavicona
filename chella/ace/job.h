@@ -5,7 +5,8 @@ namespace Ace {
 
 class Job {
 	Environment jobenv;
-	Callback *cb;
+	CacheArt cache;
+	Callback *cb = NULL;
 
   public:
 	Job() {}
@@ -15,6 +16,7 @@ class Job {
 	void Inject(Callback *_cb) {
 		cb = _cb;
 		cb->progress = 0;
+		cache.setCallback(_cb);
 	}
 
 	std::string Module() const {
@@ -53,6 +55,10 @@ class Job {
 
 	void updateProgress(unsigned short progress) {
 		cb->updateProgress(progress);
+	}
+
+	CacheArt *Cache() {
+		return &cache;
 	}
 
 	Environment *Env() {

@@ -15,6 +15,8 @@ struct Callback {
 
 	virtual void updateProgress(unsigned short progress) = 0;
 
+	virtual void cachePut(const std::string& key, const std::string value) = 0;
+	virtual std::string cacheGet(const std::string& key) = 0;
 };
 
 #endif // CALLBACK_H

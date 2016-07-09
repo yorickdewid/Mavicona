@@ -4,14 +4,26 @@
 #include <iostream>
 #include "controlclient.h"
 #include "callback.h"
+#include "art.h"
 
 class Execute : public Callback {
 	ControlClient *jobcontrol = nullptr;
+	art_tree *cache = nullptr;
 
 	Execute() {};
 
+	~Execute() {
+		if (this->cache)
+			art_tree_destroy(this->cache);
+	}
+
 	Execute(Execute const&);
 	void operator=(Execute const&);
+
+	static Execute& getInstance() {
+		static Execute instance;
+		return instance;
+	}
 
   public:
 	struct Parameter {
@@ -29,10 +41,8 @@ class Execute : public Callback {
 		jobcontrol->updateStateRunning(progress);
 	}
 
-	static Execute& getInstance() {
-		static Execute instance;
-		return instance;
-	}
+	void cachePut(const std::string& key, const std::string value);
+	std::string cacheGet(const std::string& key);
 
 	static void init(ControlClient *control) {
 		Execute& exec = Execute::getInstance();
