@@ -37,21 +37,24 @@ class Example : public Job {
 	/* The actual execution of the job */
 	void Run() {
 		updateProgress(250);
-
 		std::cout << "Doing the work..." << std::endl;
-
 		sleep(1);
+
 		updateProgress(384);
-		sleep(2);
-		updateProgress(532);
+		std::cout << "More work..." << std::endl;
 		sleep(1);
 
-		std::cout << "Cheese is awesome!" << std::endl;
+		updateProgress(532);
+		std::cout << "Bit more..." << std::endl;
+		sleep(1);
+
 		updateProgress(862);
+		std::cout << "Almost done!" << std::endl;
+		sleep(1);
 	}
 
 	void Teardown() {
-		sleep(2);
+		sleep(1);
 
 		std::cout << "Goodbye" << std::endl;
 	}
