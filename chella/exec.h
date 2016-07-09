@@ -6,6 +6,11 @@
 #include "callback.h"
 #include "art.h"
 
+inline int iter_cb(void *data, const unsigned char *key, uint32_t key_len, void *val) {
+	delete static_cast<std::string *>(val);
+	return 0;
+}
+
 class Execute : public Callback {
 	ControlClient *jobcontrol = nullptr;
 	art_tree *cache = nullptr;
@@ -13,8 +18,11 @@ class Execute : public Callback {
 	Execute() {};
 
 	~Execute() {
-		if (this->cache)
+		if (this->cache) {
+			std::string out;
+			art_iter(this->cache, iter_cb, &out);
 			art_tree_destroy(this->cache);
+		}
 	}
 
 	Execute(Execute const&);
