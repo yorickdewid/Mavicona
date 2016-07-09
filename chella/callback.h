@@ -15,6 +15,7 @@ struct Callback {
 
 	virtual void updateProgress(unsigned short progress) = 0;
 
+	/* Caching interface */
 	virtual void cachePut(const std::string& key, const std::string value) = 0;
 	virtual void cacheDelete(const std::string& key) = 0;
 	virtual std::string cacheGet(const std::string& key) = 0;
