@@ -2,6 +2,7 @@
 #define UTIL_H
 
 #include <algorithm>
+#include <string>
 #include <sys/stat.h>
 
 inline bool file_exist(const std::string& name) {
