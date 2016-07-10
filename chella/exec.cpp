@@ -58,6 +58,9 @@ void Execute::run(const std::string& name, Parameter& param) {
 	if (r)
 		dlclose(handle);
 
+	/* Release resources allocated for this job */
+	exec->sessionCleanup();
+
 	/* Move worker in idle mode */
 	exec->jobcontrol->setStateIdle();
 

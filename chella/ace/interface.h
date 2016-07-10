@@ -4,6 +4,7 @@
 #include "../callback.h"
 #include "environment.h"
 #include "storeio.h"
+#include "rdbms.h"
 #include "cacheart.h"
 #include "job.h"
 

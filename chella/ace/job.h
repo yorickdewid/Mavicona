@@ -7,6 +7,7 @@ class Job {
 	Environment jobenv;
 	CacheArt cache;
 	StoreIO io;
+	Rdbms sql;
 	Callback *cb = NULL;
 
   public:
@@ -19,6 +20,7 @@ class Job {
 		cb->progress = 0;
 		cache.setCallback(_cb);
 		io.setCallback(_cb);
+		sql.setCallback(_cb);
 	}
 
 	std::string Module() const {
@@ -57,6 +59,10 @@ class Job {
 
 	void updateProgress(unsigned short progress) {
 		cb->updateProgress(progress);
+	}
+
+	Rdbms *SQL() {
+		return &sql;
 	}
 
 	StoreIO *IO() {
