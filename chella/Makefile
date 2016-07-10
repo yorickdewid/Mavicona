@@ -1,7 +1,7 @@
 OBJS = chella.o nodemanager.o controlclient.o exec.o exec_cache.o exec_sql.o art.o sha1.o ../protoc/processjob.pb.o ../protoc/controlmessage.pb.o ../third_party/soci/build/lib/libsoci_core.a
 CC = g++
 DEBUG = -g -O0
-LIBS = -lprotobuf -lzmq -pthread -ldl -lsoci_postgresql
+LIBS = -lprotobuf -lzmq -pthread -ldl
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. -I../quid -I../third_party/upscaledb/include -I../third_party/soci
 CFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. -I../quid -I../third_party/upscaledb/include
 LFLAGS = -Wall $(DEBUG) $(LIBS) -L../third_party/soci/build/lib/

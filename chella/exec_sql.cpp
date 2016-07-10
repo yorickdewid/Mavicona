@@ -1,4 +1,5 @@
 #include <exception>
+#ifdef RDBMS
 #include <backends/postgresql/soci-postgresql.h>
 #include "exec.h"
 
@@ -28,3 +29,4 @@ void Execute::sqlDisconnect() {
 	delete this->session;
 	this->session = nullptr;
 }
+#endif

@@ -2,7 +2,9 @@
 #define EXEC_H
 
 #include <iostream>
+#ifdef RDBMS
 #include <core/soci.h>
+#endif
 #include "controlclient.h"
 #include "callback.h"
 #include "art.h"
@@ -15,7 +17,9 @@ inline int iter_cb(void *data, const unsigned char *key, uint32_t key_len, void 
 class Execute : public Callback {
 	ControlClient *jobcontrol = nullptr;
 	art_tree *cache = nullptr;
+#ifdef RDBMS
 	soci::session *session = nullptr;
+#endif
 
 	Execute() {};
 
@@ -56,19 +60,27 @@ class Execute : public Callback {
 			this->cache = nullptr;
 		}
 
+#ifdef RDBMS
 		if (session) {
 			delete session;
 			session = nullptr;
 		}
+#endif
 	}
 
 	void cachePut(const std::string& key, const std::string value);
 	void cacheDelete(const std::string& key);
 	std::string cacheGet(const std::string& key);
 
+#ifdef RDBMS
 	void sqlConnect(const std::string& rdbms, const std::string& database, const std::string& user, const std::string& password);
 	void sqlQuery(const std::string& query);
 	void sqlDisconnect();
+#else
+	void sqlConnect(const std::string& rdbms, const std::string& database, const std::string& user, const std::string& password) {}
+	void sqlQuery(const std::string& query) {}
+	void sqlDisconnect() {}
+#endif
 
 	static void init(ControlClient *control) {
 		Execute& exec = Execute::getInstance();
