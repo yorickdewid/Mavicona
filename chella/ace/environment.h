@@ -39,14 +39,20 @@ class Environment {
 
 	const std::string Hostname() {
 		char hostname[HOST_NAME_MAX];
-		gethostname(hostname, HOST_NAME_MAX);
+		memset(hostname, '\0', HOST_NAME_MAX);
+		if (gethostname(hostname, HOST_NAME_MAX)) {
+			return "";
+		}
 
 		return hostname;
 	}
 
 	const std::string Login() {
 		char username[LOGIN_NAME_MAX];
-		getlogin_r(username, LOGIN_NAME_MAX);
+		memset(username, '\0', LOGIN_NAME_MAX);
+		if (getlogin_r(username, LOGIN_NAME_MAX)) {
+			return "";
+		}
 
 		return username;
 	}

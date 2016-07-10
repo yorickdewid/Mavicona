@@ -23,12 +23,12 @@ class ControlClient {
 	unsigned int _timeout;
 	unsigned int _progress = 0;
 	std::string _masterNode;
-	FileLogger *_logger = nullptr;
+	// FileLogger *_logger = nullptr;
 	ControlMessage::Action _state;
 
   public:
 	ControlClient() : _timeout(DEFAULT_HEARTBEAT * 1000) {
-		this->_logger = new FileLogger("controller");
+		// this->_logger = new FileLogger("controller");
 	}
 
 	void runTask();
