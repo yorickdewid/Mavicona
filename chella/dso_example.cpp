@@ -31,11 +31,24 @@ class Example : public Job {
 
 		std::cout << std::endl;
 
+		/* Connect to PostgreSQL database */
+		SQL()->Connect("postgresql", "chella", "chella", "q");
+
+		SQL()->Query("CREATE TABLE IF NOT EXISTS example ("
+		             "id serial NOT NULL,"
+		             "name character varying(32),"
+		             "guid character varying(80),"
+		             "CONSTRAINT example_pkey PRIMARY KEY (id)"
+		             ")");
+
 		sleep(2);
 	}
 
 	/* The actual execution of the job */
 	void Run() {
+		updateProgress(125);
+		SQL()->Query("INSERT INTO example (name, guid) VALUES ('" + Name() + "', '" + Quid() + "')");
+
 		updateProgress(250);
 		std::cout << "Doing the work..." << std::endl;
 		sleep(1);
@@ -51,10 +64,14 @@ class Example : public Job {
 		updateProgress(862);
 		std::cout << "Almost done!" << std::endl;
 		sleep(1);
+
+		updateProgress(100);
 	}
 
 	void Teardown() {
 		sleep(1);
+
+		SQL()->Disconnect();
 
 		std::cout << "Goodbye" << std::endl;
 	}
