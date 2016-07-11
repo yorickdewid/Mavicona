@@ -11,8 +11,10 @@
 #include <map>
 #include <memory>
 #include <sstream>
+#include <algorithm>
 #include <string>
 #include <vector>
+#include <memory.h>
 
 //when we ask cxxopts to use Unicode, help strings are processed using ICU,
 //which results in the correct lengths being computed for strings when they
@@ -1079,14 +1081,9 @@ const std::vector<std::string>
 Options::groups() const {
 	std::vector<std::string> g;
 
-	std::transform(
-	    m_help.begin(),
-	    m_help.end(),
-	    std::back_inserter(g),
-	[] (const std::map<std::string, HelpGroupDetails>::value_type & pair) {
+	std::transform(m_help.begin(), m_help.end(), std::back_inserter(g), [] (const std::map<std::string, HelpGroupDetails>::value_type & pair) {
 		return pair.first;
-	}
-	);
+	});
 
 	return g;
 }
