@@ -49,7 +49,7 @@ void NodeManager::runTask() {
 				break;
 		}
 
-		msg.set_cluster_jobs(_workers.size());
+		msg.set_cluster_jobs(_workers.size()/* Not correct */);
 		// msg.cluster_workers();
 
 		std::string serialized;

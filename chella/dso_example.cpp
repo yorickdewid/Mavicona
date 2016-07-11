@@ -33,7 +33,6 @@ class Example : public Job {
 
 		/* Connect to PostgreSQL database */
 		SQL()->Connect("postgresql", "chella", "chella", "q");
-
 		SQL()->Query("CREATE TABLE IF NOT EXISTS example ("
 		             "id serial NOT NULL,"
 		             "name character varying(32),"
@@ -41,7 +40,7 @@ class Example : public Job {
 		             "CONSTRAINT example_pkey PRIMARY KEY (id)"
 		             ")");
 
-		sleep(2);
+		sleep(1);
 	}
 
 	/* The actual execution of the job */
@@ -65,7 +64,7 @@ class Example : public Job {
 		std::cout << "Almost done!" << std::endl;
 		sleep(1);
 
-		updateProgress(100);
+		updateProgress(999);
 	}
 
 	void Teardown() {

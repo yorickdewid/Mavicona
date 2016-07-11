@@ -1,6 +1,7 @@
 #include <zmq.hpp>
 #include <string>
 #include <vector>
+#include <queue>
 #include <iostream>
 #include <csignal>
 #include <unistd.h>
@@ -18,7 +19,7 @@
 
 #define FORK 	1
 
-static std::string masterNode;
+static std::string masterProvision;
 static std::string masterIPC;
 static bool interrupted = false;
 static char **init_argv = NULL;
@@ -46,7 +47,6 @@ void setGuard(pid_t id) {
 
 			if (execv(init_argv[0], init_argv)) {
 				/* ERROR, handle this yourself */
-				puts("Errur");
 			}
 
 			break;
@@ -77,6 +77,8 @@ int setupGuard() {
 }
 
 void initMaster() {
+	std::queue<ProcessJob> jobqueue;
+
 	std::cout << "Starting master" << std::endl;
 
 	NodeManager master;
@@ -86,11 +88,11 @@ void initMaster() {
 	zmq::context_t context(1);
 
 	/* Socket to send messages on */
-	zmq::socket_t sender(context, ZMQ_PUSH);
+	zmq::socket_t sender(context, ZMQ_REP);
 	sender.bind("tcp://*:5555");
 
 	/* Send 10 tasks */
-	for (int task_nbr = 0; task_nbr < 1; task_nbr++) {
+	for (int task_nbr = 0; task_nbr < 5; task_nbr++) {
 		// {
 		std::ifstream t("libdso_example.so");
 		std::string str;
@@ -109,19 +111,60 @@ void initMaster() {
 		job.set_content(str);
 		job.set_partition(0);
 
-		std::string serialized;
-		job.SerializeToString(&serialized);
+		jobqueue.push(job);
+	}
 
-		/* Send reply back to client */
+	while (true) {
+		std::string serialized;
+		zmq::message_t request;
+
+		sender.recv(&request);
+
+		/* Send empty response when no jobs in queue */
+		if (jobqueue.empty()) {
+			message.rebuild(0);
+			sender.send(message);
+			continue;
+		}
+
+		ProcessJob nextjob = jobqueue.front();
+		nextjob.SerializeToString(&serialized);
+
 		message.rebuild(serialized.size());
 		memcpy(reinterpret_cast<void *>(message.data()), serialized.c_str(), serialized.size());
 		sender.send(message);
 
-		sleep(1);
+		jobqueue.pop();
 	}
 
 	/* Keep node manager running */
 	getchar();
+}
+
+void prepareJob(zmq::message_t& message) {
+	SHA1 sha1;
+	ProcessJob job;
+
+	job.ParseFromArray(message.data(), message.size());
+
+	/* Store in cache */
+	sha1.update(job.content());
+	std::string exeName = sha1.final();
+	if (!file_exist("cache/" + exeName)) {
+		std::ofstream file(("cache/" + exeName).c_str());
+		file.write(job.content().c_str(), job.content().size());
+		file.close();
+	}
+
+	/* Gather parameters for job */
+	Execute::Parameter parameters;
+	parameters.jobid = job.id();
+	parameters.jobname = job.name();
+	parameters.jobquid = job.quid();
+	parameters.jobpartition = job.partition();
+
+	/* Run procedure */
+	Execute::run(exeName, parameters);
 }
 
 void initSlave() {
@@ -144,47 +187,68 @@ void initSlave() {
 		return;
 
 	zmq::context_t context(1);
-	zmq::socket_t receiver(context, ZMQ_PULL);
-	receiver.connect(("tcp://" + masterNode).c_str());
+	zmq::socket_t receiver(context, ZMQ_REQ);
+	receiver.connect(("tcp://" + masterProvision).c_str());
 
 	Execute::init(&control);
 
-	/* Process tasks forever */
-	while (1) {
-		SHA1 sha1;
-		zmq::message_t message;
-
+	while (true) {
 		try {
-			receiver.recv(&message);
+			zmq::message_t request(0);
+			receiver.send(request);
+
+			/* Get the reply */
+			zmq::message_t reply;
+			receiver.recv(&reply);
+
+			if (!reply.size()) {
+				puts("Nope");
+				sleep(5);
+			} else {
+				prepareJob(reply);
+			}
 		} catch (zmq::error_t& e) {
 			std::cout << "Exit gracefully" << std::endl;
 			break;
 		}
-
-		ProcessJob job;
-		job.ParseFromArray(message.data(), message.size());
-
-		/* Store in cache */
-		sha1.update(job.content());
-		std::string exeName = sha1.final();
-		if (!file_exist("cache/" + exeName)) {
-			std::ofstream file(("cache/" + exeName).c_str());
-			file.write(job.content().c_str(), job.content().size());
-			file.close();
-		}
-
-		/* Gather parameters for job */
-		Execute::Parameter parameters;
-		parameters.jobid = job.id();
-		parameters.jobname = job.name();
-		parameters.jobquid = job.quid();
-		parameters.jobpartition = job.partition();
-
-		/* Run procedure */
-		Execute::run(exeName, parameters);
-
-		sleep(1);
 	}
+
+	///////////////////////////
+	///////////////////////////
+
+	/* Listen for IPC */
+	// zmq::socket_t ipcserver(context, ZMQ_PULL);
+	// ipcserver.bind("tcp://*:5566");
+
+	/* Initialize poll set */
+	// zmq::pollitem_t items [] = {
+	// 	{receiver, 0, ZMQ_POLLIN, 0},
+	// 	{ipcserver, 0, ZMQ_POLLIN, 0}
+	// };
+
+	// Execute::init(&control);
+
+	/* Process tasks forever */
+	// while (1) {
+	// 	zmq::message_t message;
+
+	// 	try {
+	// 		zmq::poll(&items[0], 2, -1);
+
+	// 		if (items[0].revents & ZMQ_POLLIN) {
+	// 			receiver.recv(&message);
+	// 			prepareJob(message);
+	// 		}
+
+	// 		if (items[1].revents & ZMQ_POLLIN) {
+	// 			ipcserver.recv(&message);
+	// 			prepareJob(message);
+	// 		}
+	// 	} catch (zmq::error_t& e) {
+	// 		std::cout << "Exit gracefully" << std::endl;
+	// 		break;
+	// 	}
+	// }
 }
 
 int main(int argc, char *argv[]) {
@@ -226,11 +290,11 @@ int main(int argc, char *argv[]) {
 		}
 
 		ConfigFile config(configfile);
-		if (!config.exist("chella-master")) {
-			std::cerr << "Must be at least 1 chella master listed" << std::endl;
+		if (!config.exist("chella-provision")) {
+			std::cerr << "Must be at least 1 chella provision listed" << std::endl;
 			return 1;
 		}
-		masterNode = config.get<std::string>("chella-master", "");
+		masterProvision = config.get<std::string>("chella-provision", "");
 
 		if (!config.exist("chella-ipc")) {
 			std::cerr << "Must be at least 1 chella IPC listed" << std::endl;
@@ -249,6 +313,10 @@ int main(int argc, char *argv[]) {
 		initMaster();
 	else
 		initSlave();
+
+	google::protobuf::ShutdownProtobufLibrary();
+
+	puts("DONE");
 
 	return 0;
 }
