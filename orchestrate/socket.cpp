@@ -88,7 +88,7 @@ bool CSocket::Listen(unsigned int max) {
 
 	return true;
 }
-//#include <iostream>
+
 CSocket *CSocket::Accept() {
 	struct sockaddr_in6 sockAddr;
 	socklen_t sockLen;

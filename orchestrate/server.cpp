@@ -32,10 +32,10 @@ void *CServer::Handler(void *client) {
 	/* Thread loop */
 	while (1) {
 		CHeader Header;
-		std::string path, type;
+		std::string path, type, data;
 
 		/* Receive request */
-		res = Client->RecvRequest(Header);
+		res = Client->RecvRequest(Header, data);
 		if (!res)
 			break;
 
@@ -47,7 +47,8 @@ void *CServer::Handler(void *client) {
 		(*Client->logger) << "Request " << Client->Remote() << " [" << type << "] " << path << FileLogger::endl();
 
 		/* Check request type */
-		if (!type.compare("GET")) {
+		if (!type.compare("GET") || !type.compare("POST") || !type.compare("PUT") || !type.compare("DELETE")) {
+
 			/* Check path */
 			if (!path.compare("/")) {
 				res = Client->SendRedirect("/core::webledge::");
@@ -55,7 +56,7 @@ void *CServer::Handler(void *client) {
 			}
 
 			/* Match internal calls */
-			res = Client->ParseUri(path);
+			res = Client->ParseUri(path, type, data);
 			if (res)
 				continue;
 

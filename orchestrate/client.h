@@ -21,10 +21,10 @@ class CClient {
 		\param header the header object.
 		\returns true if success, otherwise false.
 	*/
-	bool SendHeader(CHeader &Header);
+	bool SendHeader(CHeader& Header);
 
   public:
-  	FileLogger *logger;
+	FileLogger *logger;
 
 	/*!
 		Client object constructor.
@@ -92,14 +92,14 @@ class CClient {
 		\param filepath the file to send.
 		\returns true if success, otherwise false.
 	*/
-	bool ParseUri(std::string filepath);
+	bool ParseUri(std::string filepath, const std::string& type, const std::string& data);
 
 	/*!
 		Receive request from the client.
 		\param header the header object.
 		\returns true if success, otherwise false.
 	*/
-	bool RecvRequest(CHeader &Header);
+	bool RecvRequest(CHeader& Header, std::string& data);
 
 	/*!
 		Handle a request error.

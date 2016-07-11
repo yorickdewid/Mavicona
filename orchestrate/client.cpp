@@ -1,13 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
-#include <quidpp.h>
 
-#include "common/json.h"
 #include "client.h"
 #include "error_page.h"
 #include "orchestrator.h"
 #include "file.h"
+#include "service.h"
 
 /* Constants */
 #define BUF_MAXLEN	1024
@@ -160,37 +159,22 @@ bool CClient::SendHeader(CHeader& Header) {
 	return true;
 }
 
-bool CClient::ParseUri(std::string filepath) {
+bool CClient::ParseUri(std::string filepath, const std::string& type, const std::string& data) {
 	const std::string service("/core::foundation::rpc::service");
 	const std::string webledge("/core::webledge::");
 
 	if (!filepath.compare(0, service.size(), service)) {
 		CHeader 	Header;
+		CSerivce	jsonrpc;
 		const char *buffer;
 		size_t      len, res;
-		nlohmann::json object;
 
-		object["active"] = true;
-		object["rev"] = 100;
-		object["server"] = std::string(APP_NAME) + "/" + std::string(APP_VERSION);
-		object["operation"] = "default";
-		object["type"] = "jsonrpc";
-		object["success"] = true;
-		object["message"] = nullptr;
-		object["quid"] = quidpp::Quid().toString();
-		object["parameters"] = {"procedure", {
-				{"jobcount", "Number of active chella jobs"},
-				{"queue", "Items in queue"},
-				{"nodes", "List active cluster nodes"},
-				{"status", "Server status"},
-				{"info", "Cluster information"},
-				{"solicit", "Register instance"},
-				{"quid", "Request new quid"},
-				{"log", "Service logs"},
-				{"service", "Service control"},
-			}
-		};
-		std::string s = object.dump(4);
+		std::string s;
+		if (!type.compare("GET")) {
+			s = jsonrpc.GetAllProcedures();
+		} else if (!type.compare("POST")) {
+			s = jsonrpc.CallProcedure(data);
+		}
 
 		buffer = s.c_str();
 		len    = s.length();
@@ -328,16 +312,26 @@ out:
 	return res;
 }
 
-bool CClient::RecvRequest(CHeader& Header) {
+bool CClient::RecvRequest(CHeader& Header, std::string& data) {
 	char   buffer[HDR_MAXLEN];
 	ssize_t res;
 
 	/* Read data */
 	res = Read(&buffer, HDR_MAXLEN);
 
+	std::string strbuf = std::string(buffer);
+	size_t datapos = strbuf.find("\r\n\r\n");
+
+	if (datapos == std::string::npos) {
+		return false;
+	}
+
+	data = strbuf.substr(datapos + 4);// << std::endl;
+	// std::cout << "Found at " << strbuf << std::endl;
+
 	/* Set header string */
 	if (res > 0)
-		Header.Set(std::string(buffer));
+		Header.Set(strbuf.substr(0, datapos));
 
 	return (res > 0) ? true : false;
 }
