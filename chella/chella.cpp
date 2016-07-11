@@ -78,17 +78,24 @@ int setupGuard() {
 
 void initMaster() {
 	std::queue<ProcessJob> jobqueue;
+	unsigned int workerid = 0;
 
 	std::cout << "Starting master" << std::endl;
 
-	NodeManager master;
-	master.start();
+	// NodeManager master;
+	// master.start();
 
+	int opt = 1;
 	zmq::message_t message;
 	zmq::context_t context(1);
 
+	zmq::socket_t controller(context, ZMQ_REP);
+	controller.bind("tcp://*:5544");
+	controller.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
+
 	/* Socket to send messages on */
 	zmq::socket_t sender(context, ZMQ_REP);
+	sender.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
 	sender.bind("tcp://*:5555");
 
 	/* Send 10 tasks */
@@ -114,27 +121,86 @@ void initMaster() {
 		jobqueue.push(job);
 	}
 
+	/* Initialize poll set */
+	zmq::pollitem_t items[] = {
+		{sender, 0, ZMQ_POLLIN, 0},
+		{controller, 0, ZMQ_POLLIN, 0}
+	};
+
 	while (true) {
 		std::string serialized;
 		zmq::message_t request;
 
-		sender.recv(&request);
+		try {
+			zmq::poll(&items[0], 2, -1);
 
-		/* Send empty response when no jobs in queue */
-		if (jobqueue.empty()) {
-			message.rebuild(0);
-			sender.send(message);
-			continue;
+			if (items[0].revents & ZMQ_POLLIN) {
+				sender.recv(&request);
+
+				/* Send empty response when no jobs in queue */
+				if (jobqueue.empty()) {
+					message.rebuild(0);
+					sender.send(message);
+					continue;
+				}
+
+				ProcessJob nextjob = jobqueue.front();
+				nextjob.SerializeToString(&serialized);
+
+				message.rebuild(serialized.size());
+				memcpy(reinterpret_cast<void *>(message.data()), serialized.c_str(), serialized.size());
+				sender.send(message);
+
+				jobqueue.pop();
+			}
+
+			if (items[1].revents & ZMQ_POLLIN) {
+				controller.recv(&request);
+
+				ControlMessage msg;
+				msg.ParseFromArray(request.data(), request.size());
+
+				switch (msg.action()) {
+					case ControlMessage::SOLICIT:
+						msg.set_id(workerid++);
+						msg.set_action(ControlMessage::CONFIRMED);
+						std::cout << "Accept: Solicit from worker, assigned worker-" << msg.id() << std::endl;
+						// (*_logger) << "Accept: Solicit from worker, assigned worker-" << msg.id() << FileLogger::endl();
+						// _workers.push_back(msg.id());
+						break;
+					case ControlMessage::IDLE:
+						printf("worker-%d -> IDLE\n", msg.id());
+						break;
+					case ControlMessage::ACCEPTED:
+						printf("worker-%d -> ACCEPTED\n", msg.id());
+						break;
+					case ControlMessage::SETUP:
+						printf("worker-%d -> SETUP\n", msg.id());
+						break;
+					case ControlMessage::RUNNING:
+						printf("worker-%d -> RUNNING %.1f%%\n", msg.id(), (float)((float)msg.progress() / (float)10));
+						break;
+					case ControlMessage::TEARDOWN:
+						printf("worker-%d -> TEARDOWN\n", msg.id());
+						break;
+					default:
+						break;
+				}
+
+				msg.set_cluster_jobs(jobqueue.size());
+				// msg.cluster_workers();
+
+				msg.SerializeToString(&serialized);
+
+				/* Send reply back to client */
+				request.rebuild(serialized.size());
+				memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+				controller.send(request);
+			}
+		} catch (zmq::error_t& e) {
+			std::cout << "Exit gracefully" << std::endl;
+			break;
 		}
-
-		ProcessJob nextjob = jobqueue.front();
-		nextjob.SerializeToString(&serialized);
-
-		message.rebuild(serialized.size());
-		memcpy(reinterpret_cast<void *>(message.data()), serialized.c_str(), serialized.size());
-		sender.send(message);
-
-		jobqueue.pop();
 	}
 
 	/* Keep node manager running */
@@ -201,8 +267,7 @@ void initSlave() {
 			zmq::message_t reply;
 			receiver.recv(&reply);
 
-			if (!reply.size()) {
-				puts("Nope");
+			if (reply.size()) {
 				sleep(5);
 			} else {
 				prepareJob(reply);
