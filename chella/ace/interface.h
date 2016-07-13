@@ -6,6 +6,7 @@
 #include "storeio.h"
 #include "rdbms.h"
 #include "cacheart.h"
+#include "chain.h"
 #include "job.h"
 
 #define ACE_MAGIC 0x2a73

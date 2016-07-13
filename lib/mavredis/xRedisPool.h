@@ -16,9 +16,9 @@
 #include "xRedisClient.h"
 using namespace std;
 
-#define MAX_REDIS_CONN_POOLSIZE     128      // 每个DB最大连接数
-#define MAX_REDIS_CACHE_TYPE        128      // 最大支持的CACHE种类数
-#define MAX_REDIS_DB_HASHBASE       128      // 最大HASH分库基数
+#define MAX_REDIS_CONN_POOLSIZE     128
+#define MAX_REDIS_CACHE_TYPE        128
+#define MAX_REDIS_DB_HASHBASE       128
 
 #define GET_CONNECT_ERROR       "get connection error"
 #define CONNECT_CLOSED_ERROR    "redis connection be closed"
@@ -100,7 +100,7 @@ class RedisDBSlice {
 	~RedisDBSlice();
 
 	void Init( unsigned int  cahcetype, unsigned int  dbindex);
-	// 连到到一个REDIS服务节点
+
 	bool ConnectRedisNodes(unsigned int cahcetype, unsigned int dbindex,
 	                       const std::string& host,  unsigned int port, const std::string& passwd,
 	                       unsigned int poolsize,  unsigned int timeout, int role);
@@ -168,6 +168,5 @@ class RedisPool {
 	RedisCache     *mRedisCacheList;
 	unsigned int    mTypeSize;
 };
-
 
 #endif

@@ -8,6 +8,7 @@ class Job {
 	CacheArt cache;
 	StoreIO io;
 	Rdbms sql;
+	Chain *chain = NULL;
 	Callback *cb = NULL;
 
   public:
@@ -18,9 +19,18 @@ class Job {
 	void Inject(Callback *_cb) {
 		cb = _cb;
 		cb->progress = 0;
+
 		cache.setCallback(_cb);
 		io.setCallback(_cb);
 		sql.setCallback(_cb);
+	}
+
+	Chain *PullChain() {
+		return chain;
+	}
+
+	void BindChain(Chain *_chain) {
+		chain = _chain;
 	}
 
 	std::string Module() const {
@@ -57,10 +67,11 @@ class Job {
 		return cb->clusterjobs;
 	}
 
-	void updateProgress(unsigned short progress) {
+	void UpdateProgress(unsigned short progress) {
 		cb->updateProgress(progress);
 	}
 
+	/* Ace framework classes */
 	Rdbms *SQL() {
 		return &sql;
 	}

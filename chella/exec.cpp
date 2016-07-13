@@ -54,9 +54,13 @@ void Execute::run(const std::string& name, Parameter& param) {
 	exec->jobcontrol->setStateTeardown();
 	jobObject->Teardown();
 
+	/* Pull the chain */
+	exec->chain = jobObject->PullChain();
+
 	int r = dlclose(handle);
 	if (r)
 		dlclose(handle);
+
 
 	/* Release resources allocated for this job */
 	exec->sessionCleanup();
@@ -65,4 +69,27 @@ void Execute::run(const std::string& name, Parameter& param) {
 	exec->jobcontrol->setStateIdle();
 
 	return;
+}
+
+void Execute::prospect() {
+	Execute *exec = &Execute::getInstance();
+
+	if (!exec->chain) {
+		std::cout << "no chain, done" << std::endl;
+		return;
+	}
+
+	std::cout << "Chain found" << std::endl;
+	// check if chain
+	// build jobs
+	// -> set state
+	// send to master
+
+	// ProcessJob job;
+	// job.set_name("woei");
+	// job.set_id(task_nbr);
+	// job.set_quid("429c00e5-290e-406f-8e54-65591ccace21");
+	// job.set_content(str);
+	// job.set_partition(0);
+	delete exec->chain;
 }

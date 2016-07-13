@@ -7,6 +7,7 @@
 #endif
 #include "controlclient.h"
 #include "callback.h"
+#include "ace/chain.h"
 #include "art.h"
 
 inline int iter_cb(void *data, const unsigned char *key, uint32_t key_len, void *val) {
@@ -16,6 +17,7 @@ inline int iter_cb(void *data, const unsigned char *key, uint32_t key_len, void 
 
 class Execute : public Callback {
 	ControlClient *jobcontrol = nullptr;
+	Ace::Chain *chain = nullptr;
 	art_tree *cache = nullptr;
 #ifdef RDBMS
 	soci::session *session = nullptr;
@@ -88,6 +90,7 @@ class Execute : public Callback {
 	}
 
 	static void run(const std::string& name, Parameter& param);
+	static void prospect();
 };
 
 #endif // EXEC_H
