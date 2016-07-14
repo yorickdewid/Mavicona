@@ -1,65 +1,39 @@
 #include <zmq.hpp>
-
 #include "nodemanager.h"
-#include "protoc/controlmessage.pb.h"
 
-void NodeManager::runTask() {
-	/* Prepare our context and socket */
-	zmq::context_t context(1);
-	zmq::socket_t socket(context, ZMQ_REP);
+namespace NodeManager {
 
-	int opt = 1;
-	socket.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
-	socket.bind("tcp://*:5544");
+static unsigned int jobcounter = 0;
 
-	(*_logger) << "Node manager: waiting for connections " << FileLogger::endl();
-
-	while (true) {
-		zmq::message_t request;
-
-		/* Wait for next request from client */
-		socket.recv(&request);
-
-		ControlMessage msg;
-		msg.ParseFromArray(request.data(), request.size());
-
-		switch (msg.action()) {
-			case ControlMessage::SOLICIT:
-				msg.set_id(_counter++);
-				msg.set_action(ControlMessage::CONFIRMED);
-				(*_logger) << "Accept: Solicit from worker, assigned worker-" << msg.id() << FileLogger::endl();
-				_workers.push_back(msg.id());
-				break;
-			case ControlMessage::IDLE:
-				printf("worker-%d -> IDLE\n", msg.id());
-				break;
-			case ControlMessage::ACCEPTED:
-				printf("worker-%d -> ACCEPTED\n", msg.id());
-				break;
-			case ControlMessage::SETUP:
-				printf("worker-%d -> SETUP\n", msg.id());
-				break;
-			case ControlMessage::RUNNING:
-				printf("worker-%d -> RUNNING %.1f%%\n", msg.id(), (float)((float)msg.progress() / (float)10));
-				break;
-			case ControlMessage::TEARDOWN:
-				printf("worker-%d -> TEARDOWN\n", msg.id());
-				break;
-			default:
-				break;
-		}
-
-		msg.set_cluster_jobs(_workers.size()/* Not correct */);
-		// msg.cluster_workers();
-
-		std::string serialized;
-		msg.SerializeToString(&serialized);
-
-		/* Send reply back to client */
-		request.rebuild(serialized.size());
-		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		socket.send(request);
-
-		_logger->flush();
+void runTask(ControlMessage& message, size_t queuesize) {
+	switch (message.action()) {
+		case ControlMessage::SOLICIT:
+			message.set_id(jobcounter++);
+			message.set_action(ControlMessage::CONFIRMED);
+			std::cout << "Accept: Solicit from worker, assigned worker-" << message.id() << std::endl;
+			// (*_logger) << "Accept: Solicit from worker, assigned worker-" << message.id() << FileLogger::endl();
+			// _workers.push_back(message.id());
+			break;
+		case ControlMessage::IDLE:
+			printf("worker-%d -> IDLE\n", message.id());
+			break;
+		case ControlMessage::ACCEPTED:
+			printf("worker-%d -> ACCEPTED\n", message.id());
+			break;
+		case ControlMessage::SETUP:
+			printf("worker-%d -> SETUP\n", message.id());
+			break;
+		case ControlMessage::RUNNING:
+			printf("worker-%d -> RUNNING %.1f%%\n", message.id(), (float)((float)message.progress() / (float)10));
+			break;
+		case ControlMessage::TEARDOWN:
+			printf("worker-%d -> TEARDOWN\n", message.id());
+			break;
+		default:
+			break;
 	}
+
+	message.set_cluster_jobs(queuesize);
+}
+
 }

@@ -9,11 +9,11 @@ message ControlMessage {
     SETUP = 3;
     RUNNING = 4;
     TEARDOWN = 5;
-    CONFIRMED = 99;
+    SHUTDOWN = 99;
+    CONFIRMED = 100;
   }
 
   required Action action = 3;
   optional int32 progress = 4;
   optional int32 cluster_jobs = 5;
-  repeated string cluster_workers = 6;
 }
