@@ -2,6 +2,7 @@
 #include <cassert>
 #include "common/util.h"
 #include "ace/interface.h"
+#include "protoc/processjob.pb.h"
 #include "exec.h"
 
 typedef int (*regclass_t)();
@@ -80,16 +81,20 @@ void Execute::prospect() {
 	}
 
 	std::cout << "Chain found" << std::endl;
-	// check if chain
-	// build jobs
-	// -> set state
-	// send to master
+	std::cout << "Subjobs " << exec->chain->size() << std::endl;
 
-	// ProcessJob job;
-	// job.set_name("woei");
-	// job.set_id(task_nbr);
-	// job.set_quid("429c00e5-290e-406f-8e54-65591ccace21");
-	// job.set_content(str);
-	// job.set_partition(0);
+	for (unsigned int i = 0; i < exec->chain->size(); ++i) {
+		auto subjob = exec->chain->at(i);
+
+		ProcessJob job;
+		job.set_name(subjob->name);
+		job.set_id(i);
+		job.set_quid("5f7920eb-ef78-4a2a-a04e-e8763cf35716");
+		job.set_content(subjob->content);
+		job.set_partition(subjob->partition);
+
+		std::cout << "Submit subjob " << i << std::endl;
+	}
+
 	delete exec->chain;
 }
