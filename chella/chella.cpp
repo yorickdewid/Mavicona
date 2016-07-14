@@ -191,8 +191,8 @@ void prepareJob(zmq::message_t& message) {
 	/* Store in cache */
 	sha1.update(job.content());
 	std::string exeName = sha1.final();
-	if (!file_exist("cache/" + exeName)) {
-		std::ofstream file(("cache/" + exeName).c_str());
+	if (!file_exist("cache/module/" + exeName)) {
+		std::ofstream file(("cache/module/" + exeName).c_str());
 		file.write(job.content().c_str(), job.content().size());
 		file.close();
 	}
@@ -228,6 +228,8 @@ void initSlave() {
 
 	/* Create cache directory */
 	mkdir("cache", 0700);
+	mkdir("cache/module", 0700);
+	mkdir("cache/wal", 0700);
 
 	/* Guard the process */
 	if (!setupGuard())

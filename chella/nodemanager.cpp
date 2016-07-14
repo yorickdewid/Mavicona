@@ -11,8 +11,6 @@ void runTask(ControlMessage& message, size_t queuesize) {
 			message.set_id(jobcounter++);
 			message.set_action(ControlMessage::CONFIRMED);
 			std::cout << "Accept: Solicit from worker, assigned worker-" << message.id() << std::endl;
-			// (*_logger) << "Accept: Solicit from worker, assigned worker-" << message.id() << FileLogger::endl();
-			// _workers.push_back(message.id());
 			break;
 		case ControlMessage::IDLE:
 			printf("worker-%d -> IDLE\n", message.id());
@@ -28,6 +26,9 @@ void runTask(ControlMessage& message, size_t queuesize) {
 			break;
 		case ControlMessage::TEARDOWN:
 			printf("worker-%d -> TEARDOWN\n", message.id());
+			break;
+		case ControlMessage::SHUTDOWN:
+			std::cout << "Shutdown: Worker-" << message.id() << " signed off" << std::endl;
 			break;
 		default:
 			break;

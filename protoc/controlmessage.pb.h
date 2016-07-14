@@ -41,7 +41,8 @@ enum ControlMessage_Action {
   ControlMessage_Action_SETUP = 3,
   ControlMessage_Action_RUNNING = 4,
   ControlMessage_Action_TEARDOWN = 5,
-  ControlMessage_Action_CONFIRMED = 99
+  ControlMessage_Action_SHUTDOWN = 99,
+  ControlMessage_Action_CONFIRMED = 100
 };
 bool ControlMessage_Action_IsValid(int value);
 const ControlMessage_Action ControlMessage_Action_Action_MIN = ControlMessage_Action_SOLICIT;
@@ -118,6 +119,7 @@ class ControlMessage : public ::google::protobuf::Message {
   static const Action SETUP = ControlMessage_Action_SETUP;
   static const Action RUNNING = ControlMessage_Action_RUNNING;
   static const Action TEARDOWN = ControlMessage_Action_TEARDOWN;
+  static const Action SHUTDOWN = ControlMessage_Action_SHUTDOWN;
   static const Action CONFIRMED = ControlMessage_Action_CONFIRMED;
   static inline bool Action_IsValid(int value) {
     return ControlMessage_Action_IsValid(value);
@@ -182,22 +184,6 @@ class ControlMessage : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 cluster_jobs() const;
   inline void set_cluster_jobs(::google::protobuf::int32 value);
 
-  // repeated string cluster_workers = 6;
-  inline int cluster_workers_size() const;
-  inline void clear_cluster_workers();
-  static const int kClusterWorkersFieldNumber = 6;
-  inline const ::std::string& cluster_workers(int index) const;
-  inline ::std::string* mutable_cluster_workers(int index);
-  inline void set_cluster_workers(int index, const ::std::string& value);
-  inline void set_cluster_workers(int index, const char* value);
-  inline void set_cluster_workers(int index, const char* value, size_t size);
-  inline ::std::string* add_cluster_workers();
-  inline void add_cluster_workers(const ::std::string& value);
-  inline void add_cluster_workers(const char* value);
-  inline void add_cluster_workers(const char* value, size_t size);
-  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& cluster_workers() const;
-  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_cluster_workers();
-
   // @@protoc_insertion_point(class_scope:ControlMessage)
  private:
   inline void set_has_id();
@@ -220,7 +206,6 @@ class ControlMessage : public ::google::protobuf::Message {
   int action_;
   ::google::protobuf::int32 progress_;
   ::google::protobuf::int32 cluster_jobs_;
-  ::google::protobuf::RepeatedPtrField< ::std::string> cluster_workers_;
   friend void  protobuf_AddDesc_controlmessage_2eproto();
   friend void protobuf_AssignDesc_controlmessage_2eproto();
   friend void protobuf_ShutdownFile_controlmessage_2eproto();
@@ -406,60 +391,6 @@ inline void ControlMessage::set_cluster_jobs(::google::protobuf::int32 value) {
   set_has_cluster_jobs();
   cluster_jobs_ = value;
   // @@protoc_insertion_point(field_set:ControlMessage.cluster_jobs)
-}
-
-// repeated string cluster_workers = 6;
-inline int ControlMessage::cluster_workers_size() const {
-  return cluster_workers_.size();
-}
-inline void ControlMessage::clear_cluster_workers() {
-  cluster_workers_.Clear();
-}
-inline const ::std::string& ControlMessage::cluster_workers(int index) const {
-  // @@protoc_insertion_point(field_get:ControlMessage.cluster_workers)
-  return cluster_workers_.Get(index);
-}
-inline ::std::string* ControlMessage::mutable_cluster_workers(int index) {
-  // @@protoc_insertion_point(field_mutable:ControlMessage.cluster_workers)
-  return cluster_workers_.Mutable(index);
-}
-inline void ControlMessage::set_cluster_workers(int index, const ::std::string& value) {
-  // @@protoc_insertion_point(field_set:ControlMessage.cluster_workers)
-  cluster_workers_.Mutable(index)->assign(value);
-}
-inline void ControlMessage::set_cluster_workers(int index, const char* value) {
-  cluster_workers_.Mutable(index)->assign(value);
-  // @@protoc_insertion_point(field_set_char:ControlMessage.cluster_workers)
-}
-inline void ControlMessage::set_cluster_workers(int index, const char* value, size_t size) {
-  cluster_workers_.Mutable(index)->assign(
-    reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:ControlMessage.cluster_workers)
-}
-inline ::std::string* ControlMessage::add_cluster_workers() {
-  return cluster_workers_.Add();
-}
-inline void ControlMessage::add_cluster_workers(const ::std::string& value) {
-  cluster_workers_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add:ControlMessage.cluster_workers)
-}
-inline void ControlMessage::add_cluster_workers(const char* value) {
-  cluster_workers_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add_char:ControlMessage.cluster_workers)
-}
-inline void ControlMessage::add_cluster_workers(const char* value, size_t size) {
-  cluster_workers_.Add()->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_add_pointer:ControlMessage.cluster_workers)
-}
-inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
-ControlMessage::cluster_workers() const {
-  // @@protoc_insertion_point(field_list:ControlMessage.cluster_workers)
-  return cluster_workers_;
-}
-inline ::google::protobuf::RepeatedPtrField< ::std::string>*
-ControlMessage::mutable_cluster_workers() {
-  // @@protoc_insertion_point(field_mutable_list:ControlMessage.cluster_workers)
-  return &cluster_workers_;
 }
 
 

@@ -3,12 +3,15 @@
 #include "common/util.h"
 #include "ace/interface.h"
 #include "protoc/processjob.pb.h"
+#include "wal.h"
 #include "exec.h"
 
 typedef int (*regclass_t)();
 typedef Ace::Job *(*facade_t)();
 
 void Execute::run(const std::string& name, Parameter& param) {
+	Wal *executionLog = new Wal(param.jobquid, name);
+
 	Execute *exec = &Execute::getInstance();
 
 	std::cout << "Running module " << std::endl;
@@ -28,12 +31,14 @@ void Execute::run(const std::string& name, Parameter& param) {
 	exec->jobstate = param.jobstate;
 	exec->jobparent = param.jobparent;
 
-	if (!file_exist("cache/" + name)) {
+	executionLog->setCheckpoint(Wal::Checkpoint::INIT);
+
+	if (!file_exist("cache/module/" + name)) {
 		std::cerr << "Cannot access library" << std::endl;
 		return;
 	}
 
-	void *handle = dlopen(("cache/" + name).c_str(), RTLD_LAZY);
+	void *handle = dlopen(("cache/module/" + name).c_str(), RTLD_LAZY);
 	if (!handle) {
 		std::cerr << "Cannot open library: " << dlerror() << std::endl;
 		return;
@@ -41,42 +46,50 @@ void Execute::run(const std::string& name, Parameter& param) {
 
 	regclass_t exec_register = (int (*)()) dlsym(handle, "register_class");
 	facade_t exec_facade = (Ace::Job * (*)()) dlsym(handle, "object_facade");
+	executionLog->setCheckpoint(Wal::Checkpoint::LOAD);
 
+	/* Inject job and cluster */
 	assert(exec_register() == ACE_MAGIC);
 	Ace::Job *jobObject = (Ace::Job *)exec_facade();
 	jobObject->Inject(exec);
+	executionLog->setCheckpoint(Wal::Checkpoint::INJECT);
 
 	/* Call this setup once in the cluster */
 	if (exec->jobstate == SPAWN) {
 		exec->jobcontrol->setStateSetup();
 		jobObject->SetupOnce();
+		executionLog->setCheckpoint(Wal::Checkpoint::SETUP_ONCE);
 	}
 
 	/* Call setup routine */
 	exec->jobcontrol->setStateSetup();
 	jobObject->Setup();
+	executionLog->setCheckpoint(Wal::Checkpoint::SETUP);
 
 	/* Call main routine */
 	exec->jobcontrol->setStateRunning();
 	jobObject->Run();
+	executionLog->setCheckpoint(Wal::Checkpoint::RUN);
 
 	/* Call teardown routine */
 	exec->jobcontrol->setStateTeardown();
 	jobObject->Teardown();
+	executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN);
 
 	/* Call this teardown once in the cluster */
 	if (exec->jobstate == FUNNEL) {
 		exec->jobcontrol->setStateSetup();
 		jobObject->TeardownOnce();
+		executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN_ONCE);
 	}
 
 	/* Pull the chain */
 	exec->chain = jobObject->PullChain();
+	executionLog->setCheckpoint(Wal::Checkpoint::PULLCHAIN);
 
 	int r = dlclose(handle);
 	if (r)
 		dlclose(handle);
-
 
 	/* Release resources allocated for this job */
 	exec->sessionCleanup();
@@ -84,7 +97,10 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Move worker in idle mode */
 	exec->jobcontrol->setStateIdle();
 
-	return;
+	/* Mark WAL done */
+	executionLog->markDone();
+
+	delete executionLog;
 }
 
 void Execute::prospect() {

@@ -33,13 +33,12 @@ void protobuf_AssignDesc_controlmessage_2eproto() {
       "controlmessage.proto");
   GOOGLE_CHECK(file != NULL);
   ControlMessage_descriptor_ = file->message_type(0);
-  static const int ControlMessage_offsets_[6] = {
+  static const int ControlMessage_offsets_[5] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ControlMessage, id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ControlMessage, quid_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ControlMessage, action_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ControlMessage, progress_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ControlMessage, cluster_jobs_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ControlMessage, cluster_workers_),
   };
   ControlMessage_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -83,13 +82,13 @@ void protobuf_AddDesc_controlmessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\024controlmessage.proto\"\367\001\n\016ControlMessag"
+    "\n\024controlmessage.proto\"\354\001\n\016ControlMessag"
     "e\022\n\n\002id\030\001 \002(\005\022\014\n\004quid\030\002 \002(\t\022&\n\006action\030\003 "
     "\002(\0162\026.ControlMessage.Action\022\020\n\010progress\030"
-    "\004 \001(\005\022\024\n\014cluster_jobs\030\005 \001(\005\022\027\n\017cluster_w"
-    "orkers\030\006 \003(\t\"b\n\006Action\022\013\n\007SOLICIT\020\000\022\010\n\004I"
-    "DLE\020\001\022\014\n\010ACCEPTED\020\002\022\t\n\005SETUP\020\003\022\013\n\007RUNNIN"
-    "G\020\004\022\014\n\010TEARDOWN\020\005\022\r\n\tCONFIRMED\020c", 272);
+    "\004 \001(\005\022\024\n\014cluster_jobs\030\005 \001(\005\"p\n\006Action\022\013\n"
+    "\007SOLICIT\020\000\022\010\n\004IDLE\020\001\022\014\n\010ACCEPTED\020\002\022\t\n\005SE"
+    "TUP\020\003\022\013\n\007RUNNING\020\004\022\014\n\010TEARDOWN\020\005\022\014\n\010SHUT"
+    "DOWN\020c\022\r\n\tCONFIRMED\020d", 261);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "controlmessage.proto", &protobuf_RegisterTypes);
   ControlMessage::default_instance_ = new ControlMessage();
@@ -119,6 +118,7 @@ bool ControlMessage_Action_IsValid(int value) {
     case 4:
     case 5:
     case 99:
+    case 100:
       return true;
     default:
       return false;
@@ -132,6 +132,7 @@ const ControlMessage_Action ControlMessage::ACCEPTED;
 const ControlMessage_Action ControlMessage::SETUP;
 const ControlMessage_Action ControlMessage::RUNNING;
 const ControlMessage_Action ControlMessage::TEARDOWN;
+const ControlMessage_Action ControlMessage::SHUTDOWN;
 const ControlMessage_Action ControlMessage::CONFIRMED;
 const ControlMessage_Action ControlMessage::Action_MIN;
 const ControlMessage_Action ControlMessage::Action_MAX;
@@ -143,7 +144,6 @@ const int ControlMessage::kQuidFieldNumber;
 const int ControlMessage::kActionFieldNumber;
 const int ControlMessage::kProgressFieldNumber;
 const int ControlMessage::kClusterJobsFieldNumber;
-const int ControlMessage::kClusterWorkersFieldNumber;
 #endif  // !_MSC_VER
 
 ControlMessage::ControlMessage()
@@ -230,7 +230,6 @@ void ControlMessage::Clear() {
 #undef OFFSET_OF_FIELD_
 #undef ZR_
 
-  cluster_workers_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -322,25 +321,6 @@ bool ControlMessage::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(50)) goto parse_cluster_workers;
-        break;
-      }
-
-      // repeated string cluster_workers = 6;
-      case 6: {
-        if (tag == 50) {
-         parse_cluster_workers:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->add_cluster_workers()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-            this->cluster_workers(this->cluster_workers_size() - 1).data(),
-            this->cluster_workers(this->cluster_workers_size() - 1).length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "cluster_workers");
-        } else {
-          goto handle_unusual;
-        }
-        if (input->ExpectTag(50)) goto parse_cluster_workers;
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -401,16 +381,6 @@ void ControlMessage::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(5, this->cluster_jobs(), output);
   }
 
-  // repeated string cluster_workers = 6;
-  for (int i = 0; i < this->cluster_workers_size(); i++) {
-  ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-    this->cluster_workers(i).data(), this->cluster_workers(i).length(),
-    ::google::protobuf::internal::WireFormat::SERIALIZE,
-    "cluster_workers");
-    ::google::protobuf::internal::WireFormatLite::WriteString(
-      6, this->cluster_workers(i), output);
-  }
-
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -451,16 +421,6 @@ void ControlMessage::SerializeWithCachedSizes(
   // optional int32 cluster_jobs = 5;
   if (has_cluster_jobs()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(5, this->cluster_jobs(), target);
-  }
-
-  // repeated string cluster_workers = 6;
-  for (int i = 0; i < this->cluster_workers_size(); i++) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->cluster_workers(i).data(), this->cluster_workers(i).length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "cluster_workers");
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteStringToArray(6, this->cluster_workers(i), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -510,13 +470,6 @@ int ControlMessage::ByteSize() const {
     }
 
   }
-  // repeated string cluster_workers = 6;
-  total_size += 1 * this->cluster_workers_size();
-  for (int i = 0; i < this->cluster_workers_size(); i++) {
-    total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
-      this->cluster_workers(i));
-  }
-
   if (!unknown_fields().empty()) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
@@ -542,7 +495,6 @@ void ControlMessage::MergeFrom(const ::google::protobuf::Message& from) {
 
 void ControlMessage::MergeFrom(const ControlMessage& from) {
   GOOGLE_CHECK_NE(&from, this);
-  cluster_workers_.MergeFrom(from.cluster_workers_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_id()) {
       set_id(from.id());
@@ -588,7 +540,6 @@ void ControlMessage::Swap(ControlMessage* other) {
     std::swap(action_, other->action_);
     std::swap(progress_, other->progress_);
     std::swap(cluster_jobs_, other->cluster_jobs_);
-    cluster_workers_.Swap(&other->cluster_workers_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
