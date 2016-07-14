@@ -23,6 +23,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 
@@ -33,6 +34,26 @@ void protobuf_ShutdownFile_processjob_2eproto();
 
 class ProcessJob;
 
+enum ProcessJob_State {
+  ProcessJob_State_SPAWN = 0,
+  ProcessJob_State_PARTITION = 1,
+  ProcessJob_State_FUNNEL = 2
+};
+bool ProcessJob_State_IsValid(int value);
+const ProcessJob_State ProcessJob_State_State_MIN = ProcessJob_State_SPAWN;
+const ProcessJob_State ProcessJob_State_State_MAX = ProcessJob_State_FUNNEL;
+const int ProcessJob_State_State_ARRAYSIZE = ProcessJob_State_State_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* ProcessJob_State_descriptor();
+inline const ::std::string& ProcessJob_State_Name(ProcessJob_State value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    ProcessJob_State_descriptor(), value);
+}
+inline bool ProcessJob_State_Parse(
+    const ::std::string& name, ProcessJob_State* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<ProcessJob_State>(
+    ProcessJob_State_descriptor(), name, value);
+}
 // ===================================================================
 
 class ProcessJob : public ::google::protobuf::Message {
@@ -86,6 +107,31 @@ class ProcessJob : public ::google::protobuf::Message {
 
   // nested types ----------------------------------------------------
 
+  typedef ProcessJob_State State;
+  static const State SPAWN = ProcessJob_State_SPAWN;
+  static const State PARTITION = ProcessJob_State_PARTITION;
+  static const State FUNNEL = ProcessJob_State_FUNNEL;
+  static inline bool State_IsValid(int value) {
+    return ProcessJob_State_IsValid(value);
+  }
+  static const State State_MIN =
+    ProcessJob_State_State_MIN;
+  static const State State_MAX =
+    ProcessJob_State_State_MAX;
+  static const int State_ARRAYSIZE =
+    ProcessJob_State_State_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  State_descriptor() {
+    return ProcessJob_State_descriptor();
+  }
+  static inline const ::std::string& State_Name(State value) {
+    return ProcessJob_State_Name(value);
+  }
+  static inline bool State_Parse(const ::std::string& name,
+      State* value) {
+    return ProcessJob_State_Parse(name, value);
+  }
+
   // accessors -------------------------------------------------------
 
   // required string name = 1;
@@ -119,10 +165,17 @@ class ProcessJob : public ::google::protobuf::Message {
   inline ::std::string* release_quid();
   inline void set_allocated_quid(::std::string* quid);
 
-  // optional bytes content = 4;
+  // required .ProcessJob.State state = 4;
+  inline bool has_state() const;
+  inline void clear_state();
+  static const int kStateFieldNumber = 4;
+  inline ::ProcessJob_State state() const;
+  inline void set_state(::ProcessJob_State value);
+
+  // optional bytes content = 5;
   inline bool has_content() const;
   inline void clear_content();
-  static const int kContentFieldNumber = 4;
+  static const int kContentFieldNumber = 5;
   inline const ::std::string& content() const;
   inline void set_content(const ::std::string& value);
   inline void set_content(const char* value);
@@ -131,12 +184,31 @@ class ProcessJob : public ::google::protobuf::Message {
   inline ::std::string* release_content();
   inline void set_allocated_content(::std::string* content);
 
-  // required int32 partition = 5;
+  // optional int32 partition = 6;
   inline bool has_partition() const;
   inline void clear_partition();
-  static const int kPartitionFieldNumber = 5;
+  static const int kPartitionFieldNumber = 6;
   inline ::google::protobuf::int32 partition() const;
   inline void set_partition(::google::protobuf::int32 value);
+
+  // optional int32 partition_count = 7;
+  inline bool has_partition_count() const;
+  inline void clear_partition_count();
+  static const int kPartitionCountFieldNumber = 7;
+  inline ::google::protobuf::int32 partition_count() const;
+  inline void set_partition_count(::google::protobuf::int32 value);
+
+  // optional string quid_parent = 8;
+  inline bool has_quid_parent() const;
+  inline void clear_quid_parent();
+  static const int kQuidParentFieldNumber = 8;
+  inline const ::std::string& quid_parent() const;
+  inline void set_quid_parent(const ::std::string& value);
+  inline void set_quid_parent(const char* value);
+  inline void set_quid_parent(const char* value, size_t size);
+  inline ::std::string* mutable_quid_parent();
+  inline ::std::string* release_quid_parent();
+  inline void set_allocated_quid_parent(::std::string* quid_parent);
 
   // @@protoc_insertion_point(class_scope:ProcessJob)
  private:
@@ -146,10 +218,16 @@ class ProcessJob : public ::google::protobuf::Message {
   inline void clear_has_id();
   inline void set_has_quid();
   inline void clear_has_quid();
+  inline void set_has_state();
+  inline void clear_has_state();
   inline void set_has_content();
   inline void clear_has_content();
   inline void set_has_partition();
   inline void clear_has_partition();
+  inline void set_has_partition_count();
+  inline void clear_has_partition_count();
+  inline void set_has_quid_parent();
+  inline void clear_has_quid_parent();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -158,8 +236,11 @@ class ProcessJob : public ::google::protobuf::Message {
   ::std::string* name_;
   ::std::string* quid_;
   ::google::protobuf::int32 id_;
-  ::google::protobuf::int32 partition_;
+  int state_;
   ::std::string* content_;
+  ::google::protobuf::int32 partition_;
+  ::google::protobuf::int32 partition_count_;
+  ::std::string* quid_parent_;
   friend void  protobuf_AddDesc_processjob_2eproto();
   friend void protobuf_AssignDesc_processjob_2eproto();
   friend void protobuf_ShutdownFile_processjob_2eproto();
@@ -350,15 +431,40 @@ inline void ProcessJob::set_allocated_quid(::std::string* quid) {
   // @@protoc_insertion_point(field_set_allocated:ProcessJob.quid)
 }
 
-// optional bytes content = 4;
-inline bool ProcessJob::has_content() const {
+// required .ProcessJob.State state = 4;
+inline bool ProcessJob::has_state() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
-inline void ProcessJob::set_has_content() {
+inline void ProcessJob::set_has_state() {
   _has_bits_[0] |= 0x00000008u;
 }
-inline void ProcessJob::clear_has_content() {
+inline void ProcessJob::clear_has_state() {
   _has_bits_[0] &= ~0x00000008u;
+}
+inline void ProcessJob::clear_state() {
+  state_ = 0;
+  clear_has_state();
+}
+inline ::ProcessJob_State ProcessJob::state() const {
+  // @@protoc_insertion_point(field_get:ProcessJob.state)
+  return static_cast< ::ProcessJob_State >(state_);
+}
+inline void ProcessJob::set_state(::ProcessJob_State value) {
+  assert(::ProcessJob_State_IsValid(value));
+  set_has_state();
+  state_ = value;
+  // @@protoc_insertion_point(field_set:ProcessJob.state)
+}
+
+// optional bytes content = 5;
+inline bool ProcessJob::has_content() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void ProcessJob::set_has_content() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void ProcessJob::clear_has_content() {
+  _has_bits_[0] &= ~0x00000010u;
 }
 inline void ProcessJob::clear_content() {
   if (content_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -426,15 +532,15 @@ inline void ProcessJob::set_allocated_content(::std::string* content) {
   // @@protoc_insertion_point(field_set_allocated:ProcessJob.content)
 }
 
-// required int32 partition = 5;
+// optional int32 partition = 6;
 inline bool ProcessJob::has_partition() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
+  return (_has_bits_[0] & 0x00000020u) != 0;
 }
 inline void ProcessJob::set_has_partition() {
-  _has_bits_[0] |= 0x00000010u;
+  _has_bits_[0] |= 0x00000020u;
 }
 inline void ProcessJob::clear_has_partition() {
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000020u;
 }
 inline void ProcessJob::clear_partition() {
   partition_ = 0;
@@ -450,6 +556,106 @@ inline void ProcessJob::set_partition(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:ProcessJob.partition)
 }
 
+// optional int32 partition_count = 7;
+inline bool ProcessJob::has_partition_count() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void ProcessJob::set_has_partition_count() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void ProcessJob::clear_has_partition_count() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void ProcessJob::clear_partition_count() {
+  partition_count_ = 0;
+  clear_has_partition_count();
+}
+inline ::google::protobuf::int32 ProcessJob::partition_count() const {
+  // @@protoc_insertion_point(field_get:ProcessJob.partition_count)
+  return partition_count_;
+}
+inline void ProcessJob::set_partition_count(::google::protobuf::int32 value) {
+  set_has_partition_count();
+  partition_count_ = value;
+  // @@protoc_insertion_point(field_set:ProcessJob.partition_count)
+}
+
+// optional string quid_parent = 8;
+inline bool ProcessJob::has_quid_parent() const {
+  return (_has_bits_[0] & 0x00000080u) != 0;
+}
+inline void ProcessJob::set_has_quid_parent() {
+  _has_bits_[0] |= 0x00000080u;
+}
+inline void ProcessJob::clear_has_quid_parent() {
+  _has_bits_[0] &= ~0x00000080u;
+}
+inline void ProcessJob::clear_quid_parent() {
+  if (quid_parent_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    quid_parent_->clear();
+  }
+  clear_has_quid_parent();
+}
+inline const ::std::string& ProcessJob::quid_parent() const {
+  // @@protoc_insertion_point(field_get:ProcessJob.quid_parent)
+  return *quid_parent_;
+}
+inline void ProcessJob::set_quid_parent(const ::std::string& value) {
+  set_has_quid_parent();
+  if (quid_parent_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    quid_parent_ = new ::std::string;
+  }
+  quid_parent_->assign(value);
+  // @@protoc_insertion_point(field_set:ProcessJob.quid_parent)
+}
+inline void ProcessJob::set_quid_parent(const char* value) {
+  set_has_quid_parent();
+  if (quid_parent_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    quid_parent_ = new ::std::string;
+  }
+  quid_parent_->assign(value);
+  // @@protoc_insertion_point(field_set_char:ProcessJob.quid_parent)
+}
+inline void ProcessJob::set_quid_parent(const char* value, size_t size) {
+  set_has_quid_parent();
+  if (quid_parent_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    quid_parent_ = new ::std::string;
+  }
+  quid_parent_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:ProcessJob.quid_parent)
+}
+inline ::std::string* ProcessJob::mutable_quid_parent() {
+  set_has_quid_parent();
+  if (quid_parent_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    quid_parent_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:ProcessJob.quid_parent)
+  return quid_parent_;
+}
+inline ::std::string* ProcessJob::release_quid_parent() {
+  clear_has_quid_parent();
+  if (quid_parent_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = quid_parent_;
+    quid_parent_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ProcessJob::set_allocated_quid_parent(::std::string* quid_parent) {
+  if (quid_parent_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete quid_parent_;
+  }
+  if (quid_parent) {
+    set_has_quid_parent();
+    quid_parent_ = quid_parent;
+  } else {
+    clear_has_quid_parent();
+    quid_parent_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:ProcessJob.quid_parent)
+}
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -457,6 +663,11 @@ inline void ProcessJob::set_partition(::google::protobuf::int32 value) {
 namespace google {
 namespace protobuf {
 
+template <> struct is_proto_enum< ::ProcessJob_State> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::ProcessJob_State>() {
+  return ::ProcessJob_State_descriptor();
+}
 
 }  // namespace google
 }  // namespace protobuf

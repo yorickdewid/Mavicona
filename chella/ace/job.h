@@ -37,11 +37,28 @@ class Job {
 		return cb->module;
 	}
 
-	unsigned int Partition() const {
+	std::string Status() {
+		switch (cb->jobstate) {
+			case Callback::SPAWN:
+				return "spawn once";
+			case Callback::PARTITION:
+				return "scatter using partitioning";
+			case Callback::FUNNEL:
+				return "funneling";
+		}
+
+		return "";
+	}
+
+	inline unsigned int Partition() const {
 		return cb->jobpartition;
 	}
 
-	unsigned int Id() const {
+	inline unsigned int TotalPartitions() const {
+		return cb->jobpartition_count;
+	}
+
+	inline unsigned int Id() const {
 		return cb->jobid;
 	}
 
@@ -53,7 +70,11 @@ class Job {
 		return cb->jobquid;
 	}
 
-	unsigned int WorkerId() const {
+	std::string Parent() const {
+		return cb->jobparent;
+	}
+
+	inline unsigned int WorkerId() const {
 		return cb->workerid;
 	}
 
@@ -69,6 +90,18 @@ class Job {
 
 	void UpdateProgress(unsigned short progress) {
 		cb->updateProgress(progress);
+	}
+
+	inline bool isSpawn() {
+		return cb->jobstate == Callback::SPAWN;
+	}
+
+	inline bool isPartition() {
+		return cb->jobstate == Callback::PARTITION;
+	}
+
+	inline bool isFunnel() {
+		return cb->jobstate == Callback::FUNNEL;
 	}
 
 	/* Ace framework classes */
@@ -88,9 +121,12 @@ class Job {
 		return &jobenv;
 	}
 
+	/* Job defined functions */
+	virtual void SetupOnce() {};
 	virtual void Setup() {};
 	virtual void Run() = 0;
 	virtual void Teardown() {};
+	virtual void TeardownOnce() {};
 };
 
 }

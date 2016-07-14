@@ -99,7 +99,7 @@ void initMaster() {
 	sender.bind("tcp://*:5555");
 
 	/* Send 10 tasks */
-	for (int task_nbr = 0; task_nbr < 5; task_nbr++) {
+	for (int task_nbr = 0; task_nbr < 2; task_nbr++) {
 		// {
 		std::ifstream t("libdso_example.so");
 		std::string str;
@@ -113,10 +113,10 @@ void initMaster() {
 
 		ProcessJob job;
 		job.set_name("woei");
-		job.set_id(task_nbr);
+		job.set_id(task_nbr); // set by cluster
 		job.set_quid("429c00e5-290e-406f-8e54-65591ccace21");
+		job.set_state(ProcessJob::SPAWN);
 		job.set_content(str);
-		job.set_partition(0);
 
 		jobqueue.push(job);
 	}
@@ -228,9 +228,15 @@ void prepareJob(zmq::message_t& message) {
 	parameters.jobname = job.name();
 	parameters.jobquid = job.quid();
 	parameters.jobpartition = job.partition();
+	parameters.jobpartition_count = job.partition_count();
+	parameters.jobstate = Callback::JobState::SPAWN;
+	parameters.jobparent = job.quid_parent();
 
 	/* Run procedure */
 	Execute::run(exeName, parameters);
+
+	/* Setup subjobs if any */
+	Execute::prospect();
 }
 
 void initSlave() {
@@ -267,7 +273,7 @@ void initSlave() {
 			zmq::message_t reply;
 			receiver.recv(&reply);
 
-			if (reply.size()) {
+			if (!reply.size()) {
 				sleep(5);
 			} else {
 				prepareJob(reply);
@@ -277,43 +283,6 @@ void initSlave() {
 			break;
 		}
 	}
-
-	///////////////////////////
-	///////////////////////////
-
-	/* Listen for IPC */
-	// zmq::socket_t ipcserver(context, ZMQ_PULL);
-	// ipcserver.bind("tcp://*:5566");
-
-	/* Initialize poll set */
-	// zmq::pollitem_t items [] = {
-	// 	{receiver, 0, ZMQ_POLLIN, 0},
-	// 	{ipcserver, 0, ZMQ_POLLIN, 0}
-	// };
-
-	// Execute::init(&control);
-
-	/* Process tasks forever */
-	// while (1) {
-	// 	zmq::message_t message;
-
-	// 	try {
-	// 		zmq::poll(&items[0], 2, -1);
-
-	// 		if (items[0].revents & ZMQ_POLLIN) {
-	// 			receiver.recv(&message);
-	// 			prepareJob(message);
-	// 		}
-
-	// 		if (items[1].revents & ZMQ_POLLIN) {
-	// 			ipcserver.recv(&message);
-	// 			prepareJob(message);
-	// 		}
-	// 	} catch (zmq::error_t& e) {
-	// 		std::cout << "Exit gracefully" << std::endl;
-	// 		break;
-	// 	}
-	// }
 }
 
 int main(int argc, char *argv[]) {

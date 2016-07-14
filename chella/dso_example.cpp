@@ -14,7 +14,9 @@ class Example : public Job {
 		std::cout << "Job id: " << Id() << std::endl;
 		std::cout << "Job name: " << Name() << std::endl;
 		std::cout << "Job quid: " << Quid() << std::endl;
-		std::cout << "Job partition: " << Partition() << std::endl;
+		std::cout << "Job partition: " << Partition() << "/" << TotalPartitions() << std::endl;
+		std::cout << "Job status: " << Status() << std::endl;
+		std::cout << "Job parent: " << Parent() << std::endl;
 
 		/* Print the environment */
 		std::cout << "Working dir: " << Env()->CurrentDirectory() << std::endl;
@@ -40,31 +42,54 @@ class Example : public Job {
 		             "CONSTRAINT example_pkey PRIMARY KEY (id)"
 		             ")");
 
+		Chain *chain = new Chain(Quid());
+		chain->setParentName(Name());
+
+		Subjob job1("arie_1");
+		job1.setContent("blubje");
+
+		chain->add(job1);
+
+		Subjob job2("arie_2");
+		job2.setContent("troolz");
+
+		chain->add(job2);
+
+		BindChain(chain);
+
 		sleep(1);
 	}
 
+	void SetupOnce() {
+		std::cout << "This is going to be printed once" << std::endl;
+
+		sleep(1);
+	};
+
 	/* The actual execution of the job */
 	void Run() {
-		updateProgress(125);
+		UpdateProgress(125);
 		SQL()->Query("INSERT INTO example (name, guid) VALUES ('" + Name() + "', '" + Quid() + "')");
 
-		updateProgress(250);
+		UpdateProgress(250);
 		std::cout << "Doing the work..." << std::endl;
 		sleep(1);
 
-		updateProgress(384);
+		UpdateProgress(384);
 		std::cout << "More work..." << std::endl;
 		sleep(1);
 
-		updateProgress(532);
+		//Ace::pattern::invoke();
+
+		UpdateProgress(532);
 		std::cout << "Bit more..." << std::endl;
 		sleep(1);
 
-		updateProgress(862);
+		UpdateProgress(862);
 		std::cout << "Almost done!" << std::endl;
 		sleep(1);
 
-		updateProgress(999);
+		UpdateProgress(999);
 	}
 
 	void Teardown() {

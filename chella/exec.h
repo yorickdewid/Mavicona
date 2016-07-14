@@ -41,8 +41,11 @@ class Execute : public Callback {
 	struct Parameter {
 		unsigned int jobid;
 		unsigned int jobpartition;
+		unsigned int jobpartition_count;
 		std::string jobname;
 		std::string jobquid;
+		std::string jobparent;
+		JobState jobstate;
 	};
 
 	void setControl(ControlClient *control) {

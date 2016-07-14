@@ -8,19 +8,16 @@ namespace Ace {
 struct Subjob {
 	std::string name;
 	std::string content;
-	unsigned int partition;
 
   public:
+	explicit Subjob(const std::string _name) : name(_name) {}
+
 	void setName(const std::string _name) {
 		name = _name;
 	}
 
 	void setContent(const std::string _content) {
 		content = _content;
-	}
-
-	void setPartition(unsigned int _partition) {
-		partition = _partition;
 	}
 };
 
@@ -32,8 +29,12 @@ class Chain {
   public:
 	explicit Chain(const std::string quid) : parent_quid(quid) {}
 
-	void setParent(const std::string quid) {
-		parent_quid = quid;
+	std::string parentQuid() const {
+		return parent_quid;
+	}
+
+	std::string parentName() const {
+		return parent_name;
 	}
 
 	void setParentName(const std::string name) {

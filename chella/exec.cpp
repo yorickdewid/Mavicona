@@ -24,6 +24,9 @@ void Execute::run(const std::string& name, Parameter& param) {
 	exec->jobname = param.jobname;
 	exec->jobquid = param.jobquid;
 	exec->jobpartition = param.jobpartition;
+	exec->jobpartition_count = param.jobpartition_count;
+	exec->jobstate = param.jobstate;
+	exec->jobparent = param.jobparent;
 
 	if (!file_exist("cache/" + name)) {
 		std::cerr << "Cannot access library" << std::endl;
@@ -43,6 +46,12 @@ void Execute::run(const std::string& name, Parameter& param) {
 	Ace::Job *jobObject = (Ace::Job *)exec_facade();
 	jobObject->Inject(exec);
 
+	/* Call this setup once in the cluster */
+	if (exec->jobstate == SPAWN) {
+		exec->jobcontrol->setStateSetup();
+		jobObject->SetupOnce();
+	}
+
 	/* Call setup routine */
 	exec->jobcontrol->setStateSetup();
 	jobObject->Setup();
@@ -54,6 +63,12 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Call teardown routine */
 	exec->jobcontrol->setStateTeardown();
 	jobObject->Teardown();
+
+	/* Call this teardown once in the cluster */
+	if (exec->jobstate == FUNNEL) {
+		exec->jobcontrol->setStateSetup();
+		jobObject->TeardownOnce();
+	}
 
 	/* Pull the chain */
 	exec->chain = jobObject->PullChain();
@@ -91,9 +106,12 @@ void Execute::prospect() {
 		job.set_id(i);
 		job.set_quid("5f7920eb-ef78-4a2a-a04e-e8763cf35716");
 		job.set_content(subjob->content);
-		job.set_partition(subjob->partition);
+		job.set_partition(i);
+		job.set_partition_count(exec->chain->size());
+		job.set_state(ProcessJob::PARTITION);
+		job.set_quid_parent(exec->chain->parentQuid());
 
-		std::cout << "Submit subjob " << i << std::endl;
+		std::cout << "Submit subjob " << i << " linked to parent " << exec->chain->parentQuid() + "(" + exec->chain->parentName() + ")" << std::endl;
 	}
 
 	delete exec->chain;

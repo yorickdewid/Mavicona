@@ -3,6 +3,15 @@ message ProcessJob {
   required int32 id = 2;
   optional string quid = 3;
 
-  optional bytes content = 4;
-  required int32 partition = 5;
+  enum State {
+    SPAWN = 0;
+    PARTITION = 1;
+    FUNNEL = 2;
+  }
+
+  required State state = 4;
+  optional bytes content = 5;
+  optional int32 partition = 6;
+  optional int32 partition_count = 7;
+  optional string quid_parent = 8;
 }
