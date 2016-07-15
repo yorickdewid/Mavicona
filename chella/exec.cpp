@@ -77,41 +77,69 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Inject job and cluster */
 	assert(exec_register() == ACE_MAGIC);
 	Ace::Job *jobObject = (Ace::Job *)exec_facade();
-	jobObject->Inject(exec);
-	executionLog->setCheckpoint(Wal::Checkpoint::INJECT);
+	try {
+		jobObject->Inject(exec);
+		executionLog->setCheckpoint(Wal::Checkpoint::INJECT);
+	} catch (const std::exception& ex) {
+		std::cerr << ex.what() << std::endl;
+	}
 
 	/* Call this setup once in the cluster */
 	if (exec->jobstate == SPAWN) {
-		exec->jobcontrol->setStateSetup();
-		jobObject->SetupOnce();
-		executionLog->setCheckpoint(Wal::Checkpoint::SETUP_ONCE);
+		try {
+			exec->jobcontrol->setStateSetup();
+			jobObject->SetupOnce();
+			executionLog->setCheckpoint(Wal::Checkpoint::SETUP_ONCE);
+		} catch (const std::exception& ex) {
+			std::cerr << ex.what() << std::endl;
+		}
 	}
 
 	/* Call setup routine */
-	exec->jobcontrol->setStateSetup();
-	jobObject->Setup();
-	executionLog->setCheckpoint(Wal::Checkpoint::SETUP);
+	try {
+		exec->jobcontrol->setStateSetup();
+		jobObject->Setup();
+		executionLog->setCheckpoint(Wal::Checkpoint::SETUP);
+	} catch (const std::exception& ex) {
+		std::cerr << ex.what() << std::endl;
+	}
 
 	/* Call main routine */
-	exec->jobcontrol->setStateRunning();
-	jobObject->Run();
-	executionLog->setCheckpoint(Wal::Checkpoint::RUN);
+	try {
+		exec->jobcontrol->setStateRunning();
+		jobObject->Run();
+		executionLog->setCheckpoint(Wal::Checkpoint::RUN);
+	} catch (const std::exception& ex) {
+		std::cerr << ex.what() << std::endl;
+	}
 
 	/* Call teardown routine */
-	exec->jobcontrol->setStateTeardown();
-	jobObject->Teardown();
-	executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN);
+	try {
+		exec->jobcontrol->setStateTeardown();
+		jobObject->Teardown();
+		executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN);
+	} catch (const std::exception& ex) {
+		std::cerr << ex.what() << std::endl;
+	}
 
 	/* Call this teardown once in the cluster */
 	if (exec->jobstate == FUNNEL) {
-		exec->jobcontrol->setStateSetup();
-		jobObject->TeardownOnce();
-		executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN_ONCE);
+		try {
+			exec->jobcontrol->setStateSetup();
+			jobObject->TeardownOnce();
+			executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN_ONCE);
+		} catch (const std::exception& ex) {
+			std::cerr << ex.what() << std::endl;
+		}
 	}
 
 	/* Pull the chain */
-	exec->chain = jobObject->PullChain();
-	executionLog->setCheckpoint(Wal::Checkpoint::PULLCHAIN);
+	try {
+		exec->chain = jobObject->PullChain();
+		executionLog->setCheckpoint(Wal::Checkpoint::PULLCHAIN);
+	} catch (const std::exception& ex) {
+		std::cerr << ex.what() << std::endl;
+	}
 
 	int r = dlclose(handle);
 	if (r)
