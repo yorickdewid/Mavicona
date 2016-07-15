@@ -3,6 +3,7 @@
 #include "common/util.h"
 #include "ace/interface.h"
 #include "protoc/processjob.pb.h"
+#include "dirent.h"
 #include "wal.h"
 #include "exec.h"
 
@@ -10,7 +11,7 @@ typedef int (*regclass_t)();
 typedef Ace::Job *(*facade_t)();
 
 void Execute::run(const std::string& name, Parameter& param) {
-	Wal *executionLog = new Wal(param.jobquid, name);
+	Wal *executionLog = new Wal(param.jobid, param.jobquid, name);
 
 	Execute *exec = &Execute::getInstance();
 
@@ -131,4 +132,41 @@ void Execute::prospect() {
 	}
 
 	delete exec->chain;
+}
+
+void Execute::dispose() {
+	DIR *dir = nullptr;
+	struct dirent *ent = nullptr;
+
+	if ((dir = opendir("cache/module/")) != NULL) {
+
+		/* print all the files and directories within directory */
+		while ((ent = readdir(dir)) != NULL) {
+			if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
+				continue;
+			remove(("cache/module/" + std::string(ent->d_name)).c_str());
+		}
+
+		closedir(dir);
+	} else {
+
+		/* could not open directory */
+		perror("");
+	}
+
+	if ((dir = opendir("cache/wal/")) != NULL) {
+
+		/* print all the files and directories within directory */
+		while ((ent = readdir(dir)) != NULL) {
+			if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
+				continue;
+			remove(("cache/wal/" + std::string(ent->d_name)).c_str());
+		}
+
+		closedir(dir);
+	} else {
+
+		/* could not open directory */
+		perror("");
+	}
 }

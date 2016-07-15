@@ -94,6 +94,7 @@ class Execute : public Callback {
 
 	static void run(const std::string& name, Parameter& param);
 	static void prospect();
+	static void dispose();
 };
 
 #endif // EXEC_H

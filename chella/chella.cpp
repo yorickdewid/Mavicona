@@ -251,6 +251,9 @@ void initSlave() {
 			receiver.recv(&reply);
 
 			if (!reply.size()) {
+				/* Dispose cache when no jobs */
+				Execute::dispose();
+
 				sleep(2);
 			} else {
 				prepareJob(reply);
