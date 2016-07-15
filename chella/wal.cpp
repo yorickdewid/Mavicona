@@ -24,9 +24,17 @@ void Wal::writeLog(bool isDone) {
 	pageHeader header;
 	strcpy(header.magic, LOG_MAGIC);
 	strncpy(header.module, module.c_str(), 40);
+	strncpy(header.quid, jobparameters.jobquid.c_str(), 36);
+	strncpy(header.parent_quid, jobparameters.jobparent.c_str(), 36);
 	header.checkpoint = this->checkpoint;
 	header.done = isDone ? 1 : 0;
+	header.jobid = jobparameters.jobid;
+	header.jobpartition = jobparameters.jobpartition;
+	header.jobpartition_count = jobparameters.jobpartition_count;
+	header.jobstate = static_cast<int>(jobparameters.jobstate);
+	header.jobnane_size = jobparameters.jobname.size();
 	fwrite((const char *)&header, sizeof(pageHeader), 1, m_pFile);
+	fwrite(jobparameters.jobname.c_str(), sizeof(char), jobparameters.jobname.size(), m_pFile);
 }
 
 void Wal::setCheckpoint(enum Wal::Checkpoint _checkpoint) {
@@ -36,4 +44,8 @@ void Wal::setCheckpoint(enum Wal::Checkpoint _checkpoint) {
 
 void Wal::markDone() {
 	writeLog(true);
+}
+
+void Wal::rollback(const std::string& name) {
+	std::cout << "Checking ..." + name << std::endl;
 }

@@ -10,8 +10,33 @@
 typedef int (*regclass_t)();
 typedef Ace::Job *(*facade_t)();
 
+void Execute::init(ControlClient *control) {
+	DIR *dir = nullptr;
+	struct dirent *ent = nullptr;
+
+	Execute& exec = Execute::getInstance();
+	exec.setControl(control);
+
+	if ((dir = opendir("cache/wal/")) != NULL) {
+
+		/* print all the files and directories within directory */
+		while ((ent = readdir(dir)) != NULL) {
+			if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
+				continue;
+
+			Wal::rollback(ent->d_name);
+		}
+
+		closedir(dir);
+	} else {
+
+		/* could not open directory */
+		perror("");
+	}
+}
+
 void Execute::run(const std::string& name, Parameter& param) {
-	Wal *executionLog = new Wal(param.jobid, param.jobquid, name);
+	Wal *executionLog = new Wal(name, param);
 
 	Execute *exec = &Execute::getInstance();
 

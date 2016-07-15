@@ -87,11 +87,7 @@ class Execute : public Callback {
 	void sqlDisconnect() {}
 #endif
 
-	static void init(ControlClient *control) {
-		Execute& exec = Execute::getInstance();
-		exec.setControl(control);
-	}
-
+	static void init(ControlClient *control);
 	static void run(const std::string& name, Parameter& param);
 	static void prospect();
 	static void dispose();

@@ -5,10 +5,13 @@
 #include <iomanip>
 #include <cassert>
 
+#include "exec.h"
+
 struct Wal {
   private:
 	FILE *m_pFile = nullptr;
 	std::string module;
+	Execute::Parameter jobparameters;
 
 	void writeLog(bool isDone = false);
 
@@ -36,14 +39,16 @@ struct Wal {
 		PULLCHAIN,
 	};
 
-	Wal(const unsigned int id, const std::string& quid, const std::string& filename) : module(filename) {
-		m_pFile = fopen(walname(id, quid).c_str(), "w+");
+	Wal(const std::string& name, Execute::Parameter& param) : module(name), jobparameters(param) {
+		m_pFile = fopen(walname(param.jobid, param.jobquid).c_str(), "w+");
 
 		assert(module.size() == 40);
-		assert(quid.size() == 36);
+		assert(param.jobquid.size() == 36);
 
 		writeLog();
 	}
+
+	static void rollback(const std::string& name);
 
 	void setCheckpoint(enum Checkpoint checkpoint);
 	void markDone();
