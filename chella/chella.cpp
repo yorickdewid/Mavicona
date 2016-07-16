@@ -174,7 +174,7 @@ void initMaster() {
 
 		ProcessJob job;
 		job.set_name("woei");
-		job.set_id(jobcounter++); // set by cluster
+		job.set_id(jobcounter++);
 		job.set_quid("429c00e5-290e-406f-8e54-65591ccace21");
 		job.set_state(ProcessJob::SPAWN);
 		job.set_content(str);

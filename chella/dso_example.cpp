@@ -29,7 +29,7 @@ class Example : public Job {
 		std::cout << "Worker: " << WorkerId() << std::endl;
 		std::cout << "Worker: " << Worker() << std::endl;
 		std::cout << "Module: " << Module() << std::endl;
-		std::cout << "Jobs: " << ClusterJobs() << std::endl;
+		std::cout << "Jobs in cluster: " << ClusterJobs() << std::endl;
 
 		std::cout << std::endl;
 
@@ -42,26 +42,26 @@ class Example : public Job {
 		             "CONSTRAINT example_pkey PRIMARY KEY (id)"
 		             ")");
 
-		Chain *chain = new Chain(Quid());
-		chain->setParentName(Name());
+		if (isSpawn()) {
+			Chain *chain = new Chain(Quid());
+			chain->setParentName(Name());
 
-		Subjob job1("arie_1");
-		job1.setContent("blubje");
+			Subjob job1("arie_1");
 
-		chain->add(job1);
+			chain->add(job1);
 
-		Subjob job2("arie_2");
-		job2.setContent("troolz");
+			Subjob job2("arie_2");
 
-		chain->add(job2);
+			chain->add(job2);
 
-		BindChain(chain);
+			BindChain(chain);
+		}
 
 		sleep(1);
 	}
 
 	void SetupOnce() {
-		std::cout << "This is going to be printed once" << std::endl;
+		std::cout << "Printed once" << std::endl;
 
 		sleep(1);
 	};
