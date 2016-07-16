@@ -52,9 +52,12 @@ class Quid {
 		return std::string(u, 4);
 	}
 
-	std::string toString() const {
+	std::string toString(bool compact = false) const {
 		char s[40];
 		quidtostr(s, &this->quid);
+
+		if (compact)
+			return crop(s);
 
 		return std::string(s);
 	}

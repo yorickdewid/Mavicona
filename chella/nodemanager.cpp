@@ -3,12 +3,12 @@
 
 namespace NodeManager {
 
-static unsigned int jobcounter = 0;
+static unsigned int worker_counter = 0;
 
 void runTask(ControlMessage& message, size_t queuesize) {
 	switch (message.action()) {
 		case ControlMessage::SOLICIT:
-			message.set_id(jobcounter++);
+			message.set_id(worker_counter++);
 			message.set_action(ControlMessage::CONFIRMED);
 			std::cout << "Accept: Solicit from worker, assigned worker-" << message.id() << std::endl;
 			break;

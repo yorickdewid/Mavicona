@@ -23,6 +23,7 @@ static std::string masterProvision;
 static std::string masterIPC;
 static bool interrupted = false;
 static char **init_argv = NULL;
+static unsigned int jobcounter = 0;
 
 std::queue<ProcessJob> jobqueue;
 
@@ -129,6 +130,7 @@ void handleIncommingJob(zmq::socket_t& socket) {
 
 	ProcessJob job;
 	job.ParseFromArray(request.data(), request.size());
+	job.set_id(jobcounter++);
 
 	jobqueue.push(job);
 
@@ -157,7 +159,7 @@ void initMaster() {
 	master.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
 	master.bind("tcp://*:5566");
 
-	/* Send 10 tasks */
+	/* Send 2 tasks */
 	for (int task_nbr = 0; task_nbr < 2; task_nbr++) {
 		// {
 		std::ifstream t("libdso_example.so");
@@ -172,7 +174,7 @@ void initMaster() {
 
 		ProcessJob job;
 		job.set_name("woei");
-		job.set_id(task_nbr); // set by cluster
+		job.set_id(jobcounter++); // set by cluster
 		job.set_quid("429c00e5-290e-406f-8e54-65591ccace21");
 		job.set_state(ProcessJob::SPAWN);
 		job.set_content(str);
@@ -229,14 +231,14 @@ void prepareJob(zmq::message_t& message) {
 	parameters.jobquid = job.quid();
 	parameters.jobpartition = job.partition();
 	parameters.jobpartition_count = job.partition_count();
-	parameters.jobstate = Callback::JobState::SPAWN;
+	parameters.jobstate = static_cast<Callback::JobState>(job.state());
 	parameters.jobparent = job.quid_parent();
 
 	/* Run procedure */
 	Execute::run(exeName, parameters);
 
 	/* Setup subjobs if any */
-	Execute::prospect();
+	Execute::prospect(exeName);
 }
 
 void initSlave() {

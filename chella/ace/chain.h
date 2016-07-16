@@ -15,10 +15,6 @@ struct Subjob {
 	void setName(const std::string _name) {
 		name = _name;
 	}
-
-	void setContent(const std::string _content) {
-		content = _content;
-	}
 };
 
 class Chain {

@@ -51,7 +51,7 @@ class Job {
 	}
 
 	inline unsigned int Partition() const {
-		return cb->jobpartition;
+		return cb->jobpartition + 1;
 	}
 
 	inline unsigned int TotalPartitions() const {
@@ -92,6 +92,7 @@ class Job {
 		cb->updateProgress(progress);
 	}
 
+	/* Job state */
 	inline bool isSpawn() {
 		return cb->jobstate == Callback::SPAWN;
 	}

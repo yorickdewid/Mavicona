@@ -1,6 +1,8 @@
 #include <dlfcn.h>
 #include <cassert>
+#include <fstream>
 #include <zmq.hpp>
+#include <quidpp.h>
 #include "common/util.h"
 #include "ace/interface.h"
 #include "protoc/processjob.pb.h"
@@ -31,7 +33,7 @@ void Execute::init(ControlClient *control) {
 				Execute::run(name, param);
 
 				/* Setup subjobs if any */
-				Execute::prospect();
+				Execute::prospect(name);
 			});
 		}
 
@@ -155,7 +157,9 @@ void Execute::run(const std::string& name, Parameter& param) {
 	delete executionLog;
 }
 
-void Execute::prospect() {
+void Execute::prospect(const std::string& name) {
+	zmq::context_t context(1);
+	zmq::socket_t socket(context, ZMQ_REQ);
 	Execute *exec = &Execute::getInstance();
 
 	if (!exec->chain) {
@@ -163,8 +167,14 @@ void Execute::prospect() {
 		return;
 	}
 
-	zmq::context_t context(1);
-	zmq::socket_t socket(context, ZMQ_REQ);
+	if (!file_exist("cache/module/" + name)) {
+		std::cerr << "Cannot access library" << std::endl;
+		return;
+	}
+
+	std::ifstream ifs("cache/module/" + name);
+	std::string content((std::istreambuf_iterator<char>(ifs)),
+	                    (std::istreambuf_iterator<char>()));
 
 	std::cout << "Chain found" << std::endl;
 	std::cout << "Subjobs " << exec->chain->size() << std::endl;
@@ -179,8 +189,8 @@ void Execute::prospect() {
 		ProcessJob job;
 		job.set_name(subjob->name);
 		job.set_id(i);
-		job.set_quid("5f7920eb-ef78-4a2a-a04e-e8763cf35716");
-		job.set_content(subjob->content);
+		job.set_quid(quidpp::Quid().toString(true));
+		job.set_content(content);
 		job.set_partition(i);
 		job.set_partition_count(exec->chain->size());
 		job.set_state(ProcessJob::PARTITION);

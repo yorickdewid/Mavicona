@@ -89,7 +89,7 @@ class Execute : public Callback {
 
 	static void init(ControlClient *control);
 	static void run(const std::string& name, Parameter& param);
-	static void prospect();
+	static void prospect(const std::string& name);
 	static void dispose();
 };
 

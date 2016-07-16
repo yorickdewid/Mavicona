@@ -1,4 +1,4 @@
-OBJS = chella.o nodemanager.o controlclient.o wal.o exec.o exec_cache.o exec_sql.o art.o sha1.o ../protoc/processjob.pb.o ../protoc/controlmessage.pb.o
+OBJS = chella.o nodemanager.o controlclient.o wal.o exec.o exec_cache.o exec_sql.o art.o sha1.o ../protoc/processjob.pb.o ../protoc/controlmessage.pb.o ../quid/libquid.a
 CC = g++
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq -lpthread -ldl
