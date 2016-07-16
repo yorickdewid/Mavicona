@@ -24,14 +24,17 @@ void Execute::init(ControlClient *control) {
 			if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
 				continue;
 
-			Wal::rollback(ent->d_name);
+			Wal::rollback(ent->d_name, [](const std::string & name, Execute::Parameter & param) {
+
+				/* Run procedure */
+				Execute::run(name, param);
+
+				/* Setup subjobs if any */
+				Execute::prospect();
+			});
 		}
 
 		closedir(dir);
-	} else {
-
-		/* could not open directory */
-		perror("");
 	}
 }
 
@@ -77,12 +80,8 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Inject job and cluster */
 	assert(exec_register() == ACE_MAGIC);
 	Ace::Job *jobObject = (Ace::Job *)exec_facade();
-	try {
-		jobObject->Inject(exec);
-		executionLog->setCheckpoint(Wal::Checkpoint::INJECT);
-	} catch (const std::exception& ex) {
-		std::cerr << ex.what() << std::endl;
-	}
+	jobObject->Inject(exec);
+	executionLog->setCheckpoint(Wal::Checkpoint::INJECT);
 
 	/* Call this setup once in the cluster */
 	if (exec->jobstate == SPAWN) {
@@ -134,12 +133,8 @@ void Execute::run(const std::string& name, Parameter& param) {
 	}
 
 	/* Pull the chain */
-	try {
-		exec->chain = jobObject->PullChain();
-		executionLog->setCheckpoint(Wal::Checkpoint::PULLCHAIN);
-	} catch (const std::exception& ex) {
-		std::cerr << ex.what() << std::endl;
-	}
+	exec->chain = jobObject->PullChain();
+	executionLog->setCheckpoint(Wal::Checkpoint::PULLCHAIN);
 
 	int r = dlclose(handle);
 	if (r)
@@ -201,10 +196,6 @@ void Execute::dispose() {
 		}
 
 		closedir(dir);
-	} else {
-
-		/* could not open directory */
-		perror("");
 	}
 
 	if ((dir = opendir("cache/wal/")) != NULL) {
@@ -217,9 +208,5 @@ void Execute::dispose() {
 		}
 
 		closedir(dir);
-	} else {
-
-		/* could not open directory */
-		perror("");
 	}
 }

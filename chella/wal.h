@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <cassert>
 
+#include "common/util.h"
 #include "exec.h"
 
 struct Wal {
@@ -48,7 +49,7 @@ struct Wal {
 		writeLog();
 	}
 
-	static void rollback(const std::string& name);
+	static void rollback(const std::string& name, std::function<void(const std::string& name, Execute::Parameter& param)> const& callback);
 
 	void setCheckpoint(enum Checkpoint checkpoint);
 	void markDone();
