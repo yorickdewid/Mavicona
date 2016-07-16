@@ -1,5 +1,6 @@
 #include <dlfcn.h>
 #include <cassert>
+#include <zmq.hpp>
 #include "common/util.h"
 #include "ace/interface.h"
 #include "protoc/processjob.pb.h"
@@ -63,12 +64,14 @@ void Execute::run(const std::string& name, Parameter& param) {
 	executionLog->setCheckpoint(Wal::Checkpoint::INIT);
 
 	if (!file_exist("cache/module/" + name)) {
+		exec->jobcontrol->setStateIdle();
 		std::cerr << "Cannot access library" << std::endl;
 		return;
 	}
 
 	void *handle = dlopen(("cache/module/" + name).c_str(), RTLD_LAZY);
 	if (!handle) {
+		exec->jobcontrol->setStateIdle();
 		std::cerr << "Cannot open library: " << dlerror() << std::endl;
 		return;
 	}
@@ -160,8 +163,15 @@ void Execute::prospect() {
 		return;
 	}
 
+	zmq::context_t context(1);
+	zmq::socket_t socket(context, ZMQ_REQ);
+
 	std::cout << "Chain found" << std::endl;
 	std::cout << "Subjobs " << exec->chain->size() << std::endl;
+
+	socket.connect("tcp://localhost:5566");
+	// socket.connect(("tcp://localhost:5566").c_str());
+	// std::cout << "Connect to master " << _masterNode << std::endl;
 
 	for (unsigned int i = 0; i < exec->chain->size(); ++i) {
 		auto subjob = exec->chain->at(i);
@@ -177,9 +187,21 @@ void Execute::prospect() {
 		job.set_quid_parent(exec->chain->parentQuid());
 
 		std::cout << "Submit subjob " << i << " linked to parent " << exec->chain->parentQuid() + "(" + exec->chain->parentName() + ")" << std::endl;
+
+		std::string serialized;
+		job.SerializeToString(&serialized);
+
+		zmq::message_t request(serialized.size());
+		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+		socket.send(request);
+
+		/* Get the reply */
+		zmq::message_t reply;
+		socket.recv(&reply);
 	}
 
 	delete exec->chain;
+	exec->chain = nullptr;
 }
 
 void Execute::dispose() {

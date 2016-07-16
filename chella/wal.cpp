@@ -58,7 +58,7 @@ void Wal::rollback(const std::string& name, std::function<void(const std::string
 		return;
 	}
 
-	std::cout << "Checking log " << header.quid << ":" << header.jobid << std::endl;
+	std::cout << "Checking log " << std::string(header.quid, 36) << ":" << header.jobid << std::endl;
 
 	/* Check if WAL was marked done */
 	if (header.done)
@@ -142,7 +142,7 @@ void Wal::rollback(const std::string& name, std::function<void(const std::string
 	fread(namebuf, sizeof(char), header.jobname_size, m_pFile);
 	namebuf[header.jobname_size] = '\0';
 
-	std::cout << "Likeliness of recover " << recovery_likeliness << std::endl;
+	std::cout << "Likeliness of recovery score " << recovery_likeliness << std::endl;
 	if (recovery_likeliness < 40) {
 		std::cerr << "Threshold to low, giving up..." << std::endl;
 		return;

@@ -121,6 +121,22 @@ void handleWorkerRequest(zmq::socket_t& socket) {
 	jobqueue.pop();
 }
 
+void handleIncommingJob(zmq::socket_t& socket) {
+	std::string serialized;
+	zmq::message_t request;
+
+	socket.recv(&request);
+
+	ProcessJob job;
+	job.ParseFromArray(request.data(), request.size());
+
+	jobqueue.push(job);
+
+	/* Send reply back to client */
+	request.rebuild(0);
+	socket.send(request);
+}
+
 void initMaster() {
 	std::cout << "Starting master" << std::endl;
 
@@ -132,9 +148,14 @@ void initMaster() {
 	controller.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
 
 	/* Socket to send messages on */
-	zmq::socket_t sender(context, ZMQ_REP);
-	sender.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
-	sender.bind("tcp://*:5555");
+	zmq::socket_t worker(context, ZMQ_REP);
+	worker.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
+	worker.bind("tcp://*:5555");
+
+	/* Socket to send messages on */
+	zmq::socket_t master(context, ZMQ_REP);
+	master.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
+	master.bind("tcp://*:5566");
 
 	/* Send 10 tasks */
 	for (int task_nbr = 0; task_nbr < 2; task_nbr++) {
@@ -161,19 +182,23 @@ void initMaster() {
 
 	/* Initialize poll set */
 	zmq::pollitem_t items[] = {
-		{sender, 0, ZMQ_POLLIN, 0},
-		{controller, 0, ZMQ_POLLIN, 0}
+		{worker, 0, ZMQ_POLLIN, 0},
+		{controller, 0, ZMQ_POLLIN, 0},
+		{master, 0, ZMQ_POLLIN, 0}
 	};
 
 	while (true) {
 		try {
-			zmq::poll(&items[0], 2, -1);
+			zmq::poll(&items[0], 3, -1);
 
 			if (items[0].revents & ZMQ_POLLIN)
-				handleWorkerRequest(sender);
+				handleWorkerRequest(worker);
 
 			if (items[1].revents & ZMQ_POLLIN)
 				handleWokerController(controller);
+
+			if (items[2].revents & ZMQ_POLLIN)
+				handleIncommingJob(master);
 
 		} catch (zmq::error_t& e) {
 			std::cout << "Exit gracefully" << std::endl;
