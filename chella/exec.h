@@ -45,6 +45,7 @@ class Execute : public Callback {
 		std::string jobname;
 		std::string jobquid;
 		std::string jobparent;
+		std::string jobdata;
 		JobState jobstate;
 	};
 

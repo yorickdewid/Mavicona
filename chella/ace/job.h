@@ -125,7 +125,7 @@ class Job {
 	/* Job defined functions */
 	virtual void SetupOnce() {};
 	virtual void Setup() {};
-	virtual void Run() = 0;
+	virtual void Run(const std::string& data) = 0;
 	virtual void Teardown() {};
 	virtual void TeardownOnce() {};
 };

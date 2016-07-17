@@ -184,24 +184,36 @@ class ProcessJob : public ::google::protobuf::Message {
   inline ::std::string* release_content();
   inline void set_allocated_content(::std::string* content);
 
-  // optional int32 partition = 6;
+  // optional bytes data = 6;
+  inline bool has_data() const;
+  inline void clear_data();
+  static const int kDataFieldNumber = 6;
+  inline const ::std::string& data() const;
+  inline void set_data(const ::std::string& value);
+  inline void set_data(const char* value);
+  inline void set_data(const void* value, size_t size);
+  inline ::std::string* mutable_data();
+  inline ::std::string* release_data();
+  inline void set_allocated_data(::std::string* data);
+
+  // optional int32 partition = 7;
   inline bool has_partition() const;
   inline void clear_partition();
-  static const int kPartitionFieldNumber = 6;
+  static const int kPartitionFieldNumber = 7;
   inline ::google::protobuf::int32 partition() const;
   inline void set_partition(::google::protobuf::int32 value);
 
-  // optional int32 partition_count = 7;
+  // optional int32 partition_count = 8;
   inline bool has_partition_count() const;
   inline void clear_partition_count();
-  static const int kPartitionCountFieldNumber = 7;
+  static const int kPartitionCountFieldNumber = 8;
   inline ::google::protobuf::int32 partition_count() const;
   inline void set_partition_count(::google::protobuf::int32 value);
 
-  // optional string quid_parent = 8;
+  // optional string quid_parent = 9;
   inline bool has_quid_parent() const;
   inline void clear_quid_parent();
-  static const int kQuidParentFieldNumber = 8;
+  static const int kQuidParentFieldNumber = 9;
   inline const ::std::string& quid_parent() const;
   inline void set_quid_parent(const ::std::string& value);
   inline void set_quid_parent(const char* value);
@@ -222,6 +234,8 @@ class ProcessJob : public ::google::protobuf::Message {
   inline void clear_has_state();
   inline void set_has_content();
   inline void clear_has_content();
+  inline void set_has_data();
+  inline void clear_has_data();
   inline void set_has_partition();
   inline void clear_has_partition();
   inline void set_has_partition_count();
@@ -238,6 +252,7 @@ class ProcessJob : public ::google::protobuf::Message {
   ::google::protobuf::int32 id_;
   int state_;
   ::std::string* content_;
+  ::std::string* data_;
   ::google::protobuf::int32 partition_;
   ::google::protobuf::int32 partition_count_;
   ::std::string* quid_parent_;
@@ -532,15 +547,91 @@ inline void ProcessJob::set_allocated_content(::std::string* content) {
   // @@protoc_insertion_point(field_set_allocated:ProcessJob.content)
 }
 
-// optional int32 partition = 6;
-inline bool ProcessJob::has_partition() const {
+// optional bytes data = 6;
+inline bool ProcessJob::has_data() const {
   return (_has_bits_[0] & 0x00000020u) != 0;
 }
-inline void ProcessJob::set_has_partition() {
+inline void ProcessJob::set_has_data() {
   _has_bits_[0] |= 0x00000020u;
 }
-inline void ProcessJob::clear_has_partition() {
+inline void ProcessJob::clear_has_data() {
   _has_bits_[0] &= ~0x00000020u;
+}
+inline void ProcessJob::clear_data() {
+  if (data_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    data_->clear();
+  }
+  clear_has_data();
+}
+inline const ::std::string& ProcessJob::data() const {
+  // @@protoc_insertion_point(field_get:ProcessJob.data)
+  return *data_;
+}
+inline void ProcessJob::set_data(const ::std::string& value) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    data_ = new ::std::string;
+  }
+  data_->assign(value);
+  // @@protoc_insertion_point(field_set:ProcessJob.data)
+}
+inline void ProcessJob::set_data(const char* value) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    data_ = new ::std::string;
+  }
+  data_->assign(value);
+  // @@protoc_insertion_point(field_set_char:ProcessJob.data)
+}
+inline void ProcessJob::set_data(const void* value, size_t size) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    data_ = new ::std::string;
+  }
+  data_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:ProcessJob.data)
+}
+inline ::std::string* ProcessJob::mutable_data() {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    data_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:ProcessJob.data)
+  return data_;
+}
+inline ::std::string* ProcessJob::release_data() {
+  clear_has_data();
+  if (data_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = data_;
+    data_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ProcessJob::set_allocated_data(::std::string* data) {
+  if (data_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete data_;
+  }
+  if (data) {
+    set_has_data();
+    data_ = data;
+  } else {
+    clear_has_data();
+    data_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:ProcessJob.data)
+}
+
+// optional int32 partition = 7;
+inline bool ProcessJob::has_partition() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void ProcessJob::set_has_partition() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void ProcessJob::clear_has_partition() {
+  _has_bits_[0] &= ~0x00000040u;
 }
 inline void ProcessJob::clear_partition() {
   partition_ = 0;
@@ -556,15 +647,15 @@ inline void ProcessJob::set_partition(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:ProcessJob.partition)
 }
 
-// optional int32 partition_count = 7;
+// optional int32 partition_count = 8;
 inline bool ProcessJob::has_partition_count() const {
-  return (_has_bits_[0] & 0x00000040u) != 0;
+  return (_has_bits_[0] & 0x00000080u) != 0;
 }
 inline void ProcessJob::set_has_partition_count() {
-  _has_bits_[0] |= 0x00000040u;
+  _has_bits_[0] |= 0x00000080u;
 }
 inline void ProcessJob::clear_has_partition_count() {
-  _has_bits_[0] &= ~0x00000040u;
+  _has_bits_[0] &= ~0x00000080u;
 }
 inline void ProcessJob::clear_partition_count() {
   partition_count_ = 0;
@@ -580,15 +671,15 @@ inline void ProcessJob::set_partition_count(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:ProcessJob.partition_count)
 }
 
-// optional string quid_parent = 8;
+// optional string quid_parent = 9;
 inline bool ProcessJob::has_quid_parent() const {
-  return (_has_bits_[0] & 0x00000080u) != 0;
+  return (_has_bits_[0] & 0x00000100u) != 0;
 }
 inline void ProcessJob::set_has_quid_parent() {
-  _has_bits_[0] |= 0x00000080u;
+  _has_bits_[0] |= 0x00000100u;
 }
 inline void ProcessJob::clear_has_quid_parent() {
-  _has_bits_[0] &= ~0x00000080u;
+  _has_bits_[0] &= ~0x00000100u;
 }
 inline void ProcessJob::clear_quid_parent() {
   if (quid_parent_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {

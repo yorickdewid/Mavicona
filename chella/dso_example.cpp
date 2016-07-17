@@ -67,7 +67,7 @@ class Example : public Job {
 	};
 
 	/* The actual execution of the job */
-	void Run() {
+	void Run(const std::string& data) {
 		UpdateProgress(125);
 		SQL()->Query("INSERT INTO example (name, guid) VALUES ('" + Name() + "', '" + Quid() + "')");
 
@@ -78,6 +78,10 @@ class Example : public Job {
 		UpdateProgress(384);
 		std::cout << "More work..." << std::endl;
 		sleep(1);
+
+		if (isPartition() && !data.empty()) {
+			std::cout << "Data: " << data << std::endl;
+		}
 
 		//Ace::pattern::invoke();
 

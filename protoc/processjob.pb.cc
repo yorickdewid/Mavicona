@@ -33,12 +33,13 @@ void protobuf_AssignDesc_processjob_2eproto() {
       "processjob.proto");
   GOOGLE_CHECK(file != NULL);
   ProcessJob_descriptor_ = file->message_type(0);
-  static const int ProcessJob_offsets_[8] = {
+  static const int ProcessJob_offsets_[9] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, quid_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, state_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, content_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, data_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, partition_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, partition_count_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessJob, quid_parent_),
@@ -85,12 +86,13 @@ void protobuf_AddDesc_processjob_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\020processjob.proto\"\327\001\n\nProcessJob\022\014\n\004nam"
+    "\n\020processjob.proto\"\345\001\n\nProcessJob\022\014\n\004nam"
     "e\030\001 \002(\t\022\n\n\002id\030\002 \002(\005\022\014\n\004quid\030\003 \001(\t\022 \n\005sta"
     "te\030\004 \002(\0162\021.ProcessJob.State\022\017\n\007content\030\005"
-    " \001(\014\022\021\n\tpartition\030\006 \001(\005\022\027\n\017partition_cou"
-    "nt\030\007 \001(\005\022\023\n\013quid_parent\030\010 \001(\t\"-\n\005State\022\t"
-    "\n\005SPAWN\020\000\022\r\n\tPARTITION\020\001\022\n\n\006FUNNEL\020\002", 236);
+    " \001(\014\022\014\n\004data\030\006 \001(\014\022\021\n\tpartition\030\007 \001(\005\022\027\n"
+    "\017partition_count\030\010 \001(\005\022\023\n\013quid_parent\030\t "
+    "\001(\t\"-\n\005State\022\t\n\005SPAWN\020\000\022\r\n\tPARTITION\020\001\022\n"
+    "\n\006FUNNEL\020\002", 250);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "processjob.proto", &protobuf_RegisterTypes);
   ProcessJob::default_instance_ = new ProcessJob();
@@ -136,6 +138,7 @@ const int ProcessJob::kIdFieldNumber;
 const int ProcessJob::kQuidFieldNumber;
 const int ProcessJob::kStateFieldNumber;
 const int ProcessJob::kContentFieldNumber;
+const int ProcessJob::kDataFieldNumber;
 const int ProcessJob::kPartitionFieldNumber;
 const int ProcessJob::kPartitionCountFieldNumber;
 const int ProcessJob::kQuidParentFieldNumber;
@@ -165,6 +168,7 @@ void ProcessJob::SharedCtor() {
   quid_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   state_ = 0;
   content_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  data_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   partition_ = 0;
   partition_count_ = 0;
   quid_parent_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
@@ -185,6 +189,9 @@ void ProcessJob::SharedDtor() {
   }
   if (content_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete content_;
+  }
+  if (data_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete data_;
   }
   if (quid_parent_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete quid_parent_;
@@ -243,10 +250,15 @@ void ProcessJob::Clear() {
         content_->clear();
       }
     }
-    if (has_quid_parent()) {
-      if (quid_parent_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-        quid_parent_->clear();
+    if (has_data()) {
+      if (data_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        data_->clear();
       }
+    }
+  }
+  if (has_quid_parent()) {
+    if (quid_parent_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      quid_parent_->clear();
     }
   }
 
@@ -344,13 +356,26 @@ bool ProcessJob::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(48)) goto parse_partition;
+        if (input->ExpectTag(50)) goto parse_data;
         break;
       }
 
-      // optional int32 partition = 6;
+      // optional bytes data = 6;
       case 6: {
-        if (tag == 48) {
+        if (tag == 50) {
+         parse_data:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->mutable_data()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(56)) goto parse_partition;
+        break;
+      }
+
+      // optional int32 partition = 7;
+      case 7: {
+        if (tag == 56) {
          parse_partition:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
@@ -359,13 +384,13 @@ bool ProcessJob::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(56)) goto parse_partition_count;
+        if (input->ExpectTag(64)) goto parse_partition_count;
         break;
       }
 
-      // optional int32 partition_count = 7;
-      case 7: {
-        if (tag == 56) {
+      // optional int32 partition_count = 8;
+      case 8: {
+        if (tag == 64) {
          parse_partition_count:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
@@ -374,13 +399,13 @@ bool ProcessJob::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(66)) goto parse_quid_parent;
+        if (input->ExpectTag(74)) goto parse_quid_parent;
         break;
       }
 
-      // optional string quid_parent = 8;
-      case 8: {
-        if (tag == 66) {
+      // optional string quid_parent = 9;
+      case 9: {
+        if (tag == 74) {
          parse_quid_parent:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_quid_parent()));
@@ -457,24 +482,30 @@ void ProcessJob::SerializeWithCachedSizes(
       5, this->content(), output);
   }
 
-  // optional int32 partition = 6;
+  // optional bytes data = 6;
+  if (has_data()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
+      6, this->data(), output);
+  }
+
+  // optional int32 partition = 7;
   if (has_partition()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(6, this->partition(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(7, this->partition(), output);
   }
 
-  // optional int32 partition_count = 7;
+  // optional int32 partition_count = 8;
   if (has_partition_count()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(7, this->partition_count(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(8, this->partition_count(), output);
   }
 
-  // optional string quid_parent = 8;
+  // optional string quid_parent = 9;
   if (has_quid_parent()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->quid_parent().data(), this->quid_parent().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
       "quid_parent");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      8, this->quid_parent(), output);
+      9, this->quid_parent(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -527,17 +558,24 @@ void ProcessJob::SerializeWithCachedSizes(
         5, this->content(), target);
   }
 
-  // optional int32 partition = 6;
+  // optional bytes data = 6;
+  if (has_data()) {
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        6, this->data(), target);
+  }
+
+  // optional int32 partition = 7;
   if (has_partition()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(6, this->partition(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(7, this->partition(), target);
   }
 
-  // optional int32 partition_count = 7;
+  // optional int32 partition_count = 8;
   if (has_partition_count()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(7, this->partition_count(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(8, this->partition_count(), target);
   }
 
-  // optional string quid_parent = 8;
+  // optional string quid_parent = 9;
   if (has_quid_parent()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->quid_parent().data(), this->quid_parent().length(),
@@ -545,7 +583,7 @@ void ProcessJob::SerializeWithCachedSizes(
       "quid_parent");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        8, this->quid_parent(), target);
+        9, this->quid_parent(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -594,21 +632,30 @@ int ProcessJob::ByteSize() const {
           this->content());
     }
 
-    // optional int32 partition = 6;
+    // optional bytes data = 6;
+    if (has_data()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::BytesSize(
+          this->data());
+    }
+
+    // optional int32 partition = 7;
     if (has_partition()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
           this->partition());
     }
 
-    // optional int32 partition_count = 7;
+    // optional int32 partition_count = 8;
     if (has_partition_count()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
           this->partition_count());
     }
 
-    // optional string quid_parent = 8;
+  }
+  if (_has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    // optional string quid_parent = 9;
     if (has_quid_parent()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
@@ -657,12 +704,17 @@ void ProcessJob::MergeFrom(const ProcessJob& from) {
     if (from.has_content()) {
       set_content(from.content());
     }
+    if (from.has_data()) {
+      set_data(from.data());
+    }
     if (from.has_partition()) {
       set_partition(from.partition());
     }
     if (from.has_partition_count()) {
       set_partition_count(from.partition_count());
     }
+  }
+  if (from._has_bits_[8 / 32] & (0xffu << (8 % 32))) {
     if (from.has_quid_parent()) {
       set_quid_parent(from.quid_parent());
     }
@@ -695,6 +747,7 @@ void ProcessJob::Swap(ProcessJob* other) {
     std::swap(quid_, other->quid_);
     std::swap(state_, other->state_);
     std::swap(content_, other->content_);
+    std::swap(data_, other->data_);
     std::swap(partition_, other->partition_);
     std::swap(partition_count_, other->partition_count_);
     std::swap(quid_parent_, other->quid_parent_);

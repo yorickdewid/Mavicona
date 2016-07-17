@@ -11,7 +11,8 @@ message ProcessJob {
 
   required State state = 4;
   optional bytes content = 5;
-  optional int32 partition = 6;
-  optional int32 partition_count = 7;
-  optional string quid_parent = 8;
+  optional bytes data = 6;
+  optional int32 partition = 7;
+  optional int32 partition_count = 8;
+  optional string quid_parent = 9;
 }

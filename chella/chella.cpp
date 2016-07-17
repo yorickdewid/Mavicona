@@ -233,6 +233,7 @@ void prepareJob(zmq::message_t& message) {
 	parameters.jobpartition_count = job.partition_count();
 	parameters.jobstate = static_cast<Callback::JobState>(job.state());
 	parameters.jobparent = job.quid_parent();
+	parameters.jobdata = job.data();
 
 	/* Run procedure */
 	Execute::run(exeName, parameters);

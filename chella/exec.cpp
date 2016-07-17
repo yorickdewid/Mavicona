@@ -111,7 +111,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Call main routine */
 	try {
 		exec->jobcontrol->setStateRunning();
-		jobObject->Run();
+		jobObject->Run(param.jobdata);
 		executionLog->setCheckpoint(Wal::Checkpoint::RUN);
 	} catch (const std::exception& ex) {
 		std::cerr << ex.what() << std::endl;
@@ -195,6 +195,7 @@ void Execute::prospect(const std::string& name) {
 		job.set_partition_count(exec->chain->size());
 		job.set_state(ProcessJob::PARTITION);
 		job.set_quid_parent(exec->chain->parentQuid());
+		job.set_data("kaze");
 
 		std::cout << "Submit subjob " << i << " linked to parent " << exec->chain->parentQuid() + "(" + exec->chain->parentName() + ")" << std::endl;
 
