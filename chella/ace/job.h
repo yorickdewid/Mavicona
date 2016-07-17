@@ -51,6 +51,9 @@ class Job {
 	}
 
 	inline unsigned int Partition() const {
+		if (!isPartition())
+			return 0;
+
 		return cb->jobpartition + 1;
 	}
 
@@ -93,15 +96,15 @@ class Job {
 	}
 
 	/* Job state */
-	inline bool isSpawn() {
+	inline bool isSpawn() const {
 		return cb->jobstate == Callback::SPAWN;
 	}
 
-	inline bool isPartition() {
+	inline bool isPartition() const {
 		return cb->jobstate == Callback::PARTITION;
 	}
 
-	inline bool isFunnel() {
+	inline bool isFunnel() const {
 		return cb->jobstate == Callback::FUNNEL;
 	}
 

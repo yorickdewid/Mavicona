@@ -13,12 +13,13 @@
 typedef int (*regclass_t)();
 typedef Ace::Job *(*facade_t)();
 
-void Execute::init(ControlClient *control) {
+void Execute::init(ControlClient *control, const std::string& _master) {
 	DIR *dir = nullptr;
 	struct dirent *ent = nullptr;
 
 	Execute& exec = Execute::getInstance();
-	exec.setControl(control);
+	exec.jobcontrol = control;
+	exec.master = _master;
 
 	if ((dir = opendir("cache/wal/")) != NULL) {
 
@@ -175,11 +176,8 @@ void Execute::prospect(const std::string& name) {
 	std::string content((std::istreambuf_iterator<char>(ifs)),
 	                    (std::istreambuf_iterator<char>()));
 
-	std::cout << "Subjobs " << exec->chain->size() << std::endl;
-
-	socket.connect("tcp://localhost:5566");
-	// socket.connect(("tcp://localhost:5566").c_str());
-	// std::cout << "Connect to master " << _masterNode << std::endl;
+	socket.connect(("tcp://" + exec->master).c_str());
+	std::cout << "Connect to master " << exec->master << std::endl;
 
 	for (unsigned int i = 0; i < exec->chain->size(); ++i) {
 		auto subjob = exec->chain->at(i);

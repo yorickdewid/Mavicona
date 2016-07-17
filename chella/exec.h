@@ -16,6 +16,7 @@ inline int iter_cb(void *data, const unsigned char *key, uint32_t key_len, void 
 }
 
 class Execute : public Callback {
+	std::string master;
 	ControlClient *jobcontrol = nullptr;
 	Ace::Chain *chain = nullptr;
 	art_tree *cache = nullptr;
@@ -48,10 +49,6 @@ class Execute : public Callback {
 		std::string jobdata;
 		JobState jobstate;
 	};
-
-	void setControl(ControlClient *control) {
-		jobcontrol = control;
-	}
 
 	void updateProgress(unsigned short progress) {
 		jobcontrol->updateStateRunning(progress);
@@ -88,7 +85,7 @@ class Execute : public Callback {
 	void sqlDisconnect() {}
 #endif
 
-	static void init(ControlClient *control);
+	static void init(ControlClient *control, const std::string& master);
 	static void run(const std::string& name, Parameter& param);
 	static void prospect(const std::string& name);
 	static void dispose();
