@@ -45,36 +45,36 @@ void Execute::init(ControlClient *control, const std::string& _master) {
 void Execute::run(const std::string& name, Parameter& param) {
 	Wal *executionLog = new Wal(name, param);
 
-	Execute *exec = &Execute::getInstance();
+	Execute& exec = Execute::getInstance();
 
 	std::cout << "Running module " << std::endl;
 
 	/* Move worker in accept mode */
-	exec->jobcontrol->setStateAccepted();
+	exec.jobcontrol->setStateAccepted();
 
 	/* Set members of shared object via callback */
-	exec->workerid = exec->jobcontrol->workerId();
-	exec->clusterjobs = exec->jobcontrol->clusterJobs();
-	exec->module = name;
-	exec->jobid = param.jobid;
-	exec->jobname = param.jobname;
-	exec->jobquid = param.jobquid;
-	exec->jobpartition = param.jobpartition;
-	exec->jobpartition_count = param.jobpartition_count;
-	exec->jobstate = param.jobstate;
-	exec->jobparent = param.jobparent;
+	exec.workerid = exec.jobcontrol->workerId();
+	exec.clusterjobs = exec.jobcontrol->clusterJobs();
+	exec.module = name;
+	exec.jobid = param.jobid;
+	exec.jobname = param.jobname;
+	exec.jobquid = param.jobquid;
+	exec.jobpartition = param.jobpartition;
+	exec.jobpartition_count = param.jobpartition_count;
+	exec.jobstate = param.jobstate;
+	exec.jobparent = param.jobparent;
 
 	executionLog->setCheckpoint(Wal::Checkpoint::INIT);
 
 	if (!file_exist("cache/module/" + name)) {
-		exec->jobcontrol->setStateIdle();
+		exec.jobcontrol->setStateIdle();
 		std::cerr << "Cannot access library" << std::endl;
 		return;
 	}
 
 	void *handle = dlopen(("cache/module/" + name).c_str(), RTLD_LAZY);
 	if (!handle) {
-		exec->jobcontrol->setStateIdle();
+		exec.jobcontrol->setStateIdle();
 		std::cerr << "Cannot open library: " << dlerror() << std::endl;
 		return;
 	}
@@ -86,13 +86,13 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Inject job and cluster */
 	assert(exec_register() == ACE_MAGIC);
 	Ace::Job *jobObject = (Ace::Job *)exec_facade();
-	jobObject->Inject(exec);
+	jobObject->Inject(&exec);
 	executionLog->setCheckpoint(Wal::Checkpoint::INJECT);
 
 	/* Call this setup once in the cluster */
-	if (exec->jobstate == SPAWN) {
+	if (exec.jobstate == SPAWN) {
 		try {
-			exec->jobcontrol->setStateSetup();
+			exec.jobcontrol->setStateSetup();
 			jobObject->SetupOnce();
 			executionLog->setCheckpoint(Wal::Checkpoint::SETUP_ONCE);
 		} catch (const std::exception& ex) {
@@ -102,7 +102,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 
 	/* Call setup routine */
 	try {
-		exec->jobcontrol->setStateSetup();
+		exec.jobcontrol->setStateSetup();
 		jobObject->Setup();
 		executionLog->setCheckpoint(Wal::Checkpoint::SETUP);
 	} catch (const std::exception& ex) {
@@ -111,7 +111,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 
 	/* Call main routine */
 	try {
-		exec->jobcontrol->setStateRunning();
+		exec.jobcontrol->setStateRunning();
 		jobObject->Run(param.jobdata);
 		executionLog->setCheckpoint(Wal::Checkpoint::RUN);
 	} catch (const std::exception& ex) {
@@ -120,7 +120,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 
 	/* Call teardown routine */
 	try {
-		exec->jobcontrol->setStateTeardown();
+		exec.jobcontrol->setStateTeardown();
 		jobObject->Teardown();
 		executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN);
 	} catch (const std::exception& ex) {
@@ -128,9 +128,9 @@ void Execute::run(const std::string& name, Parameter& param) {
 	}
 
 	/* Call this teardown once in the cluster */
-	if (exec->jobstate == FUNNEL) {
+	if (exec.jobstate == FUNNEL) {
 		try {
-			exec->jobcontrol->setStateSetup();
+			exec.jobcontrol->setStateSetup();
 			jobObject->TeardownOnce();
 			executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN_ONCE);
 		} catch (const std::exception& ex) {
@@ -139,7 +139,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	}
 
 	/* Pull the chain */
-	exec->chain = jobObject->PullChain();
+	exec.chain = jobObject->PullChain();
 	executionLog->setCheckpoint(Wal::Checkpoint::PULLCHAIN);
 
 	int r = dlclose(handle);
@@ -147,10 +147,10 @@ void Execute::run(const std::string& name, Parameter& param) {
 		dlclose(handle);
 
 	/* Release resources allocated for this job */
-	exec->sessionCleanup();
+	exec.sessionCleanup();
 
 	/* Move worker in idle mode */
-	exec->jobcontrol->setStateIdle();
+	exec.jobcontrol->setStateIdle();
 
 	/* Mark WAL done */
 	executionLog->markDone();
@@ -161,9 +161,9 @@ void Execute::run(const std::string& name, Parameter& param) {
 void Execute::prospect(const std::string& name) {
 	zmq::context_t context(1);
 	zmq::socket_t socket(context, ZMQ_REQ);
-	Execute *exec = &Execute::getInstance();
+	Execute& exec = Execute::getInstance();
 
-	if (!exec->chain) {
+	if (!exec.chain) {
 		return;
 	}
 
@@ -176,11 +176,11 @@ void Execute::prospect(const std::string& name) {
 	std::string content((std::istreambuf_iterator<char>(ifs)),
 	                    (std::istreambuf_iterator<char>()));
 
-	socket.connect(("tcp://" + exec->master).c_str());
-	std::cout << "Connect to master " << exec->master << std::endl;
+	socket.connect(("tcp://" + exec.master).c_str());
+	std::cout << "Connect to master " << exec.master << std::endl;
 
-	for (unsigned int i = 0; i < exec->chain->size(); ++i) {
-		auto subjob = exec->chain->at(i);
+	for (unsigned int i = 0; i < exec.chain->size(); ++i) {
+		auto subjob = exec.chain->at(i);
 
 		ProcessJob job;
 		job.set_name(subjob->name);
@@ -188,12 +188,12 @@ void Execute::prospect(const std::string& name) {
 		job.set_quid(quidpp::Quid().toString(true));
 		job.set_content(content);
 		job.set_partition(i);
-		job.set_partition_count(exec->chain->size());
+		job.set_partition_count(exec.chain->size());
 		job.set_state(ProcessJob::PARTITION);
-		job.set_quid_parent(exec->chain->parentQuid());
+		job.set_quid_parent(exec.chain->parentQuid());
 		job.set_data(subjob->data);
 
-		std::cout << "Submit subjob " << i << " linked to parent " << exec->chain->parentQuid() + "(" + exec->chain->parentName() + ")" << std::endl;
+		std::cout << "Submit subjob " << i << " linked to parent " << exec.chain->parentQuid() + "(" + exec.chain->parentName() + ")" << std::endl;
 
 		std::string serialized;
 		job.SerializeToString(&serialized);
@@ -207,8 +207,8 @@ void Execute::prospect(const std::string& name) {
 		socket.recv(&reply);
 	}
 
-	delete exec->chain;
-	exec->chain = nullptr;
+	delete exec.chain;
+	exec.chain = nullptr;
 }
 
 void Execute::dispose() {
