@@ -8,12 +8,23 @@ namespace Ace {
 struct Subjob {
 	std::string name;
 	std::string content;
+	std::string data;
 
   public:
 	explicit Subjob(const std::string _name) : name(_name) {}
 
 	void setName(const std::string _name) {
 		name = _name;
+	}
+
+	void setData(const std::string _data) {
+		data = _data;
+	}
+
+	template<typename T>
+	Subjob *operator<<(T& _data) {
+		data.append(_data);
+		return this;
 	}
 };
 

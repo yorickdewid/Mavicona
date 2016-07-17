@@ -83,8 +83,6 @@ class Example : public Job {
 			std::cout << "Data: " << data << std::endl;
 		}
 
-		//Ace::pattern::invoke();
-
 		UpdateProgress(532);
 		std::cout << "Bit more..." << std::endl;
 		sleep(1);

@@ -163,7 +163,6 @@ void Execute::prospect(const std::string& name) {
 	Execute *exec = &Execute::getInstance();
 
 	if (!exec->chain) {
-		std::cout << "no chain, done" << std::endl;
 		return;
 	}
 
@@ -176,7 +175,6 @@ void Execute::prospect(const std::string& name) {
 	std::string content((std::istreambuf_iterator<char>(ifs)),
 	                    (std::istreambuf_iterator<char>()));
 
-	std::cout << "Chain found" << std::endl;
 	std::cout << "Subjobs " << exec->chain->size() << std::endl;
 
 	socket.connect("tcp://localhost:5566");
@@ -195,7 +193,7 @@ void Execute::prospect(const std::string& name) {
 		job.set_partition_count(exec->chain->size());
 		job.set_state(ProcessJob::PARTITION);
 		job.set_quid_parent(exec->chain->parentQuid());
-		job.set_data("kaze");
+		job.set_data(subjob->data);
 
 		std::cout << "Submit subjob " << i << " linked to parent " << exec->chain->parentQuid() + "(" + exec->chain->parentName() + ")" << std::endl;
 
