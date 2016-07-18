@@ -146,62 +146,20 @@ void initMaster() {
 	int opt = 1;
 	zmq::context_t context(1);
 
+	/* Socket to receive worker status */
 	zmq::socket_t controller(context, ZMQ_REP);
-	controller.bind("tcp://*:5544");
 	controller.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
+	controller.bind("tcp://*:5544");
 
-	/* Socket to send messages on */
+	/* Socket to receive worker requests */
 	zmq::socket_t worker(context, ZMQ_REP);
 	worker.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
 	worker.bind("tcp://*:5555");
 
-	/* Socket to send messages on */
+	/* Socket to receive incomming jobs */
 	zmq::socket_t master(context, ZMQ_REP);
 	master.setsockopt(ZMQ_IPV6, &opt, sizeof(int));
 	master.bind("tcp://*:5566");
-
-	/* Send 2 tasks */
-	// for (int task_nbr = 0; task_nbr < 2; task_nbr++) {
-	// {
-	std::ifstream texample("libdso_example.so");
-	std::string str_example;
-
-	texample.seekg(0, std::ios::end);
-	str_example.reserve(texample.tellg());
-	texample.seekg(0, std::ios::beg);
-
-	str_example.assign((std::istreambuf_iterator<char>(texample)), std::istreambuf_iterator<char>());
-	// }
-
-	/*ProcessJob job;
-	job.set_name("woei");
-	job.set_id(jobcounter++);
-	job.set_quid("23532899-d117-4166-a4bc-532a95b9e4ec");
-	job.set_state(ProcessJob::SPAWN);
-	job.set_content(str_example);
-
-	jobqueue.push(job);*/
-
-	//
-	std::ifstream tcounter("libdso_counter.so");
-	std::string str_counter;
-
-	tcounter.seekg(0, std::ios::end);
-	str_counter.reserve(tcounter.tellg());
-	tcounter.seekg(0, std::ios::beg);
-
-	str_counter.assign((std::istreambuf_iterator<char>(tcounter)), std::istreambuf_iterator<char>());
-	//
-
-	ProcessJob job;
-	job.set_name("blub");
-	job.set_id(jobcounter++);
-	job.set_quid("843de9b0-9351-49a9-8183-6aa361cb80d8");
-	job.set_state(ProcessJob::SPAWN);
-	job.set_content(str_counter);
-
-	jobqueue.push(job);
-	// }
 
 	/* Initialize poll set */
 	zmq::pollitem_t items[] = {
