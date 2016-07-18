@@ -21,6 +21,7 @@
 
 static std::string masterProvision;
 static std::string masterIPC;
+static std::string master;
 static bool interrupted = false;
 static char **init_argv = NULL;
 static unsigned int jobcounter = 0;
@@ -160,27 +161,47 @@ void initMaster() {
 	master.bind("tcp://*:5566");
 
 	/* Send 2 tasks */
-	for (int task_nbr = 0; task_nbr < 2; task_nbr++) {
-		// {
-		std::ifstream t("libdso_example.so");
-		std::string str;
+	// for (int task_nbr = 0; task_nbr < 2; task_nbr++) {
+	// {
+	std::ifstream texample("libdso_example.so");
+	std::string str_example;
 
-		t.seekg(0, std::ios::end);
-		str.reserve(t.tellg());
-		t.seekg(0, std::ios::beg);
+	texample.seekg(0, std::ios::end);
+	str_example.reserve(texample.tellg());
+	texample.seekg(0, std::ios::beg);
 
-		str.assign((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-		// }
+	str_example.assign((std::istreambuf_iterator<char>(texample)), std::istreambuf_iterator<char>());
+	// }
 
-		ProcessJob job;
-		job.set_name("woei");
-		job.set_id(jobcounter++);
-		job.set_quid("429c00e5-290e-406f-8e54-65591ccace21");
-		job.set_state(ProcessJob::SPAWN);
-		job.set_content(str);
+	/*ProcessJob job;
+	job.set_name("woei");
+	job.set_id(jobcounter++);
+	job.set_quid("23532899-d117-4166-a4bc-532a95b9e4ec");
+	job.set_state(ProcessJob::SPAWN);
+	job.set_content(str_example);
 
-		jobqueue.push(job);
-	}
+	jobqueue.push(job);*/
+
+	//
+	std::ifstream tcounter("libdso_counter.so");
+	std::string str_counter;
+
+	tcounter.seekg(0, std::ios::end);
+	str_counter.reserve(tcounter.tellg());
+	tcounter.seekg(0, std::ios::beg);
+
+	str_counter.assign((std::istreambuf_iterator<char>(tcounter)), std::istreambuf_iterator<char>());
+	//
+
+	ProcessJob job;
+	job.set_name("blub");
+	job.set_id(jobcounter++);
+	job.set_quid("843de9b0-9351-49a9-8183-6aa361cb80d8");
+	job.set_state(ProcessJob::SPAWN);
+	job.set_content(str_counter);
+
+	jobqueue.push(job);
+	// }
 
 	/* Initialize poll set */
 	zmq::pollitem_t items[] = {
@@ -267,7 +288,7 @@ void initSlave() {
 	zmq::socket_t receiver(context, ZMQ_REQ);
 	receiver.connect(("tcp://" + masterProvision).c_str());
 
-	Execute::init(&control);
+	Execute::init(&control, master);
 
 	while (true) {
 		try {
@@ -344,6 +365,13 @@ int main(int argc, char *argv[]) {
 		}
 
 		masterIPC = config.get<std::string>("chella-ipc", "");
+
+		if (!config.exist("chella-master")) {
+			std::cerr << "Must be at least 1 chella master listed" << std::endl;
+			return 1;
+		}
+
+		master = config.get<std::string>("chella-master", "");
 	} else {
 		std::cerr << "HBS config is required for this service" << std::endl;
 		return 1;
