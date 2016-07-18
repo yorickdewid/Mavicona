@@ -7,9 +7,7 @@ class Cynder : public Module {
   public:
 	Cynder() {}
 
-	// virtual ~Cynder() {}
-
-	inline std::string name() {
+	inline const std::string name() {
 		return "Cynder";
 	}
 
