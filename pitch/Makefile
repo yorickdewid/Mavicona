@@ -1,4 +1,4 @@
-OBJS = ../protoc/task.pb.o provision.o pitcher.o
+OBJS = ../protoc/task.pb.o ../protoc/processjob.pb.o provision.o pitcher.o
 CC = g++
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq -lleveldb -lpthread
