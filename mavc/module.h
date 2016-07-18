@@ -7,6 +7,7 @@
 class Module {
   public:
 	virtual const std::string name() = 0;
+	virtual const std::string description() = 0;
 	virtual bool runCommand(const std::string& command) = 0;
 	// virtual void registerCommand(const std::string& command) = 0;
 	virtual ~Module() {}

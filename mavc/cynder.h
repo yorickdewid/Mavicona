@@ -11,6 +11,10 @@ class Cynder : public Module {
 		return "Cynder";
 	}
 
+	inline const std::string description() {
+		return "Controll to storage cluster";
+	}
+
 	bool runCommand(const std::string& command);
 };
 

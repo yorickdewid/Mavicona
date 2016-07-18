@@ -13,6 +13,10 @@ class Pitcher : public Module {
 		return "Pitcher";
 	}
 
+	inline const std::string description() {
+		return "Queue management";
+	}
+
 	bool runCommand(const std::string& command) {
 		return true;
 	}

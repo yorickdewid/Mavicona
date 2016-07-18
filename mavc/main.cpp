@@ -45,7 +45,6 @@ static void runModuleCommand(const std::string& command) {
 static bool findModule(const std::string& modname) {
 	for (const auto module : moduleList) {
 		if (!modname.compare(module->modName())) {
-			std::cout << "Switched to module " << module->name() << std::endl;
 			currentModule = module;
 			return true;
 		}
@@ -67,9 +66,18 @@ static void eval(std::string& command) {
 	if (command == "help" || command == "?") {
 		std::cout << "Console:\n";
 		std::cout << "  <module>\tSwitch to module\n";
+		std::cout << "  list\t\tShow loaded modules\n";
 		std::cout << "  help\t\tThis console help\n";
 		std::cout << "  exit\t\tExit console\n";
 		std::cout << std::endl;
+		return;
+	}
+
+	/* Show help */
+	if (command == "list") {
+		for (const auto module : moduleList) {
+			std::cout << module->name() << " : " << module->description() << std::endl;
+		}
 		return;
 	}
 
