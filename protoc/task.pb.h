@@ -176,6 +176,18 @@ class Task : public ::google::protobuf::Message {
   inline ::Task_QueuePriority priority() const;
   inline void set_priority(::Task_QueuePriority value);
 
+  // optional bytes content = 5;
+  inline bool has_content() const;
+  inline void clear_content();
+  static const int kContentFieldNumber = 5;
+  inline const ::std::string& content() const;
+  inline void set_content(const ::std::string& value);
+  inline void set_content(const char* value);
+  inline void set_content(const void* value, size_t size);
+  inline ::std::string* mutable_content();
+  inline ::std::string* release_content();
+  inline void set_allocated_content(::std::string* content);
+
   // @@protoc_insertion_point(class_scope:Task)
  private:
   inline void set_has_name();
@@ -186,6 +198,8 @@ class Task : public ::google::protobuf::Message {
   inline void clear_has_quid();
   inline void set_has_priority();
   inline void clear_has_priority();
+  inline void set_has_content();
+  inline void clear_has_content();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -195,6 +209,7 @@ class Task : public ::google::protobuf::Message {
   ::std::string* quid_;
   ::google::protobuf::int32 id_;
   int priority_;
+  ::std::string* content_;
   friend void  protobuf_AddDesc_task_2eproto();
   friend void protobuf_AssignDesc_task_2eproto();
   friend void protobuf_ShutdownFile_task_2eproto();
@@ -408,6 +423,82 @@ inline void Task::set_priority(::Task_QueuePriority value) {
   set_has_priority();
   priority_ = value;
   // @@protoc_insertion_point(field_set:Task.priority)
+}
+
+// optional bytes content = 5;
+inline bool Task::has_content() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void Task::set_has_content() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void Task::clear_has_content() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void Task::clear_content() {
+  if (content_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    content_->clear();
+  }
+  clear_has_content();
+}
+inline const ::std::string& Task::content() const {
+  // @@protoc_insertion_point(field_get:Task.content)
+  return *content_;
+}
+inline void Task::set_content(const ::std::string& value) {
+  set_has_content();
+  if (content_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    content_ = new ::std::string;
+  }
+  content_->assign(value);
+  // @@protoc_insertion_point(field_set:Task.content)
+}
+inline void Task::set_content(const char* value) {
+  set_has_content();
+  if (content_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    content_ = new ::std::string;
+  }
+  content_->assign(value);
+  // @@protoc_insertion_point(field_set_char:Task.content)
+}
+inline void Task::set_content(const void* value, size_t size) {
+  set_has_content();
+  if (content_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    content_ = new ::std::string;
+  }
+  content_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:Task.content)
+}
+inline ::std::string* Task::mutable_content() {
+  set_has_content();
+  if (content_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    content_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:Task.content)
+  return content_;
+}
+inline ::std::string* Task::release_content() {
+  clear_has_content();
+  if (content_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = content_;
+    content_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void Task::set_allocated_content(::std::string* content) {
+  if (content_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete content_;
+  }
+  if (content) {
+    set_has_content();
+    content_ = content;
+  } else {
+    clear_has_content();
+    content_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:Task.content)
 }
 
 

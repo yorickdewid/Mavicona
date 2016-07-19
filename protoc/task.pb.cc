@@ -33,11 +33,12 @@ void protobuf_AssignDesc_task_2eproto() {
       "task.proto");
   GOOGLE_CHECK(file != NULL);
   Task_descriptor_ = file->message_type(0);
-  static const int Task_offsets_[4] = {
+  static const int Task_offsets_[5] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Task, name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Task, id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Task, quid_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Task, priority_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Task, content_),
   };
   Task_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -81,11 +82,11 @@ void protobuf_AddDesc_task_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\ntask.proto\"\245\001\n\004Task\022\014\n\004name\030\001 \002(\t\022\n\n\002i"
+    "\n\ntask.proto\"\266\001\n\004Task\022\014\n\004name\030\001 \002(\t\022\n\n\002i"
     "d\030\002 \002(\005\022\014\n\004quid\030\003 \001(\t\022-\n\010priority\030\004 \002(\0162"
-    "\023.Task.QueuePriority:\006NORMAL\"F\n\rQueuePri"
-    "ority\022\014\n\010REALTIME\020\000\022\010\n\004HIGH\020\001\022\n\n\006NORMAL\020"
-    "\002\022\007\n\003LOW\020\003\022\010\n\004IDLE\020\004", 180);
+    "\023.Task.QueuePriority:\006NORMAL\022\017\n\007content\030"
+    "\005 \001(\014\"F\n\rQueuePriority\022\014\n\010REALTIME\020\000\022\010\n\004"
+    "HIGH\020\001\022\n\n\006NORMAL\020\002\022\007\n\003LOW\020\003\022\010\n\004IDLE\020\004", 197);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "task.proto", &protobuf_RegisterTypes);
   Task::default_instance_ = new Task();
@@ -134,6 +135,7 @@ const int Task::kNameFieldNumber;
 const int Task::kIdFieldNumber;
 const int Task::kQuidFieldNumber;
 const int Task::kPriorityFieldNumber;
+const int Task::kContentFieldNumber;
 #endif  // !_MSC_VER
 
 Task::Task()
@@ -159,6 +161,7 @@ void Task::SharedCtor() {
   id_ = 0;
   quid_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   priority_ = 2;
+  content_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -173,6 +176,9 @@ void Task::SharedDtor() {
   }
   if (quid_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete quid_;
+  }
+  if (content_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete content_;
   }
   if (this != default_instance_) {
   }
@@ -200,7 +206,7 @@ Task* Task::New() const {
 }
 
 void Task::Clear() {
-  if (_has_bits_[0 / 32] & 15) {
+  if (_has_bits_[0 / 32] & 31) {
     if (has_name()) {
       if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         name_->clear();
@@ -213,6 +219,11 @@ void Task::Clear() {
       }
     }
     priority_ = 2;
+    if (has_content()) {
+      if (content_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        content_->clear();
+      }
+    }
   }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
@@ -292,6 +303,19 @@ bool Task::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(42)) goto parse_content;
+        break;
+      }
+
+      // optional bytes content = 5;
+      case 5: {
+        if (tag == 42) {
+         parse_content:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->mutable_content()));
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -352,6 +376,12 @@ void Task::SerializeWithCachedSizes(
       4, this->priority(), output);
   }
 
+  // optional bytes content = 5;
+  if (has_content()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
+      5, this->content(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -395,6 +425,13 @@ void Task::SerializeWithCachedSizes(
       4, this->priority(), target);
   }
 
+  // optional bytes content = 5;
+  if (has_content()) {
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        5, this->content(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -432,6 +469,13 @@ int Task::ByteSize() const {
     if (has_priority()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::EnumSize(this->priority());
+    }
+
+    // optional bytes content = 5;
+    if (has_content()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::BytesSize(
+          this->content());
     }
 
   }
@@ -473,6 +517,9 @@ void Task::MergeFrom(const Task& from) {
     if (from.has_priority()) {
       set_priority(from.priority());
     }
+    if (from.has_content()) {
+      set_content(from.content());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -501,6 +548,7 @@ void Task::Swap(Task* other) {
     std::swap(id_, other->id_);
     std::swap(quid_, other->quid_);
     std::swap(priority_, other->priority_);
+    std::swap(content_, other->content_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

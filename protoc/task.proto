@@ -12,4 +12,5 @@ message Task {
   }
 
   required QueuePriority priority = 4 [default = NORMAL];
+  optional bytes content = 5;
 }
