@@ -1,3 +1,4 @@
+#ifdef CACHE
 #include "exec.h"
 
 void Execute::cachePut(const std::string& key, const std::string value) {
@@ -26,3 +27,4 @@ std::string Execute::cacheGet(const std::string& key) {
 
 	return *static_cast<std::string *>(result);
 }
+#endif
