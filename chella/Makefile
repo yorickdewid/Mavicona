@@ -2,7 +2,7 @@ OBJS = chella.o nodemanager.o controlclient.o wal.o exec.o exec_cache.o exec_sql
 CC = g++
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq -lpthread -ldl
-CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. -I../quid -I../third_party/upscaledb/include -I../third_party/soci
+CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -DCACHE -I.. -I../quid -I../third_party/upscaledb/include -I../third_party/soci
 CFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. -I../quid -I../third_party/upscaledb/include
 LFLAGS = -Wall $(DEBUG) $(LIBS) -L../third_party/soci/build/lib/
 

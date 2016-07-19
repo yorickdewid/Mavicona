@@ -19,7 +19,10 @@ class Execute : public Callback {
 	std::string master;
 	ControlClient *jobcontrol = nullptr;
 	Ace::Chain *chain = nullptr;
+
+#ifdef CACHE
 	art_tree *cache = nullptr;
+#endif
 #ifdef RDBMS
 	soci::session *session = nullptr;
 #endif
@@ -55,6 +58,7 @@ class Execute : public Callback {
 	}
 
 	void sessionCleanup() {
+#ifdef CACHE
 		if (this->cache) {
 			std::string out;
 			art_iter(this->cache, iter_cb, &out);
@@ -62,6 +66,7 @@ class Execute : public Callback {
 			free(this->cache);
 			this->cache = nullptr;
 		}
+#endif
 
 #ifdef RDBMS
 		if (session) {
@@ -71,9 +76,15 @@ class Execute : public Callback {
 #endif
 	}
 
+#ifdef CACHE
 	void cachePut(const std::string& key, const std::string value);
 	void cacheDelete(const std::string& key);
 	std::string cacheGet(const std::string& key);
+#else
+	void cachePut(const std::string& key, const std::string value) {}
+	void cacheDelete(const std::string& key) {}
+	std::string cacheGet(const std::string& key) { return ""; }
+#endif
 
 #ifdef RDBMS
 	void sqlConnect(const std::string& rdbms, const std::string& database, const std::string& user, const std::string& password);
