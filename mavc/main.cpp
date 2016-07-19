@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 #include <csignal>
+#include <iomanip>
 #include <exception>
 
 #include "common/util.h"
@@ -28,9 +29,9 @@ static void catch_signals() {
 	sigaction(SIGTERM, &action, NULL);
 }
 
-struct UnknownCommand : public std::exception {
+struct UnknownModule : public std::exception {
 	const char *what() const throw () {
-		return "Unknown command or module";
+		return "Unknown module";
 	}
 };
 
@@ -52,6 +53,13 @@ static bool findModule(const std::string& modname) {
 	return false;
 }
 
+template<typename T>
+void printHelpElement(T name, T desc, const int& width = 20) {
+	std::cout << std::left << std::setw(width) << std::setfill(' ') << name;
+	std::cout << std::left << std::setw(width) << std::setfill(' ') << desc;
+	std::cout << std::endl;
+}
+
 static void eval(std::string& command) {
 	std::transform(command.begin(), command.end(), command.begin(), tolower);
 
@@ -63,14 +71,18 @@ static void eval(std::string& command) {
 
 	/* Show help */
 	if (command == "help" || command == "?") {
-		std::cout << "Console:\n";
-		std::cout << "  <module>\tSwitch to module\n";
-		std::cout << "  help\t\tThis console help\n";
-		std::cout << "  exit\t\tExit console\n";
+		std::cout << "Console:" << std::endl;
+
+		printHelpElement("  <module>", "Switch to module");
+		printHelpElement("  help", "This console help");
 		std::cout << std::endl;
 
 		for (const auto module : moduleList) {
-			std::cout << module->name() << ":\t" << module->description() << std::endl;
+			printHelpElement(module->name(), module->description());
+			module->commandlist([](const std::string & name, const std::string & desc) {
+				printHelpElement("  " + name, desc);
+			});
+
 			std::cout << std::endl;
 		}
 

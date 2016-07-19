@@ -1,4 +1,4 @@
-OBJS = cynder.o hbs.o main.o
+OBJS = cynder.o pitcher.o hbs.o main.o
 CC = g++
 DEBUG = -g -O0
 LIBS = 

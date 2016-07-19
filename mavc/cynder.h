@@ -18,6 +18,10 @@ class Cynder : public IModule {
 	void exec(const std::string& command) {
 
 	}
+
+	void commandlist(std::function<void(const std::string&, const std::string&)> print) {
+
+	}
 };
 
 #endif // CYNDER_H

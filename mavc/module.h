@@ -5,6 +5,13 @@
 #include <map>
 #include <iostream>
 #include <functional>
+#include <exception>
+
+struct UnknownCommand : public std::exception {
+	const char *what() const throw () {
+		return "Unknown module command";
+	}
+};
 
 class IModule {
   public:
@@ -18,29 +25,35 @@ class IModule {
 	}
 
 	virtual void exec(const std::string& command) = 0;
+	virtual void commandlist(std::function<void(const std::string&, const std::string&)> print) = 0;
 };
 
 template<typename T>
 class Command {
 	typedef void (T::*cmd_t)(int, char *argv[]);
 
-	std::map<std::string, cmd_t> functions;
+	std::map<std::string, std::pair<std::string, cmd_t>> functions;
 
   public:
 	virtual ~Command() {}
 
 	virtual bool runCommand(const std::string& command) {
 		if (functions.find(command) == functions.end())
-			return false;
+			throw UnknownCommand();
 
 		char *pz = nullptr;
-		(dynamic_cast<T *>(this)->*functions[command])(1, &pz);
+		(dynamic_cast<T *>(this)->*(functions[command].second))(0, &pz);
 		return true;
 	}
 
-	virtual void registerCommand(const std::string& fname, cmd_t f) final {
-		std::cout << "Adding " << fname << std::endl;
-		functions[fname] = f;
+	virtual void foreachCommand(std::function<void(const std::string&, const std::string&)> callback) {
+		for (auto abc : functions) {
+			callback(abc.first, abc.second.first);
+		}
+	}
+
+	virtual void registerCommand(const std::string& name, const std::string& desc, cmd_t f) final {
+		functions[name] = std::make_pair(desc, f);
 	}
 };
 
