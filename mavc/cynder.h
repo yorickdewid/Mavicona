@@ -3,19 +3,21 @@
 
 #include "module.h"
 
-class Cynder : public Module {
+class Cynder : public IModule {
   public:
 	Cynder() {}
 
-	inline const std::string name() {
+	inline const std::string name() const {
 		return "Cynder";
 	}
 
-	inline const std::string description() {
-		return "Controll to storage cluster";
+	inline const std::string description() const {
+		return "Control to storage cluster";
 	}
 
-	bool runCommand(const std::string& command);
+	void exec(const std::string& command) {
+
+	}
 };
 
 #endif // CYNDER_H

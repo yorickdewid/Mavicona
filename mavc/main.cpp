@@ -12,8 +12,8 @@
 #include "pitcher.h"
 
 static bool interrupted = false;
-static std::vector<Module *> moduleList;
-static Module *currentModule = nullptr;
+static std::vector<IModule *> moduleList;
+static IModule *currentModule = nullptr;
 
 void signal_handler(int signum) {
 	interrupted = true;
@@ -38,8 +38,7 @@ static void runModuleCommand(const std::string& command) {
 	if (!currentModule)
 		throw UnknownCommand();
 
-	if (!currentModule->runCommand(command))
-		throw UnknownCommand();
+	currentModule->exec(command);
 }
 
 static bool findModule(const std::string& modname) {
@@ -66,18 +65,15 @@ static void eval(std::string& command) {
 	if (command == "help" || command == "?") {
 		std::cout << "Console:\n";
 		std::cout << "  <module>\tSwitch to module\n";
-		std::cout << "  list\t\tShow loaded modules\n";
 		std::cout << "  help\t\tThis console help\n";
 		std::cout << "  exit\t\tExit console\n";
 		std::cout << std::endl;
-		return;
-	}
 
-	/* Show help */
-	if (command == "list") {
 		for (const auto module : moduleList) {
-			std::cout << module->name() << " : " << module->description() << std::endl;
+			std::cout << module->name() << ":\t" << module->description() << std::endl;
+			std::cout << std::endl;
 		}
+
 		return;
 	}
 
@@ -114,6 +110,7 @@ void runShellLoop() {
 
 	catch_signals();
 
+	std::cout << "Type 'help' to get started" << std::endl;
 	std::cout << shellState();
 
 	std::string input;
