@@ -1,7 +1,7 @@
-OBJS = cynder.o pitcher.o hbs.o main.o
+OBJS = cynder.o pitcher.o hbs.o main.o ../protoc/task.pb.o
 CC = g++
 DEBUG = -g -O0
-LIBS = 
+LIBS = -lprotobuf -lzmq
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. 
 LFLAGS = -Wall $(DEBUG) $(LIBS)
 

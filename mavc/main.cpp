@@ -77,6 +77,7 @@ static void eval(std::string& command) {
 		printHelpElement("  help", "This console help");
 		std::cout << std::endl;
 
+		/* Print functions per module */
 		for (const auto module : moduleList) {
 			printHelpElement(module->name(), module->description());
 			module->commandlist([](const std::string & name, const std::string & desc) {
@@ -127,6 +128,10 @@ void runShellLoop() {
 
 	std::string input;
 	while (std::getline(std::cin, input)) {
+		if (input.empty())
+			continue;
+
+		/* Evaluate command */
 		eval(input);
 
 		if (interrupted)

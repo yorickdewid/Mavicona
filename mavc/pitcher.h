@@ -6,9 +6,7 @@
 class Pitcher : public IModule, public Command<Pitcher> {
   public:
 	Pitcher() {
-		registerCommand("kaze", "The kaze command", &Pitcher::kaze);
-		registerCommand("wurst", "The wurst command", &Pitcher::wurst);
-		registerCommand("newjob", "Create new job", &Pitcher::newJob);
+		registerCommand("newTask", "Create new task", &Pitcher::newTask);
 	}
 
 	inline const std::string name() const {
@@ -28,9 +26,7 @@ class Pitcher : public IModule, public Command<Pitcher> {
 	}
 
 	/* Module specific commands */
-	void newJob(int paramc, char *param[]);
-	void kaze(int paramc, char *param[]);
-	void wurst(int paramc, char *param[]);
+	void newTask(int paramc, char *param[]);
 };
 
 #endif // PITCHER_H
