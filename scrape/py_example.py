@@ -1,5 +1,5 @@
-'''py_auxiliary.py - Python source designed to demonstrate''' 
-'''the use of python scraper'''
+'''py_example.py - Python source designed to demonstrate''' 
+'''the use of the python scraper script'''
 
 import socket
 import time

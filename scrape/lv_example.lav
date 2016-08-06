@@ -1,0 +1,7 @@
+/*
+ * lv_example.lav - Lavril source designed to demonstrate
+ * the use of the lavril scraper script
+ */
+
+mav.push("food", "cheese");
+mav.commit();

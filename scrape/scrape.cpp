@@ -1,5 +1,6 @@
 #ifdef STATIC
 #undef LIBPYTHON
+#undef LIBLAVRIL
 #endif
 
 #include <zmq.hpp>
@@ -8,6 +9,9 @@
 #include <map>
 #ifdef LIBPYTHON
 #include <Python.h>
+#endif
+#ifdef LIBLAVRIL
+#include <lavril.h>
 #endif
 #include <csignal>
 #include <dlfcn.h>
@@ -96,7 +100,7 @@ void dispatch_commit() {
 #ifdef LIBPYTHON
 
 /* Push data on the stack */
-static PyObject *mav_push(PyObject *self, PyObject *args) {
+static PyObject *py_mav_push(PyObject *self, PyObject *args) {
 	const char *name;
 	const char *data;
 	size_t data_len = 0;
@@ -111,7 +115,7 @@ static PyObject *mav_push(PyObject *self, PyObject *args) {
 }
 
 /* Commit data to cluster */
-static PyObject *mav_commit(PyObject *self, PyObject *args) {
+static PyObject *py_mav_commit(PyObject *self, PyObject *args) {
 	if (!PyArg_ParseTuple(args, ":numargs"))
 		return NULL;
 
@@ -125,11 +129,11 @@ void pyrunner(const char *name) {
 
 	static PyMethodDef MavMethods[] = {
 		{
-			"push", mav_push, METH_VARARGS,
+			"push", py_mav_push, METH_VARARGS,
 			"Push data to scraper."
 		},
 		{
-			"commit", mav_commit, METH_VARARGS,
+			"commit", py_mav_commit, METH_VARARGS,
 			"Commit data to cluster."
 		},
 		{NULL, NULL, 0, NULL}
@@ -150,6 +154,86 @@ void pyrunner(const char *name) {
 }
 
 #endif // LIBPYTHON
+
+#ifdef LIBLAVRIL
+
+void print_func(HSQUIRRELVM LV_UNUSED_ARG(v), const SQChar *s, ...) {
+	va_list vl;
+	va_start(vl, s);
+	vfprintf(stdout, s, vl);
+	va_end(vl);
+}
+
+void error_func(HSQUIRRELVM LV_UNUSED_ARG(v), const SQChar *s, ...) {
+	va_list vl;
+	va_start(vl, s);
+	vfprintf(stderr, s, vl);
+	va_end(vl);
+}
+
+/* Push data on the stack */
+static SQInteger lv_mav_push(HSQUIRRELVM v) {
+	const SQChar *name, *data;
+	if (LV_SUCCEEDED(lv_getstring(v, 2, &name))) {
+		lv_getstring(v, 3, &data);
+		printf("%s : %s\n", name, data);
+		std::string bytea(reinterpret_cast<char const *>(data));
+		datastack.insert(std::pair<std::string, std::string>(name, bytea));
+	}
+
+	return 0;
+}
+
+/* Commit data to cluster */
+static SQInteger lv_mav_commit(HSQUIRRELVM v) {
+	dispatch_commit();
+
+	return 0;
+}
+
+void lvrunner(const char *name) {
+	HSQUIRRELVM v = lv_open(1024);
+
+	lv_setprintfunc(v, print_func, error_func);
+
+	lv_pushroottable(v);
+
+	init_module(blob, v);
+	init_module(io, v);
+	init_module(string, v);
+	init_module(system, v);
+	init_module(math, v);
+	init_module(crypto, v);
+	init_module(curl, v);
+
+	lv_registererrorhandlers(v);
+
+	lv_pushstring(v, _SC("mav"), -1);
+	lv_newclass(v, SQFalse);
+
+	lv_pushstring(v, _SC("push"), -1);
+	lv_newclosure(v, lv_mav_push, 0);
+	lv_setparamscheck(v, 3, ".ss");
+	lv_setnativeclosurename(v, -1, _SC("push"));
+	lv_newslot(v, -3, SQFalse);
+
+	lv_pushstring(v, _SC("commit"), -1);
+	lv_newclosure(v, lv_mav_commit, 0);
+	lv_setparamscheck(v, 0, NULL);
+	lv_setnativeclosurename(v, -1, _SC("commit"));
+	lv_newslot(v, -3, SQFalse);
+
+	lv_newslot(v, -3, SQFalse);
+
+	if (LV_SUCCEEDED(lv_loadfile(v, name, SQTrue))) {
+		lv_pushroottable(v);
+		lv_call(v, 1, SQFalse, SQTrue);
+	}
+
+	lv_close(v);
+}
+
+#endif // LIBLAVRIL
 
 #ifndef STATIC
 void dsorunner(const char *libname, int argc, char *argv[]) {
@@ -263,7 +347,7 @@ int main(int argc, char *argv[]) {
 	cxxopts::Options options(argv[0], "");
 #else
 	cxxopts::Options options(argv[0], " [FILE]");
-#endif
+#endif // STATIC
 
 	options.add_options("Help")
 	("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
@@ -302,7 +386,7 @@ int main(int argc, char *argv[]) {
 		std::cerr << "error: " << name << ": No such file or directory" << std::endl;
 		return 1;
 	}
-#endif
+#endif // STATIC
 
 	std::string host = DEFAULT_EXTRACTOR_HOST;
 	if (options.count("hbs")) {
@@ -345,6 +429,14 @@ int main(int argc, char *argv[]) {
 
 		/* When python file given */
 		pyrunner(name.c_str());
+	}
+#endif // LIBPYTHON
+
+#ifdef LIBLAVRIL
+	else if (name.substr(name.find_last_of(".") + 1) == "lav") {
+
+		/* When python file given */
+		lvrunner(name.c_str());
 	}
 #endif // LIBPYTHON
 
