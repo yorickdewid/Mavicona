@@ -1,12 +1,11 @@
 OBJS = ../protoc/scrapedata.pb.o scrape.o ../quid/libquid.a ../third_party/lavril/liblvcore.a ../third_party/lavril/liblvmods.a
-CC = g++
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq $(shell python2.7-config --libs) -lcurl
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -DLIBPYTHON -DLIBLAVRIL -I.. $(shell python2.7-config --includes) -I../quid -I../third_party/lavril
 LFLAGS = -Wall $(DEBUG) $(LIBS)
 
 all: $(OBJS)
-	$(CC) $(LFLAGS) $(OBJS) -o scrape
+	$(CXX) $(LFLAGS) $(OBJS) -o scrape
 
 dso:
 	$(CC) -c -I. -fPIC example_ext.c -o example_ext.o

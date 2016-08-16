@@ -1,11 +1,12 @@
-/* inih -- simple .INI file parser
-
-inih is released under the New BSD license (see LICENSE.txt). Go to the project
-home page for more info:
-
-https://github.com/benhoyt/inih
-
-*/
+/**
+ * Copyright (C) 2015-2016 Mavicona, Quenza Inc.
+ * All Rights Reserved
+ *
+ * This file is part of the Mavicona project.
+ *
+ * Content can not be copied and/or distributed without the express
+ * permission of the author.
+ */
 
 #ifndef __INI_H__
 #define __INI_H__

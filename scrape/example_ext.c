@@ -1,8 +1,11 @@
 /**
- * Copyright (c) 2016 Mavicona
- * All rights reserved.
+ * Copyright (C) 2015-2016 Mavicona, Quenza Inc.
+ * All Rights Reserved
  *
- * Example_Ext:	A DSO example
+ * This file is part of the Mavicona project.
+ *
+ * Content can not be copied and/or distributed without the express
+ * permission of the author.
  */
 
 #include <stdio.h>
