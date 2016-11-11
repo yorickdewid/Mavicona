@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.2.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "3.0.2"
+#define YYBISON_VERSION "3.0.4"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -135,7 +135,7 @@ extern int yydebug;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE YYSTYPE;
+
 union YYSTYPE
 {
 #line 18 "rule_parse.y" /* yacc.c:355  */
@@ -147,6 +147,8 @@ union YYSTYPE
 
 #line 149 "rule_parse.cpp" /* yacc.c:355  */
 };
+
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
@@ -160,7 +162,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 164 "rule_parse.cpp" /* yacc.c:358  */
+#line 166 "rule_parse.cpp" /* yacc.c:358  */
 /* Unqualified %code blocks.  */
 #line 25 "rule_parse.y" /* yacc.c:359  */
 
@@ -216,7 +218,7 @@ int yyparse (void);
 		}
 	}
 
-#line 220 "rule_parse.cpp" /* yacc.c:359  */
+#line 222 "rule_parse.cpp" /* yacc.c:359  */
 
 #ifdef short
 # undef short
@@ -1306,89 +1308,89 @@ yyreduce:
         case 3:
 #line 98 "rule_parse.y" /* yacc.c:1646  */
     { rules.push_back((yyvsp[0].node)); }
-#line 1310 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1312 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 4:
 #line 99 "rule_parse.y" /* yacc.c:1646  */
     { rules.push_back((yyvsp[0].node)); }
-#line 1316 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1318 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 5:
 #line 102 "rule_parse.y" /* yacc.c:1646  */
     { (yyval.node) = new RuleNode(UNKNOWN, (yyvsp[-1].act)); }
-#line 1322 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1324 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 6:
 #line 103 "rule_parse.y" /* yacc.c:1646  */
     { (yyval.node) = new RuleNode(MIME, (yyvsp[-3].str_val), (yyvsp[-1].act)); }
-#line 1328 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1330 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 7:
 #line 104 "rule_parse.y" /* yacc.c:1646  */
     { (yyval.node) = new RuleNode(TYPE, (yyvsp[-3].str_val), (yyvsp[-1].act)); }
-#line 1334 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1336 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 8:
 #line 105 "rule_parse.y" /* yacc.c:1646  */
     { (yyval.node) = new RuleNode(EXTENSION, (yyvsp[-3].str_val), (yyvsp[-1].act)); }
-#line 1340 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1342 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 9:
 #line 106 "rule_parse.y" /* yacc.c:1646  */
     { (yyval.node) = new RuleNode(CATEGORY, (yyvsp[-3].str_val), (yyvsp[-1].act)); }
-#line 1346 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1348 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 10:
 #line 109 "rule_parse.y" /* yacc.c:1646  */
     { (yyvsp[-1].act)->addAction((yyvsp[0].type)); }
-#line 1352 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1354 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 11:
 #line 110 "rule_parse.y" /* yacc.c:1646  */
     { (yyval.act) = new ActionNode((yyvsp[0].type)); }
-#line 1358 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1360 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 12:
 #line 113 "rule_parse.y" /* yacc.c:1646  */
     { (yyval.type) = (yyvsp[-1].type); }
-#line 1364 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1366 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 13:
 #line 116 "rule_parse.y" /* yacc.c:1646  */
     { (yyval.type) = LOG; }
-#line 1370 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1372 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 14:
 #line 117 "rule_parse.y" /* yacc.c:1646  */
     { (yyval.type) = STORE; }
-#line 1376 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1378 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 15:
 #line 118 "rule_parse.y" /* yacc.c:1646  */
     { (yyval.type) = DISCARD; }
-#line 1382 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1384 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
   case 16:
 #line 119 "rule_parse.y" /* yacc.c:1646  */
     { (yyval.type) = QUEUE; }
-#line 1388 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1390 "rule_parse.cpp" /* yacc.c:1646  */
     break;
 
 
-#line 1392 "rule_parse.cpp" /* yacc.c:1646  */
+#line 1394 "rule_parse.cpp" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
