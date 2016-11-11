@@ -163,9 +163,9 @@ void initMaster() {
 
 	/* Initialize poll set */
 	zmq::pollitem_t items[] = {
-		{worker, 0, ZMQ_POLLIN, 0},
-		{controller, 0, ZMQ_POLLIN, 0},
-		{master, 0, ZMQ_POLLIN, 0}
+		{&worker, 0, ZMQ_POLLIN, 0},
+		{&controller, 0, ZMQ_POLLIN, 0},
+		{&master, 0, ZMQ_POLLIN, 0}
 	};
 
 	while (true) {
