@@ -15,11 +15,6 @@
  * See the file COPYING for License information.
  */
 
-/*
- * @exception_safe: strong
- * @thread_safe: no
- */
-
 #ifndef UPS_PAGE_H
 #define UPS_PAGE_H
 
@@ -30,13 +25,14 @@
 #include "1base/spinlock.h"
 #include "1mem/mem.h"
 #include "1base/intrusive_list.h"
+#include "3btree/btree_cursor.h"
 
 namespace upscaledb {
 
 struct Device;
 struct BtreeCursor;
 struct BtreeNodeProxy;
-class LocalDatabase;
+struct LocalDb;
 
 #include "1base/packstart.h"
 
@@ -187,7 +183,7 @@ class Page {
     };
 
     // Default constructor
-    Page(Device *device, LocalDatabase *db = 0);
+    Page(Device *device, LocalDb *db = 0);
 
     // Destructor - releases allocated memory and resources, but neither
     // flushes dirty pages to disk nor moves them to the freelist!
@@ -205,12 +201,12 @@ class Page {
 
     // Returns the database which manages this page; can be NULL if this
     // page belongs to the Environment (i.e. for freelist-pages)
-    LocalDatabase *db() {
+    LocalDb *db() {
       return db_;
     }
 
     // Sets the database to which this Page belongs
-    void set_db(LocalDatabase *db) {
+    void set_db(LocalDb *db) {
       db_ = db;
     }
 
@@ -323,16 +319,6 @@ class Page {
     // Free resources associated with the buffer
     void free_buffer();
 
-    // Returns the linked list of coupled cursors (can be NULL)
-    BtreeCursor *cursor_list() {
-      return cursor_list_;
-    }
-
-    // Sets the (head of the) linked list of cursors
-    void set_cursor_list(BtreeCursor *cursor) {
-      cursor_list_ = cursor;
-    }
-
     // Allocates a new page from the device
     // |flags|: either 0 or kInitializeWithZeroes
     void alloc(uint32_t type, uint32_t flags = 0);
@@ -372,15 +358,15 @@ class Page {
     // Intrusive linked lists
     IntrusiveListNode<Page, Page::kListMax> list_node;
 
+    // Intrusive linked btree cursors
+    IntrusiveList<BtreeCursor> cursor_list;
+
   private:
     // the Device for allocating storage
     Device *device_;
 
     // the Database handle (can be NULL)
-    LocalDatabase *db_;
-
-    // linked list of all cursors which are coupled to that page
-    BtreeCursor *cursor_list_;
+    LocalDb *db_;
 
     // the cached BtreeNodeProxy object
     BtreeNodeProxy *node_proxy_;

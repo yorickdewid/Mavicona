@@ -18,6 +18,7 @@ libupscaledb_la_SOURCES = \
 	1base/packstart.h \
 	1base/packstop.h \
 	1base/pickle.h \
+	1base/ref_counted.h \
 	1base/scoped_ptr.h \
 	1base/signal.h \
 	1base/spinlock.h \
@@ -81,6 +82,7 @@ libupscaledb_la_SOURCES = \
 	3btree/btree_index.h \
 	3btree/btree_index_factory.h \
 	3btree/btree_insert.cc \
+	3btree/btree_list_base.h \
 	3btree/btree_keys_base.h \
 	3btree/btree_keys_binary.h \
 	3btree/btree_keys_varlen.h \
@@ -89,7 +91,6 @@ libupscaledb_la_SOURCES = \
 	3btree/btree_zint32_simdfor.h \
 	3btree/btree_zint32_block.h \
 	3btree/btree_zint32_groupvarint.h \
-	3btree/btree_zint32_maskedvbyte.h \
 	3btree/btree_zint32_simdcomp.h \
 	3btree/btree_zint32_streamvbyte.h \
 	3btree/btree_zint32_varbyte.h \
@@ -119,7 +120,6 @@ libupscaledb_la_SOURCES = \
 	3page_manager/page_manager_state.h \
 	4context/context.h \
 	4cursor/cursor.h \
-	4cursor/cursor.cc \
 	4cursor/cursor_local.cc \
 	4cursor/cursor_local.h \
 	4cursor/cursor_remote.cc \
@@ -132,11 +132,9 @@ libupscaledb_la_SOURCES = \
 	4db/db_remote.h \
 	4env/env.cc \
 	4env/env.h \
-	4env/env_test.h \
 	4env/env_header.h \
 	4env/env_local.h \
 	4env/env_local.cc \
-	4env/env_local_test.h \
 	4env/env_remote.h \
 	4env/env_remote.cc \
 	4txn/txn_cursor.cc \
@@ -179,12 +177,12 @@ libupscaledb_la_LIBADD  = $(BOOST_SYSTEM_LIBS) $(BOOST_THREAD_LIBS) \
 			  $(top_builddir)/3rdparty/murmurhash3/libmurmurhash3.la -ldl
 
 libupscaledb_la_LIBADD  += $(top_builddir)/3rdparty/liblzf/liblzf.la \
-						   $(top_builddir)/3rdparty/for/libfor.la
+						   $(top_builddir)/3rdparty/libfor/libfor.la \
+						   $(top_builddir)/3rdparty/libvbyte/libvbyte.la
 
 if ENABLE_SSE2
 AM_CPPFLAGS 			+= -DHAVE_SSE2
 libupscaledb_la_LIBADD  += $(top_builddir)/3rdparty/simdcomp/libsimdcomp.la \
-						   $(top_builddir)/3rdparty/varint/libvarint.la \
 						   $(top_builddir)/3rdparty/streamvbyte/libstreamvbyte.la
 endif
 if WITH_ZLIB

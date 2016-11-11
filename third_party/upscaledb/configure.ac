@@ -251,13 +251,21 @@ else
 fi
 
 
-CXXFLAGS=${CFLAGS}
+CXXFLAGS="$CFLAGS"
+
+# now append --std=c++11 to CXXFLAGS
+m4_include([m4/ax_cxx_compile_stdcxx.m4])
+AC_DEFUN([AX_CXX_COMPILE_STDCXX_11], [AX_CXX_COMPILE_STDCXX([11], [$1],
+          [$2])])
+AC_LANG(C++)
+AX_CXX_COMPILE_STDCXX_11()
+AC_LANG(C)
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
 AC_CONFIG_FILES(Makefile src/Makefile src/2protobuf/Makefile src/2protoserde/Makefile include/Makefile include/ups/Makefile samples/Makefile unittests/Makefile 3rdparty/Makefile 3rdparty/json/Makefile tools/Makefile tools/ups_bench/Makefile src/5server/Makefile java/Makefile java/java/Makefile java/src/Makefile java/unittests/Makefile)
-AC_CONFIG_FILES(3rdparty/liblzf/Makefile 3rdparty/murmurhash3/Makefile 3rdparty/simdcomp/Makefile 3rdparty/streamvbyte/Makefile 3rdparty/varint/Makefile 3rdparty/for/Makefile)
+AC_CONFIG_FILES(3rdparty/liblzf/Makefile 3rdparty/murmurhash3/Makefile 3rdparty/simdcomp/Makefile 3rdparty/streamvbyte/Makefile 3rdparty/libfor/Makefile 3rdparty/libvbyte/Makefile)
 AC_OUTPUT
 
 # Messages

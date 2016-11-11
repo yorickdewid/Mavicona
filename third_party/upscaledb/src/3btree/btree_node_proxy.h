@@ -54,8 +54,7 @@ struct ScanVisitor;
 // and is implemented by template classes (btree_impl_default.h,
 // btree_impl_pax.h.).
 //
-struct BtreeNodeProxy
-{
+struct BtreeNodeProxy {
   // Constructor
   BtreeNodeProxy(Page *page_)
     : page(page_) {
@@ -249,19 +248,18 @@ struct BtreeNodeProxy
 // A comparator which uses a user-supplied callback function (installed
 // with |ups_db_set_compare_func|) to compare two keys
 //
-struct CallbackCompare
-{
-  CallbackCompare(LocalDatabase *db_)
+struct CallbackCompare {
+  CallbackCompare(LocalDb *db_)
     : db(db_) {
   }
 
   int operator()(const void *lhs_data, uint32_t lhs_size,
           const void *rhs_data, uint32_t rhs_size) const {
-    return db->compare_func()((::ups_db_t *)db, (uint8_t *)lhs_data,
+    return db->compare_function((::ups_db_t *)db, (uint8_t *)lhs_data,
                             lhs_size, (uint8_t *)rhs_data, rhs_size);
   }
 
-  LocalDatabase *db;
+  LocalDb *db;
 };
 
 //
@@ -270,9 +268,8 @@ struct CallbackCompare
 // This has to be a POD type with support for operators < and >.
 //
 template<typename T>
-struct NumericCompare
-{
-  NumericCompare(LocalDatabase *) {
+struct NumericCompare {
+  NumericCompare(LocalDb *) {
   }
 
   int operator()(const void *lhs_data, uint32_t lhs_size,
@@ -289,9 +286,8 @@ struct NumericCompare
 // The default comparator for two keys, implemented with memcmp(3).
 // Both keys have the same size!
 //
-struct FixedSizeCompare
-{
-  FixedSizeCompare(LocalDatabase *) {
+struct FixedSizeCompare {
+  FixedSizeCompare(LocalDb *) {
   }
 
   int operator()(const void *lhs_data, uint32_t lhs_size,
@@ -306,9 +302,8 @@ struct FixedSizeCompare
 // Both keys can have different sizes! shorter strings are treated as
 // "greater"
 //
-struct VariableSizeCompare
-{
-  VariableSizeCompare(LocalDatabase *) {
+struct VariableSizeCompare {
+  VariableSizeCompare(LocalDb *) {
   }
 
   int operator()(const void *lhs_data, uint32_t lhs_size,
@@ -332,8 +327,7 @@ struct VariableSizeCompare
 // delegated to |Comparator|.
 //
 template<class NodeImpl, class Comparator>
-struct BtreeNodeProxyImpl : public BtreeNodeProxy
-{
+struct BtreeNodeProxyImpl : BtreeNodeProxy {
   typedef BtreeNodeProxyImpl<NodeImpl, Comparator> ClassType;
 
   // Constructor
@@ -589,4 +583,4 @@ struct BtreeNodeProxyImpl : public BtreeNodeProxy
 
 } // namespace upscaledb
 
-#endif /* UPS_BTREE_NODE_PROXY_H */
+#endif // UPS_BTREE_NODE_PROXY_H

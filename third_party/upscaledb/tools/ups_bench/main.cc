@@ -38,6 +38,7 @@
 #endif
 #include "metrics.h"
 #include "misc.h"
+#include "os.h"
 
 
 #define ARG_HELP                                1
@@ -276,10 +277,10 @@ static option_t opts[] = {
     ARG_USE_TRANSACTIONS,
     0,
     "use-transactions",
-    "use Transactions; arguments are \n"
-    "\t'tmp' - create temp. Transactions;\n"
-    "\tN - (number) group N statements into a Transaction;\n"
-    "\t'all' - group the whole test into a single Transaction",
+    "use Txns; arguments are \n"
+    "\t'tmp' - create temp. Txns;\n"
+    "\tN - (number) group N statements into a Txn;\n"
+    "\t'all' - group the whole test into a single Txn",
     GETOPTS_NEED_ARGUMENT },
   {
     ARG_USE_FSYNC,
@@ -457,13 +458,10 @@ parse_compression_type(std::string param)
     return (UPS_COMPRESSOR_UINT32_GROUPVARINT);
   if (param == "zint32_streamvbyte")
     return (UPS_COMPRESSOR_UINT32_STREAMVBYTE);
-  if (param == "zint32_maskedvbyte")
-    return (UPS_COMPRESSOR_UINT32_MASKEDVBYTE);
   ::printf("invalid compression specifier '%s': expecting 'none', 'zlib', "
               "'snappy', 'lzf', 'zint32_varbyte', 'zint32_simdcomp', "
               "'zint32_groupvarint', 'zint32_streamvbyte', "
-              "'zint32_maskedvbyte', 'zint32_for', "
-              "'zint32_simdfor'\n",
+              "'zint32_for', 'zint32_simdfor'\n",
               param.c_str());
   ::exit(-1);
 }
@@ -998,39 +996,36 @@ print_metrics(Metrics *metrics, Configuration *conf)
           (long unsigned int)metrics->upscaledb_metrics.extended_duptables);
   printf("\tupscaledb journal_bytes_flushed       %lu\n",
           (long unsigned int)metrics->upscaledb_metrics.journal_bytes_flushed);
-  printf("\tupscaledb simd_lane_width             %d\n",
-          metrics->upscaledb_metrics.simd_lane_width);
 }
 
-struct Callable
-{
-  Callable(int id, Configuration *conf)
-    : m_conf(conf), m_db(new UpscaleDatabase(id, conf)), m_id(id),
-        m_generator(0) {
-      if (m_conf->filename.empty())
-        m_generator = new RuntimeGenerator(m_id, m_conf, m_db, false);
-      else
-        m_generator = new ParserGenerator(m_id, m_conf, m_db, false);
+struct Callable {
+  Callable(int id_, Configuration *conf_)
+    : conf(conf_), db(new UpscaleDatabase(id, conf)), id(id_),
+        generator(0) {
+    if (conf->filename.empty())
+      generator = new RuntimeGenerator(id, conf, db, false);
+    else
+      generator = new ParserGenerator(id, conf, db, false);
   }
 
   ~Callable() {
-    // TODO delete m_db!
-    delete m_generator;
+    // TODO delete db!
+    delete generator;
   }
 
   void operator()() {
-    while (m_generator->execute())
+    while (generator->execute())
       ;
   }
 
   void get_metrics(Metrics *metrics) {
-    m_generator->get_metrics(metrics);
+    generator->get_metrics(metrics);
   }
 
-  Configuration *m_conf;
-  Database *m_db;
-  int m_id;
-  ::Generator *m_generator;
+  Configuration *conf;
+  Database *db;
+  int id;
+  ::Generator *generator;
 };
 
 static void

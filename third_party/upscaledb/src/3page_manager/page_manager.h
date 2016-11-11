@@ -45,8 +45,8 @@
 namespace upscaledb {
 
 struct Context;
-class LocalDatabase;
-class LocalEnvironment;
+struct LocalDb;
+class LocalEnv;
 
 struct PageManager
 {
@@ -71,7 +71,7 @@ struct PageManager
   };
 
   // Constructor
-  PageManager(LocalEnvironment *env)
+  PageManager(LocalEnv *env)
     : state(new PageManagerState(env)) {
   }
 
@@ -109,7 +109,7 @@ struct PageManager
   void reclaim_space(Context *context);
 
   // Flushes and closes all pages of a database
-  void close_database(Context *context, LocalDatabase *db);
+  void close_database(Context *context, LocalDb *db);
 
   // Schedules one (or many sequential) pages for deletion and adds them
   // to the Freelist

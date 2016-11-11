@@ -40,7 +40,7 @@ namespace upscaledb {
 struct Context;
 struct DbConfig;
 struct PageManager;
-class LocalCursor;
+struct LocalCursor;
 
 typedef std::pair<const void *, size_t> ScanResult;
 
@@ -50,8 +50,7 @@ typedef std::pair<const void *, size_t> ScanResult;
 // The persistent btree index descriptor. This structure manages the
 // persistent btree metadata.
 //
-UPS_PACK_0 struct UPS_PACK_1 PBtreeHeader
-{
+UPS_PACK_0 struct UPS_PACK_1 PBtreeHeader {
   PBtreeHeader() {
     ::memset(this, 0, sizeof(*this));
   }
@@ -110,7 +109,7 @@ UPS_PACK_0 struct UPS_PACK_1 PBtreeHeader
 #include "1base/packstop.h"
 
 struct Context;
-class LocalDatabase;
+struct LocalDb;
 struct BtreeNodeProxy;
 struct PDupeEntry;
 struct BtreeVisitor;
@@ -118,8 +117,7 @@ struct BtreeVisitor;
 //
 // Abstract base class, overwritten by a templated version
 //
-struct BtreeIndexTraits
-{
+struct BtreeIndexTraits {
   // virtual destructor
   virtual ~BtreeIndexTraits() { }
 
@@ -127,7 +125,7 @@ struct BtreeIndexTraits
   // Returns -1, 0, +1 or higher positive values are the result of a
   // successful key comparison (0 if both keys match, -1 when
   // LHS < RHS key, +1 when LHS > RHS key).
-  virtual int compare_keys(LocalDatabase *db, ups_key_t *lhs,
+  virtual int compare_keys(LocalDb *db, ups_key_t *lhs,
                   ups_key_t *rhs) const = 0;
 
   // Returns the class name (for testing)
@@ -138,13 +136,12 @@ struct BtreeIndexTraits
 };
 
 
-struct BtreeIndexState
-{
+struct BtreeIndexState {
   // The Environment's page manager
   PageManager *page_manager;
 
   // pointer to the database object
-  LocalDatabase *db;
+  LocalDb *db;
 
   // the Traits class wrapping the template parameters (factory for
   // leaf nodes)
@@ -157,6 +154,9 @@ struct BtreeIndexState
   // the index of the PBtreeHeader in the Environment's header page
   PBtreeHeader *btree_header;
 
+  // the root page of the Btree
+  Page *root_page;
+
   // the btree statistics
   BtreeStatistics statistics;
 };
@@ -165,8 +165,7 @@ struct BtreeIndexState
 // The Btree. Derived by BtreeIndexImpl, which uses template policies to
 // define the btree node layout.
 //
-struct BtreeIndex
-{
+struct BtreeIndex {
   enum {
     // for get_node_from_page(): Page is a leaf
     kLeafPage = 1,
@@ -176,29 +175,30 @@ struct BtreeIndex
   };
 
   // Constructor; creates and initializes a new btree
-  BtreeIndex(LocalDatabase *db) {
+  BtreeIndex(LocalDb *db) {
     state.db = db;
     state.btree_header = 0;
+    state.root_page = 0;
   }
 
   // Returns the database pointer
-  LocalDatabase *db() {
+  LocalDb *db() {
     return state.db;
   }
 
   // Returns the database pointer
-  LocalDatabase *db() const {
+  LocalDb *db() const {
     return state.db;
   }
 
-  // Returns the address of the root page
-  uint64_t root_address() const {
-    return state.btree_header->root_address;
-  }
+  // Returns the root page
+  Page *root_page(Context *context);
 
-  // Sets the address of the root page
-  void set_root_address(uint64_t address) {
-    state.btree_header->root_address = address;
+  // Sets the new root page
+  void set_root_page(Page *root_page) {
+    root_page->set_type(Page::kTypeBroot);
+    state.btree_header->root_address = root_page->address();
+    state.root_page = root_page;
   }
 
   // Returns the hash of the compare function
@@ -268,7 +268,7 @@ struct BtreeIndex
 
   // Returns a BtreeNodeProxy for a Page
   BtreeNodeProxy *get_node_from_page(Page *page) {
-    if (page->node_proxy())
+    if (likely(page->node_proxy() != 0))
       return page->node_proxy();
 
     BtreeNodeProxy *proxy;
@@ -322,4 +322,4 @@ struct BtreeIndex
 
 } // namespace upscaledb
 
-#endif /* UPS_BTREE_INDEX_H */
+#endif // UPS_BTREE_INDEX_H

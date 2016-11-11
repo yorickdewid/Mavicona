@@ -27,7 +27,7 @@
 
 #include "0root/root.h"
 
-#include "3rdparty/for/for.h"
+#include "3rdparty/libfor/for.h"
 
 // Always verify that a file of level N does not include headers > N!
 #include "3btree/btree_zint32_block.h"
@@ -44,7 +44,7 @@ namespace upscaledb {
 //
 namespace Zint32 {
 
-static uint32_t
+static inline uint32_t
 for_select(const uint8_t *in, uint32_t index)
 {
   /* load min and the bits */
@@ -108,81 +108,78 @@ for_select(const uint8_t *in, uint32_t index)
 // This structure is an "index" entry which describes the location
 // of a variable-length block
 #include "1base/packstart.h"
-UPS_PACK_0 class UPS_PACK_1 ForIndex : public IndexBase {
-  public:
-    enum {
-      // Initial size of a new block
-      kInitialBlockSize = 9 + 16,
+UPS_PACK_0 struct UPS_PACK_1 ForIndex : IndexBase {
+  enum {
+    // Initial size of a new block
+    kInitialBlockSize = 9 + 16,
 
-      // Maximum keys per block
-      kMaxKeysPerBlock = 256 + 1,
-    };
+    // Maximum keys per block
+    kMaxKeysPerBlock = 256 + 1,
+  };
 
-    // initialize this block index
-    void initialize(uint32_t offset, uint8_t *block_data, size_t block_size) {
-      IndexBase::initialize(offset, block_data, block_size);
-      m_block_size = block_size;
-      m_used_size = 0;
-      m_key_count = 0;
+  // initialize this block index
+  void initialize(uint32_t offset, uint8_t *block_data, size_t block_size) {
+    IndexBase::initialize(offset, block_data, block_size);
+    _block_size = block_size;
+    _used_size = 0;
+    _key_count = 0;
 
-      // clear the metadata
-      ::memset(block_data, 0, 2 * sizeof(uint32_t));
-    }
+    // clear the metadata
+    ::memset(block_data, 0, 2 * sizeof(uint32_t));
+  }
 
-    // returns the used size of the block
-    uint32_t used_size() const {
-      return (m_used_size);
-    }
+  // returns the used size of the block
+  uint32_t used_size() const {
+    return _used_size;
+  }
 
-    // sets the used size of the block
-    void set_used_size(uint32_t size) {
-      m_used_size = size;
-    }
+  // sets the used size of the block
+  void set_used_size(uint32_t size) {
+    _used_size = size;
+  }
 
-    // returns the total block size
-    uint32_t block_size() const {
-      return (m_block_size);
-    }
+  // returns the total block size
+  uint32_t block_size() const {
+    return _block_size;
+  }
 
-    // sets the total block size
-    void set_block_size(uint32_t size) {
-      m_block_size = size;
-    }
+  // sets the total block size
+  void set_block_size(uint32_t size) {
+    _block_size = size;
+  }
 
-    // returns the key count
-    uint32_t key_count() const {
-      return (m_key_count);
-    }
+  // returns the key count
+  uint32_t key_count() const {
+    return _key_count;
+  }
 
-    // sets the key count
-    void set_key_count(uint32_t key_count) {
-      m_key_count = key_count;
-    }
+  // sets the key count
+  void set_key_count(uint32_t key_count) {
+    _key_count = key_count;
+  }
 
-    // copies this block to the |dest| block
-    void copy_to(const uint8_t *block_data, ForIndex *dest,
-                    uint8_t *dest_data) {
-      dest->set_value(value());
-      dest->set_key_count(key_count());
-      dest->set_used_size(used_size());
-      dest->set_highest(highest());
-      ::memcpy(dest_data, block_data, block_size());
-    }
+  // copies this block to the |dest| block
+  void copy_to(const uint8_t *block_data, ForIndex *dest,
+                  uint8_t *dest_data) {
+    dest->set_value(value());
+    dest->set_key_count(key_count());
+    dest->set_used_size(used_size());
+    dest->set_highest(highest());
+    ::memcpy(dest_data, block_data, block_size());
+  }
 
-  private:
-    // the total size of this block
-    unsigned int m_block_size : 11;
+  // the total size of this block
+  unsigned int _block_size : 11;
 
-    // used size of this block
-    unsigned int m_used_size : 11;
+  // used size of this block
+  unsigned int _used_size : 11;
 
-    // the number of keys in this block; max 511 (kMaxKeysPerBlock)
-    unsigned int m_key_count : 9;
+  // the number of keys in this block; max 511 (kMaxKeysPerBlock)
+  unsigned int _key_count : 9;
 } UPS_PACK_2;
 #include "1base/packstop.h"
 
-struct ForCodecImpl : public BlockCodecBase<ForIndex>
-{
+struct ForCodecImpl : BlockCodecBase<ForIndex> {
   enum {
     kHasCompressApi = 1,
     kHasFindLowerBoundApi = 1,
@@ -192,9 +189,8 @@ struct ForCodecImpl : public BlockCodecBase<ForIndex>
 
   static uint32_t *uncompress_block(ForIndex *index,
                   const uint32_t *block_data, uint32_t *out) {
-    for_uncompress((const uint8_t *)block_data, out,
-                            index->key_count() - 1);
-    return (out);
+    for_uncompress((const uint8_t *)block_data, out, index->key_count() - 1);
+    return out;
   }
 
   static uint32_t compress_block(ForIndex *index, const uint32_t *in,
@@ -203,7 +199,7 @@ struct ForCodecImpl : public BlockCodecBase<ForIndex>
     uint32_t count = index->key_count() - 1;
     uint32_t s = for_compress_sorted(in, (uint8_t *)out, count);
     index->set_used_size(s);
-    return (s);
+    return s;
   }
 
   static bool append(ForIndex *index, uint32_t *in32,
@@ -214,25 +210,25 @@ struct ForCodecImpl : public BlockCodecBase<ForIndex>
     index->set_key_count(index->key_count() + 1);
     index->set_used_size(s);
     *pslot += index->key_count() - 1;
-    return (true);
+    return true;
   }
 
   static int find_lower_bound(ForIndex *index, const uint32_t *block_data,
                   uint32_t key, uint32_t *result) {
-    if (index->key_count() > 1) {
-      return ((int)for_lower_bound_search((const uint8_t *)block_data,
-                           index->key_count() - 1, key, result));
+    if (likely(index->key_count() > 1)) {
+      return (int)for_lower_bound_search((const uint8_t *)block_data,
+                           index->key_count() - 1, key, result);
     }
     else {
       *result = key + 1;
-      return (1);
+      return 1;
     }
   }
 
   // Returns a decompressed value
   static uint32_t select(ForIndex *index, uint32_t *block_data,
                         int position_in_block) {
-    return (Zint32::for_select((const uint8_t *)block_data, position_in_block));
+    return Zint32::for_select((const uint8_t *)block_data, position_in_block);
   }
 
   static uint32_t estimate_required_size(ForIndex *index, uint8_t *block_data,
@@ -249,7 +245,7 @@ struct ForCodecImpl : public BlockCodecBase<ForIndex>
       if (newbits > 32)
         newbits = 32;
       uint32_t s = 5 + ((index->key_count() * newbits) + 7) / 8;
-      return (s + 4); // reserve a few bytes for the next key
+      return s + 4; // reserve a few bytes for the next key
     }
 
   /* returns the integer logarithm of v (bit width) */
@@ -264,18 +260,15 @@ struct ForCodecImpl : public BlockCodecBase<ForIndex>
     return v == 0 ? 0 : 32 - __builtin_clz(v); /* assume GCC-like compiler if not microsoft */
 #endif
   }
-
 };
 
 typedef Zint32Codec<ForIndex, ForCodecImpl> ForCodec;
 
-class ForKeyList : public BlockKeyList<ForCodec>
-{
-  public:
-    // Constructor
-    ForKeyList(LocalDatabase *db)
-      : BlockKeyList<ForCodec>(db) {
-    }
+struct ForKeyList : BlockKeyList<ForCodec> {
+  // Constructor
+  ForKeyList(LocalDb *db, PBtreeNode *node)
+    : BlockKeyList<ForCodec>(db, node) {
+  }
 };
 
 } // namespace Zint32

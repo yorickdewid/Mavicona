@@ -25,6 +25,7 @@
 #include "0root/root.h"
 
 // Always verify that a file of level N does not include headers > N!
+#include "3btree/btree_list_base.h"
 
 #ifndef UPS_ROOT_H
 #  error "root.h was not included"
@@ -32,8 +33,7 @@
 
 namespace upscaledb {
 
-struct BaseKeyList
-{
+struct BaseKeyList : BaseList {
   enum {
     // This KeyList cannot reduce its capacity in order to release storage
     kCanReduceCapacity = 0,
@@ -49,26 +49,19 @@ struct BaseKeyList
 
     // A flag whether this KeyList supports the scan() call
     kSupportsBlockScans = 0,
+
+    // A flag whether this KeyList has sequential data
+    kHasSequentialData = 0,
   };
 
-  BaseKeyList()
-    : m_range_size(0) {
+  BaseKeyList(LocalDb *db, PBtreeNode *node)
+    : BaseList(db, node) {
   }
 
   // Erases the extended part of a key; nothing to do here
   void erase_extended_key(Context *context, int slot) const {
   }
 
-  // Checks the integrity of this node. Throws an exception if there is a
-  // violation.
-  void check_integrity(Context *context, size_t node_count) const {
-  }
-
-  // Rearranges the list
-  void vacuumize(size_t node_count, bool force) const {
-  }
-
-  // Performs a lower-bound search for a key
   template<typename Cmp>
   int find_lower_bound(Context *context, size_t node_count,
                   const ups_key_t *hkey, Cmp &comparator, int *pcmp) {
@@ -84,13 +77,10 @@ struct BaseKeyList
 
   // Fills the btree_metrics structure
   void fill_metrics(btree_metrics_t *metrics, size_t node_count) {
-    BtreeStatistics::update_min_max_avg(&metrics->keylist_ranges, m_range_size);
+    BtreeStatistics::update_min_max_avg(&metrics->keylist_ranges, range_size);
   }
-
-  // The size of the range (in bytes)
-  uint32_t m_range_size;
 };
 
 } // namespace upscaledb
 
-#endif /* UPS_BTREE_KEYS_BASE_H */
+#endif // UPS_BTREE_KEYS_BASE_H

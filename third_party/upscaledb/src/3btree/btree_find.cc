@@ -52,7 +52,7 @@ struct BtreeFindAction
   }
 
   ups_status_t run() {
-    LocalEnvironment *env = btree->db()->lenv();
+    LocalEnv *env = (LocalEnv *)btree->db()->env;
     Page *page = 0;
     int slot = -1;
     BtreeNodeProxy *node = 0;
@@ -69,7 +69,7 @@ struct BtreeFindAction
        * page should still sit in the cache, or we're using old info, which
        * should be discarded.
        */
-      page = env->page_manager()->fetch(context, hints.leaf_page_addr,
+      page = env->page_manager->fetch(context, hints.leaf_page_addr,
                                           PageManager::kOnlyFromCache
                                             | PageManager::kReadOnly);
       if (likely(page != 0)) {
@@ -96,8 +96,7 @@ struct BtreeFindAction
 
     if (slot == -1) {
       /* load the root page */
-      page = env->page_manager()->fetch(context, btree->root_address(),
-                      PageManager::kReadOnly);
+      page = btree->root_page(context);
 
       /* now traverse the root to the leaf nodes till we find a leaf */
       node = btree->get_node_from_page(page);
@@ -131,7 +130,7 @@ struct BtreeFindAction
     if (unlikely(slot == -1)) {
       // find the left sibling
       if (node->left_sibling() > 0) {
-        page = env->page_manager()->fetch(context, node->left_sibling(),
+        page = env->page_manager->fetch(context, node->left_sibling(),
                         PageManager::kReadOnly);
         node = btree->get_node_from_page(page);
         slot = node->length() - 1;
@@ -141,7 +140,7 @@ struct BtreeFindAction
     else if (unlikely(slot >= (int)node->length())) {
       // find the right sibling
       if (node->right_sibling() > 0) {
-        page = env->page_manager()->fetch(context, node->right_sibling(),
+        page = env->page_manager->fetch(context, node->right_sibling(),
                         PageManager::kReadOnly);
         node = btree->get_node_from_page(page);
         slot = 0;
@@ -161,7 +160,7 @@ struct BtreeFindAction
 return_result:
     /* set the btree cursor's position to this key */
     if (cursor)
-      cursor->couple_to_page(page, slot, 0);
+      cursor->couple_to(page, slot, 0);
 
     /* approx. match: patch the key flags */
     if (is_approx_match)
@@ -255,7 +254,7 @@ BtreeIndex::find(Context *context, LocalCursor *cursor, ups_key_t *key,
               ByteArray *key_arena, ups_record_t *record,
               ByteArray *record_arena, uint32_t flags)
 {
-  BtreeFindAction bfa(this, context, cursor ? cursor->get_btree_cursor() : 0,
+  BtreeFindAction bfa(this, context, cursor ? &cursor->btree_cursor : 0,
                   key, key_arena, record,
                 record_arena, flags);
   return bfa.run();

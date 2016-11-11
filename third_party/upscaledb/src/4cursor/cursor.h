@@ -16,7 +16,7 @@
  */
 
 /*
- * A Cursor is an object which is used to traverse a Database.
+ * A Cursor is an object which is used to traverse a database.
  *
  * A Cursor structure is separated into 3 components:
  * 1. The btree cursor
@@ -27,7 +27,7 @@
  *      in txn_cursor.h.
  * 3. The upper layer
  *      This layer acts as a kind of dispatcher for both cursors. If
- *      Transactions are used, then it also uses a duplicate cache for
+ *      Txns are used, then it also uses a duplicate cache for
  *      consolidating the duplicate keys from both cursors. This layer is
  *      described and implemented in cursor.h (this file).
  *
@@ -42,8 +42,8 @@
  *          Cursor::set_to_nil
  *
  * 2. Coupled to the txn-cursor - meaning that the Cursor points to a key
- *      that is modified in a Transaction. Technically, the txn-cursor points
- *      to a TransactionOperation structure.
+ *      that is modified in a Txn. Technically, the txn-cursor points
+ *      to a TxnOperation structure.
  *
  *      relevant functions:
  *          Cursor::is_coupled_to_txnop
@@ -73,9 +73,6 @@
  * In order to speed up Cursor::move() we keep track of the last compare
  * between the two cursors. i.e. if the btree cursor is currently pointing to
  * a larger key than the txn-cursor, the 'lastcmp' field is <0 etc.
- *
- * @exception_safe: unknown
- * @thread_safe: unknown
  */
 
 #ifndef UPS_CURSOR_H
@@ -100,105 +97,51 @@ struct ups_cursor_t
 
 namespace upscaledb {
 
-class Database;
-class LocalDatabase;
-class Transaction;
+struct Db;
+struct Txn;
+struct LocalDb;
 
 //
 // the Database Cursor
 //
-class Cursor
-{
-  public:
-    // Constructor; retrieves pointer to db and txn, initializes all members
-    Cursor(Database *db, Transaction *txn = 0)
-      : m_db(db), m_txn(txn), m_next(0), m_previous(0) {
-    }
+struct Cursor {
+  // Constructor
+  Cursor(Db *db_, Txn *txn_ = 0)
+    : db(db_), txn(txn_), next(0), previous(0) {
+  }
 
-    // Copy constructor; used for cloning a Cursor
-    Cursor(Cursor &other)
-      : m_db(other.m_db), m_txn(other.m_txn), m_next(0), m_previous(0) {
-    }
+  // Copy constructor; used for cloning a Cursor
+  Cursor(Cursor &other)
+    : db(other.db), txn(other.txn), next(0), previous(0) {
+  }
 
-    // Destructor
-    virtual ~Cursor() {
-    }
+  // Destructor
+  virtual ~Cursor() {
+  }
 
-    // Returns the Database that this cursor is operating on
-    Database *db() {
-      return (m_db);
-    }
+  // Overwrites the record of a cursor (ups_cursor_overwrite)
+  virtual ups_status_t overwrite(ups_record_t *record, uint32_t flags) = 0;
 
-    // Returns the Database that this cursor is operating on
-    Database *db() const {
-      return (m_db);
-    }
+  // Returns position in duplicate list (ups_cursor_get_duplicate_position)
+  virtual uint32_t get_duplicate_position() = 0;
 
-    // Returns the Transaction handle
-    Transaction *get_txn() {
-      return (m_txn);
-    }
+  // Returns number of duplicates (ups_cursor_get_duplicate_count)
+  virtual uint32_t get_duplicate_count(uint32_t flags) = 0;
 
-    // Get the 'next' Cursor in this Database
-    Cursor *get_next() {
-      return (m_next);
-    }
+  // Get current record size (ups_cursor_get_record_size)
+  virtual uint32_t get_record_size() = 0;
 
-    // Set the 'next' Cursor in this Database
-    void set_next(Cursor *next) {
-      m_next = next;
-    }
+  // Closes the cursor
+  virtual void close() = 0;
 
-    // Get the 'previous' Cursor in this Database
-    Cursor *get_previous() {
-      return (m_previous);
-    }
+  // The database that this cursor operates on
+  Db *db;
 
-    // Set the 'previous' Cursor in this Database
-    void set_previous(Cursor *previous) {
-      m_previous = previous;
-    }
+  // Pointer to the Txn; can be null
+  Txn *txn;
 
-    // Overwrites the record of a cursor (ups_cursor_overwrite)
-    ups_status_t overwrite(ups_record_t *record, uint32_t flags);
-
-    // Returns position in duplicate list (ups_cursor_get_duplicate_position)
-    ups_status_t get_duplicate_position(uint32_t *pposition);
-
-    // Returns number of duplicates (ups_cursor_get_duplicate_count)
-    ups_status_t get_duplicate_count(uint32_t flags, uint32_t *pcount);
-
-    // Get current record size (ups_cursor_get_record_size)
-    ups_status_t get_record_size(uint32_t *psize);
-
-    // Closes the cursor
-    virtual void close() = 0;
-
-  protected:
-    friend struct TxnCursorFixture;
-
-    // The Database that this cursor operates on
-    Database *m_db;
-
-    // Pointer to the Transaction
-    Transaction *m_txn;
-
-    // Linked list of all Cursors in this Database
-    Cursor *m_next, *m_previous;
-
-  private:
-    // Implementation of overwrite()
-    virtual ups_status_t do_overwrite(ups_record_t *record, uint32_t flags) = 0;
-
-    // Implementation of get_duplicate_position()
-    virtual ups_status_t do_get_duplicate_position(uint32_t *pposition) = 0;
-
-    // Returns number of duplicates (ups_cursor_get_duplicate_count)
-    virtual ups_status_t do_get_duplicate_count(uint32_t flags,
-                        uint32_t *pcount) = 0;
-
-    // Get current record size (ups_cursor_get_record_size)
-    virtual ups_status_t do_get_record_size(uint32_t *psize) = 0;
+  // Linked list of all Cursors in this database
+  Cursor *next, *previous;
 };
 
 } // namespace upscaledb

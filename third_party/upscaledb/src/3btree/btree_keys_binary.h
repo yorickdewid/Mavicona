@@ -50,174 +50,142 @@
 namespace upscaledb {
 
 //
-// The template classes in this file are wrapped in a separate namespace
-// to avoid naming clashes with btree_impl_default.h
-//
-namespace PaxLayout {
-
-//
 // Same as the PodKeyList, but for binary arrays of fixed length
 //
-class BinaryKeyList : public BaseKeyList
-{
-  public:
-    enum {
-      // A flag whether this KeyList has sequential data
-      kHasSequentialData = 1,
+struct BinaryKeyList : BaseKeyList {
+  enum {
+    // A flag whether this KeyList has sequential data
+    kHasSequentialData = 1,
 
-      // A flag whether this KeyList supports the scan() call
-      kSupportsBlockScans = 1,
-    };
+    // A flag whether this KeyList supports the scan() call
+    kSupportsBlockScans = 1,
+  };
 
-    // Constructor
-    BinaryKeyList(LocalDatabase *db)
-        : m_data(0) {
-      m_key_size = db->config().key_size;
-      assert(m_key_size != 0);
+  // Constructor
+  BinaryKeyList(LocalDb *db, PBtreeNode *node)
+    : BaseKeyList(db, node), _data(0), _fixed_key_size(db->config.key_size) {
+    assert(_fixed_key_size != 0);
+  }
+
+  // Creates a new KeyList starting at |ptr|, total size is
+  // |range_size| (in bytes)
+  void create(uint8_t *ptr, size_t range_size_) {
+    _data = ptr;
+    range_size = (uint32_t)range_size_;
+  }
+
+  // Opens an existing KeyList starting at |ptr|
+  void open(uint8_t *ptr, size_t range_size_, size_t) {
+    _data = ptr;
+    range_size = (uint32_t)range_size_;
+  }
+
+  // Calculates the required size for this range
+  size_t required_range_size(size_t node_count) const {
+    return node_count * _fixed_key_size;
+  }
+
+  // Returns the actual key size including overhead
+  size_t full_key_size(const ups_key_t *key = 0) const {
+    return _fixed_key_size;
+  }
+
+  // Copies a key into |dest|
+  void key(Context *, int slot, ByteArray *arena, ups_key_t *dest,
+                  bool deep_copy = true) const {
+    dest->size = (uint16_t)_fixed_key_size;
+    if (likely(deep_copy == false)) {
+      dest->data = &_data[slot * _fixed_key_size];
+      return;
     }
 
-    // Creates a new KeyList starting at |data|, total size is
-    // |range_size| (in bytes)
-    void create(uint8_t *data, size_t range_size) {
-      m_data = data;
-      m_range_size = (uint32_t)range_size;
+    // allocate memory (if required)
+    if (notset(dest->flags, UPS_KEY_USER_ALLOC)) {
+      arena->resize(dest->size);
+      dest->data = arena->data();
     }
 
-    // Opens an existing KeyList starting at |data|
-    void open(uint8_t *data, size_t range_size, size_t node_count) {
-      m_data = data;
-      m_range_size = (uint32_t)range_size;
-    }
+    ::memcpy(dest->data, &_data[slot * _fixed_key_size], _fixed_key_size);
+  }
 
-    // Calculates the required size for this range
-    size_t get_required_range_size(size_t node_count) const {
-      return (node_count * m_key_size);
-    }
+  // Iterates all keys, calls the |visitor| on each
+  ScanResult scan(ByteArray *arena, size_t node_count, uint32_t start) {
+    return std::make_pair(&_data[_fixed_key_size * start], node_count - start);
+  }
 
-    // Returns the actual key size including overhead
-    size_t get_full_key_size(const ups_key_t *key = 0) const {
-      return (m_key_size);
-    }
+  // Erases a whole slot by shifting all larger keys to the "left"
+  void erase(Context *context, size_t node_count, int slot) {
+    if (slot < (int)node_count - 1)
+      ::memmove(&_data[slot * _fixed_key_size],
+                      &_data[(slot + 1) * _fixed_key_size],
+                      _fixed_key_size * (node_count - slot - 1));
+  }
 
-    // Copies a key into |dest|
-    void get_key(Context *context, int slot, ByteArray *arena, ups_key_t *dest,
-                    bool deep_copy = true) const {
-      dest->size = (uint16_t)m_key_size;
-      if (likely(deep_copy == false)) {
-        dest->data = &m_data[slot * m_key_size];
-        return;
-      }
+  // Inserts a key
+  template<typename Cmp>
+  PBtreeNode::InsertResult insert(Context *, size_t node_count,
+                  const ups_key_t *key, uint32_t flags, Cmp &, int slot) {
+    if (node_count > (size_t)slot)
+      ::memmove(&_data[(slot + 1) * _fixed_key_size],
+                      &_data[slot * _fixed_key_size],
+                      _fixed_key_size * (node_count - slot));
+    assert(key->size == _fixed_key_size);
+    ::memcpy(&_data[slot * _fixed_key_size], key->data, _fixed_key_size);
+    return PBtreeNode::InsertResult(0, slot);
+  }
 
-      // allocate memory (if required)
-      if (!(dest->flags & UPS_KEY_USER_ALLOC)) {
-        arena->resize(dest->size);
-        dest->data = arena->data();
-      }
+  // Returns true if the |key| no longer fits into the node
+  bool requires_split(size_t node_count, const ups_key_t *key) const {
+    return (node_count + 1) * _fixed_key_size >= range_size;
+  }
 
-      ::memcpy(dest->data, &m_data[slot * m_key_size], m_key_size);
-    }
+  // Copies |count| key from this[sstart] to dest[dstart]
+  void copy_to(int sstart, size_t node_count, BinaryKeyList &dest,
+                  size_t other_count, int dstart) {
+    ::memcpy(&dest._data[dstart * _fixed_key_size],
+                    &_data[sstart * _fixed_key_size],
+                    _fixed_key_size * (node_count - sstart));
+  }
 
-    // Iterates all keys, calls the |visitor| on each
-    ScanResult scan(ByteArray *arena, size_t node_count, uint32_t start) {
-      return std::make_pair(&m_data[m_key_size * start], node_count - start);
-    }
+  // Change the capacity; for PAX layouts this just means copying the
+  // data from one place to the other
+  void change_range_size(size_t node_count, uint8_t *new_data_ptr,
+          size_t new_range_size, size_t capacity_hint) {
+    ::memmove(new_data_ptr, _data, node_count * _fixed_key_size);
+    _data = new_data_ptr;
+    range_size = new_range_size;
+  }
 
-    // Erases a whole slot by shifting all larger keys to the "left"
-    void erase(Context *context, size_t node_count, int slot) {
-      if (slot < (int)node_count - 1)
-        ::memmove(&m_data[slot * m_key_size], &m_data[(slot + 1) * m_key_size],
-                      m_key_size * (node_count - slot - 1));
-    }
+  // Fills the btree_metrics structure
+  void fill_metrics(btree_metrics_t *metrics, size_t node_count) {
+    BaseKeyList::fill_metrics(metrics, node_count);
+    BtreeStatistics::update_min_max_avg(&metrics->keylist_unused,
+            range_size - (node_count * _fixed_key_size));
+  }
 
-    // Inserts a key
-    template<typename Cmp>
-    PBtreeNode::InsertResult insert(Context *context, size_t node_count,
-                    const ups_key_t *key, uint32_t flags, Cmp &comparator,
-                    int slot) {
-      if (node_count > (size_t)slot)
-        memmove(&m_data[(slot + 1) * m_key_size], &m_data[slot * m_key_size],
-                      m_key_size * (node_count - slot));
-      set_key_data(slot, key->data, key->size);
-      return (PBtreeNode::InsertResult(0, slot));
-    }
+  // Prints a slot to |out| (for debugging)
+  void print(Context *context, int slot, std::stringstream &out) const {
+    for (size_t i = 0; i < _fixed_key_size; i++)
+      out << (char)_data[slot * _fixed_key_size + i];
+  }
 
-    // Returns true if the |key| no longer fits into the node
-    bool requires_split(size_t node_count, const ups_key_t *key) const {
-      return ((node_count + 1) * m_key_size >= m_range_size);
-    }
+  // Returns the key size
+  size_t key_size(int) const {
+    return _fixed_key_size;
+  }
 
-    // Copies |count| key from this[sstart] to dest[dstart]
-    void copy_to(int sstart, size_t node_count, BinaryKeyList &dest,
-                    size_t other_count, int dstart) {
-      memcpy(&dest.m_data[dstart * m_key_size], &m_data[sstart * m_key_size],
-                      m_key_size * (node_count - sstart));
-    }
+  // Returns the pointer to a key's data
+  uint8_t *key_data(int slot) const {
+    return &_data[slot * _fixed_key_size];
+  }
 
-    // Change the capacity; for PAX layouts this just means copying the
-    // data from one place to the other
-    void change_range_size(size_t node_count, uint8_t *new_data_ptr,
-            size_t new_range_size, size_t capacity_hint) {
-      memmove(new_data_ptr, m_data, node_count * m_key_size);
-      m_data = new_data_ptr;
-      m_range_size = new_range_size;
-    }
+  // Pointer to the actual key data
+  uint8_t *_data;
 
-    // Fills the btree_metrics structure
-    void fill_metrics(btree_metrics_t *metrics, size_t node_count) {
-      BaseKeyList::fill_metrics(metrics, node_count);
-      BtreeStatistics::update_min_max_avg(&metrics->keylist_unused,
-              m_range_size - (node_count * m_key_size));
-    }
-
-    // Prints a slot to |out| (for debugging)
-    void print(Context *context, int slot, std::stringstream &out) const {
-      for (size_t i = 0; i < m_key_size; i++)
-        out << (char)m_data[slot * m_key_size + i];
-    }
-
-    // Returns the key size
-    size_t get_key_size(int slot) const {
-      return (m_key_size);
-    }
-
-    // Returns the pointer to a key's data
-    uint8_t *get_key_data(int slot) {
-      return (&m_data[slot * m_key_size]);
-    }
-
-    // Has support for SIMD style search?
-    bool has_simd_support() const {
-      return (false);
-    }
-
-    // Returns the pointer to the key's inline data - for SIMD calculations
-    // Not implemented by this KeyList
-    uint8_t *get_simd_data() {
-      return (0);
-    }
-
-  private:
-    // Returns the pointer to a key's data (const flavour)
-    uint8_t *get_key_data(int slot) const {
-      return (&m_data[slot * m_key_size]);
-    }
-
-    // Overwrites a key's data. The |size| of the new data HAS
-    // to be identical to the "official" key size
-    void set_key_data(int slot, const void *ptr, size_t size) {
-      assert(size == get_key_size(slot));
-      memcpy(&m_data[slot * m_key_size], ptr, size);
-    }
-
-    // The size of a single key
-    size_t m_key_size;
-
-    // Pointer to the actual key data
-    uint8_t *m_data;
+  // The size of a single key
+  size_t _fixed_key_size;
 };
-
-} // namespace PaxLayout
 
 } // namespace upscaledb
 
-#endif /* UPS_BTREE_KEYS_BINARY_H */
+#endif // UPS_BTREE_KEYS_BINARY_H

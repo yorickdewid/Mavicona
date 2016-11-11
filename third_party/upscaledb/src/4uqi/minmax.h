@@ -35,7 +35,8 @@
 namespace upscaledb {
 
 template<typename Key, typename Record>
-struct MinMaxScanVisitorBase : public NumericalScanVisitor {
+struct MinMaxScanVisitorBase : public NumericalScanVisitor
+{
   MinMaxScanVisitorBase(const DbConfig *cfg, SelectStatement *stmt,
                   Key initial_key, Record initial_record)
     : NumericalScanVisitor(stmt), key(initial_key), record(initial_record),
@@ -143,10 +144,9 @@ struct MinScanVisitor
   }
 };
 
-struct MinScanVisitorFactory
-{
+struct MinScanVisitorFactory {
   static ScanVisitor *create(const DbConfig *cfg, SelectStatement *stmt) {
-    return (ScanVisitorFactoryHelper::create<MinScanVisitor>(cfg, stmt));
+    return ScanVisitorFactoryHelper::create<MinScanVisitor>(cfg, stmt);
   }
 };
 
@@ -160,11 +160,9 @@ struct MaxScanVisitor
   }
 };
 
-struct MaxScanVisitorFactory
-{
-  static ScanVisitor *create(const DbConfig *cfg,
-                        SelectStatement *stmt) {
-    return (ScanVisitorFactoryHelper::create<MaxScanVisitor>(cfg, stmt));
+struct MaxScanVisitorFactory {
+  static ScanVisitor *create(const DbConfig *cfg, SelectStatement *stmt) {
+    return ScanVisitorFactoryHelper::create<MaxScanVisitor>(cfg, stmt);
   }
 };
 
@@ -247,10 +245,9 @@ struct MinIfScanVisitor
   }
 };
 
-struct MinIfScanVisitorFactory
-{
+struct MinIfScanVisitorFactory {
   static ScanVisitor *create(const DbConfig *cfg, SelectStatement *stmt) {
-    return (ScanVisitorFactoryHelper::create<MinIfScanVisitor>(cfg, stmt));
+    return ScanVisitorFactoryHelper::create<MinIfScanVisitor>(cfg, stmt);
   }
 };
 
@@ -264,11 +261,9 @@ struct MaxIfScanVisitor
   }
 };
 
-struct MaxIfScanVisitorFactory
-{
-  static ScanVisitor *create(const DbConfig *cfg,
-                        SelectStatement *stmt) {
-    return (ScanVisitorFactoryHelper::create<MaxIfScanVisitor>(cfg, stmt));
+struct MaxIfScanVisitorFactory {
+  static ScanVisitor *create(const DbConfig *cfg, SelectStatement *stmt) {
+    return ScanVisitorFactoryHelper::create<MaxIfScanVisitor>(cfg, stmt);
   }
 };
 

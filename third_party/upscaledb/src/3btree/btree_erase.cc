@@ -56,10 +56,9 @@ struct BtreeEraseAction : public BtreeUpdateAction
   ups_status_t run() {
     // Coupled cursor: try to remove the key directly from the page
     if (cursor) {
-      if (cursor->state() == BtreeCursor::kStateCoupled) {
-        Page *coupled_page;
-        int coupled_index;
-        cursor->coupled_key(&coupled_page, &coupled_index);
+      if (cursor->is_coupled()) {
+        Page *coupled_page = cursor->coupled_page();
+        int coupled_slot = cursor->coupled_slot();
 
         BtreeNodeProxy *node = btree->get_node_from_page(coupled_page);
         assert(node->is_leaf());
@@ -68,7 +67,7 @@ struct BtreeEraseAction : public BtreeUpdateAction
         // KeyList is not "delete-stable" (some compressed lists can
         // grow when keys are deleted).
         try {
-          remove_entry(coupled_page, 0, coupled_index);
+          remove_entry(coupled_page, 0, coupled_slot);
         }
         catch (Exception &ex) {
           if (ex.code != UPS_LIMITS_REACHED)
@@ -82,8 +81,7 @@ fall_through:
         cursor->uncouple_from_page(context);
       }
 
-      if (cursor->state() == BtreeCursor::kStateUncoupled)
-        key = cursor->uncoupled_key();
+      key = cursor->uncoupled_key();
     }
 
     return erase();
@@ -93,7 +91,7 @@ fall_through:
     // traverse the tree to the leaf, splitting/merging nodes as required
     Page *parent;
     BtreeStatistics::InsertHints hints;
-    Page *page = traverse_tree(key, hints, &parent);
+    Page *page = traverse_tree(context, key, hints, &parent);
     BtreeNodeProxy *node = btree->get_node_from_page(page);
 
     // we have reached the leaf; search the leaf for the key
@@ -108,7 +106,7 @@ fall_through:
   }
 
   ups_status_t remove_entry(Page *page, Page *parent, int slot) {
-    LocalDatabase *db = btree->db();
+    LocalDb *db = btree->db();
     BtreeNodeProxy *node = btree->get_node_from_page(page);
 
     assert(slot >= 0);
@@ -130,30 +128,28 @@ fall_through:
     page->set_dirty(true);
 
     // still got duplicates left? then adjust all cursors
-    if (node->is_leaf() && has_duplicates_left && db->cursor_list()) {
-      LocalCursor *cursors = (LocalCursor *)db->cursor_list();
-      BtreeCursor *btcur = cursors->get_btree_cursor();
+    if (node->is_leaf() && has_duplicates_left && db->cursor_list) {
+      LocalCursor *cursors = (LocalCursor *)db->cursor_list;
 
-      int dupidx =
-              cursor
-                  ? cursor->duplicate_index()
-                  : duplicate_index;
+      int dupidx = cursor
+                    ? cursor->duplicate_index()
+                    : duplicate_index;
 
-      while (btcur) {
-        BtreeCursor *next = 0;
-        if (cursors->get_next()) {
-          cursors = (LocalCursor *)cursors->get_next();
-          next = cursors->get_btree_cursor();
+      while (cursors) {
+        BtreeCursor *btc = &cursors->btree_cursor;
+
+        if (btc != cursor) { // ignore the current cursor
+          if (unlikely(btc->points_to(context, page, slot))) {
+            if (unlikely(btc->duplicate_index() == dupidx))
+              btc->set_to_nil();
+            else if (btc->duplicate_index() > dupidx)
+              btc->set_duplicate_index(btc->duplicate_index() - 1);
+          }
         }
 
-        if (btcur != cursor && btcur->points_to(context, page, slot)) {
-          if (btcur->duplicate_index() == dupidx)
-              btcur->set_to_nil();
-          else if (btcur->duplicate_index() > dupidx)
-            btcur->set_duplicate_index(btcur->duplicate_index() - 1);
-        }
-        btcur = next;
+        cursors = (LocalCursor *)cursors->next;
       }
+
       // all cursors were adjusted, the duplicate was deleted. return
       // to caller!
       return 0;
@@ -162,30 +158,21 @@ fall_through:
     // no duplicates left, the key was deleted; all cursors pointing to
     // this key are set to nil, all cursors pointing to a key in the same
     // page are adjusted, if necessary
-    if (node->is_leaf() && !has_duplicates_left && db->cursor_list()) {
-      LocalCursor *cursors = (LocalCursor *)db->cursor_list();
-      BtreeCursor *btcur = cursors->get_btree_cursor();
+    if (node->is_leaf() && !has_duplicates_left && db->cursor_list) {
+      LocalCursor *cursors = (LocalCursor *)db->cursor_list;
+      while (cursors) {
+        BtreeCursor *btc = &cursors->btree_cursor;
 
-      /* 'nil' every cursor which points to the deleted key, and adjust
-       * other cursors attached to the same page */
-      while (btcur) {
-        BtreeCursor *cur = btcur;
-        BtreeCursor *next = 0;
-        if (cursors->get_next()) {
-          cursors = (LocalCursor *)cursors->get_next();
-          next = cursors->get_btree_cursor();
+        if (btc != cursor) { // ignore the current cursor
+          if (unlikely(btc->points_to(context, page, slot)))
+            btc->set_to_nil();
+          else if (btc->is_coupled()) {
+            if (btc->coupled_page() == page && btc->coupled_slot() > slot)
+              btc->uncouple_from_page(context);
+          }
         }
-        if (btcur != cursor && cur->points_to(context, page, slot))
-          cur->set_to_nil();
-        else if (btcur != cursor
-                && isset(cur->state(), BtreeCursor::kStateCoupled)) {
-          Page *coupled_page;
-          int coupled_slot;
-          cur->coupled_key(&coupled_page, &coupled_slot);
-          if (coupled_page == page && coupled_slot > slot)
-            cur->uncouple_from_page(context);
-        }
-        btcur = next;
+
+        cursors = (LocalCursor *)cursors->next;
       }
     }
 
@@ -221,7 +208,7 @@ BtreeIndex::erase(Context *context, LocalCursor *cursor, ups_key_t *key,
 {
   context->db = db();
 
-  BtreeEraseAction bea(this, context, cursor ? cursor->get_btree_cursor() : 0,
+  BtreeEraseAction bea(this, context, cursor ? &cursor->btree_cursor : 0,
                 key, duplicate_index, flags);
   return bea.run();
 }

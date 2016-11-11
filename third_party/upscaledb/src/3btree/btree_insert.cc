@@ -100,7 +100,7 @@ struct BtreeInsertAction : public BtreeUpdateAction
   // Appends a key at the "end" of the btree, or prepends it at the
   // "beginning"
   ups_status_t append_or_prepend_key() {
-    LocalEnvironment *env = btree->db()->lenv();
+    LocalEnv *env = (LocalEnv *)btree->db()->env;
     bool force_append = false;
     bool force_prepend = false;
 
@@ -111,7 +111,7 @@ struct BtreeInsertAction : public BtreeUpdateAction
      * should still sit in the cache, or we're using old info, which should
      * be discarded.
      */
-    Page *page = env->page_manager()->fetch(context, hints.leaf_page_addr,
+    Page *page = env->page_manager->fetch(context, hints.leaf_page_addr,
                     PageManager::kOnlyFromCache);
     /* if the page is not in cache: do a regular insert */
     if (!page)
@@ -168,7 +168,7 @@ struct BtreeInsertAction : public BtreeUpdateAction
   ups_status_t insert() {
     // traverse the tree till a leaf is reached
     Page *parent;
-    Page *page = traverse_tree(key, hints, &parent);
+    Page *page = traverse_tree(context, key, hints, &parent);
 
     // We've reached the leaf; it's still possible that we have to
     // split the page, therefore this case has to be handled
@@ -200,9 +200,14 @@ BtreeIndex::insert(Context *context, LocalCursor *cursor, ups_key_t *key,
 {
   context->db = db();
 
-  BtreeInsertAction bia(this, context, cursor ? cursor->get_btree_cursor() : 0,
+  BtreeInsertAction bia(this, context, cursor ? &cursor->btree_cursor : 0,
                   key, record, flags);
-  return bia.run();
+  ups_status_t st = bia.run();
+  if (likely(st == 0)) {
+    if (cursor)
+      cursor->activate_btree();
+  }
+  return st;
 }
 
 } // namespace upscaledb

@@ -48,13 +48,12 @@ namespace upscaledb {
 struct Context;
 
 template<typename KeyList, typename RecordList>
-class BaseNodeImpl
-{
+struct BaseNodeImpl {
   public:
     // Constructor
     BaseNodeImpl(Page *page_)
       : page(page_), node(PBtreeNode::from_page(page_)),
-        estimated_capacity(0), keys(page->db()),
+        estimated_capacity(0), keys(page->db(), node),
         records(page_->db(), node) {
     }
 
@@ -71,7 +70,7 @@ class BaseNodeImpl
     void key(Context *context, int slot, ByteArray *arena,
                     ups_key_t *dest) {
       // copy (or assign) the key data
-      keys.get_key(context, slot, arena, dest, true);
+      keys.key(context, slot, arena, dest, true);
     }
 
     // Returns the record size of a key or one of its duplicates
@@ -164,7 +163,7 @@ class BaseNodeImpl
       if (distinct) {
         if (requires_keys && requires_records) {
           for (size_t i = start; i < node_length; i++) {
-            keys.get_key(context, i, key_arena, &key, false);
+            keys.key(context, i, key_arena, &key, false);
             records.record(context, i, &record_arena, &record,
                           UPS_DIRECT_ACCESS, 0);
             (*visitor)(key.data, key.size, record.data, record.size);
@@ -172,7 +171,7 @@ class BaseNodeImpl
         }
         else if (requires_keys) {
           for (size_t i = start; i < node_length; i++) {
-            keys.get_key(context, i, key_arena, &key, false);
+            keys.key(context, i, key_arena, &key, false);
             (*visitor)(key.data, key.size, 0, 0);
           }
         }
@@ -187,7 +186,7 @@ class BaseNodeImpl
       else {
         if (requires_keys && requires_records) {
           for (size_t i = start; i < node_length; i++) {
-            keys.get_key(context, i, key_arena, &key, false);
+            keys.key(context, i, key_arena, &key, false);
             size_t duplicates = record_count(context, i);
             for (size_t d = 0; d < duplicates; d++) {
               records.record(context, i, &record_arena, &record,
@@ -198,7 +197,7 @@ class BaseNodeImpl
         }
         else if (requires_keys) {
           for (size_t i = start; i < node_length; i++) {
-            keys.get_key(context, i, key_arena, &key, false);
+            keys.key(context, i, key_arena, &key, false);
             size_t duplicates = record_count(context, i);
             for (size_t d = 0; d < duplicates; d++)
               (*visitor)(key.data, key.size, 0, 0);
@@ -299,12 +298,12 @@ class BaseNodeImpl
     int compare(Context *context, const ups_key_t *lhs,
                     uint32_t rhs, Cmp &cmp) {
       if (KeyList::kHasSequentialData) {
-        return cmp(lhs->data, lhs->size, keys.get_key_data(rhs),
-                                keys.get_key_size(rhs));
+        return cmp(lhs->data, lhs->size, keys.key_data(rhs),
+                                keys.key_size(rhs));
       }
       else {
         ups_key_t tmp = {0};
-        keys.get_key(context, rhs, &private_arena, &tmp, false);
+        keys.key(context, rhs, &private_arena, &tmp, false);
         return cmp(lhs->data, lhs->size, tmp.data, tmp.size);
       }
     }
@@ -511,4 +510,4 @@ class BaseNodeImpl
 
 } // namespace upscaledb
 
-#endif /* UPS_BTREE_IMPL_BASE_H */
+#endif // UPS_BTREE_IMPL_BASE_H

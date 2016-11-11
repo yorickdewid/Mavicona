@@ -55,12 +55,11 @@ struct BtreeCheckAction
   void run() {
     Page *page, *parent = 0;
     uint32_t level = 0;
-    LocalDatabase *db = btree->db();
-    LocalEnvironment *env = db->lenv();
+    LocalDb *db = btree->db();
+    LocalEnv *env = (LocalEnv *)db->env;
 
     // get the root page of the tree
-    page = env->page_manager()->fetch(context, btree->root_address(),
-                                  PageManager::kReadOnly);
+    page = btree->root_page(context);
 
     if (isset(flags, UPS_PRINT_GRAPH)) {
       graph << "digraph g {" << std::endl
@@ -87,7 +86,7 @@ struct BtreeCheckAction
 
       // follow the pointer to the smallest child
       if (ptr_down)
-        page = env->page_manager()->fetch(context, ptr_down,
+        page = env->page_manager->fetch(context, ptr_down,
                               PageManager::kReadOnly);
 
       ++level;
@@ -105,8 +104,8 @@ struct BtreeCheckAction
   // Verifies a whole level in the tree - start with "page" and traverse
   // the linked list of all the siblings
   void verify_level(Page *parent, Page *page, uint32_t level) {
-    LocalDatabase *db = btree->db();
-    LocalEnvironment *env = db->lenv();
+    LocalDb *db = btree->db();
+    LocalEnv *env = (LocalEnv *)db->env;
     Page *child, *leftsib = 0;
     BtreeNodeProxy *node = btree->get_node_from_page(page);
 
@@ -132,7 +131,7 @@ struct BtreeCheckAction
       BtreeNodeProxy *node = btree->get_node_from_page(page);
       child = 0;
       if (node->right_sibling())
-        child = env->page_manager()->fetch(context, node->right_sibling(),
+        child = env->page_manager->fetch(context, node->right_sibling(),
                         PageManager::kReadOnly);
 
       if (leftsib) {
@@ -152,8 +151,8 @@ struct BtreeCheckAction
 
   // Verifies a single page
   void verify_page(Page *parent, Page *leftsib, Page *page, uint32_t level) {
-    LocalDatabase *db = btree->db();
-    LocalEnvironment *env = db->lenv();
+    LocalDb *db = btree->db();
+    LocalEnv *env = (LocalEnv *)db->env;
     BtreeNodeProxy *node = btree->get_node_from_page(page);
 
     if (isset(flags, UPS_PRINT_GRAPH)) {
@@ -197,7 +196,7 @@ struct BtreeCheckAction
 
     if (unlikely(node->length() == 0)) {
       // a rootpage can be empty! check if this page is the rootpage
-      if (page->address() == btree->root_address())
+      if (page->address() == btree->root_page(context)->address())
         return;
 
       // for internal nodes: ptr_down HAS to be set!
@@ -262,7 +261,7 @@ struct BtreeCheckAction
         }
 
         // TODO replace this line with a "real" function
-        if (unlikely(env->page_manager()->state->freelist.has(child_id))) {
+        if (unlikely(env->page_manager->state->freelist.has(child_id))) {
           ups_log(("integrity check failed in page 0x%llx: record of item "
                   "#%d is in freelist", page->address(), i));
           throw Exception(UPS_INTEGRITY_VIOLATED);
@@ -273,7 +272,7 @@ struct BtreeCheckAction
     }
   }
 
-  int compare_keys(LocalDatabase *db, Page *page, int lhs, int rhs) {
+  int compare_keys(LocalDb *db, Page *page, int lhs, int rhs) {
     BtreeNodeProxy *node = btree->get_node_from_page(page);
     ups_key_t key1 = {0};
     ups_key_t key2 = {0};

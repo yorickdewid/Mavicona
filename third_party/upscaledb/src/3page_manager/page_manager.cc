@@ -213,13 +213,13 @@ store_state_impl(PageManagerState *state, Context *context)
 static inline void
 maybe_store_state(PageManagerState *state, Context *context, bool force)
 {
-  if (force || state->env->journal()) {
+  if (force || state->env->journal.get()) {
     uint64_t new_blobid = store_state_impl(state, context);
     if (new_blobid != state->header->page_manager_blobid()) {
       state->header->set_page_manager_blobid(new_blobid);
       // don't bother to lock the header page
-      state->header->header_page()->set_dirty(true);
-      context->changeset.put(state->header->header_page());
+      state->header->header_page->set_dirty(true);
+      context->changeset.put(state->header->header_page);
     }
   }
 }
@@ -232,15 +232,14 @@ fetch_unlocked(PageManagerState *state, Context *context, uint64_t address,
   Page *page;
   
   if (address == 0)
-    page = state->header->header_page();
+    page = state->header->header_page;
   else if (state->state_page && address == state->state_page->address())
     page = state->state_page;
   else
     page = state->cache.get(address);
 
   if (page) {
-    if (isset(flags, PageManager::kNoHeader))
-      page->set_without_header(true);
+    page->set_without_header(isset(flags, PageManager::kNoHeader));
     return add_to_changeset(&context->changeset, page);
   }
 
@@ -268,9 +267,9 @@ fetch_unlocked(PageManagerState *state, Context *context, uint64_t address,
     maybe_store_state(state, context, false);
 
   /* only verify crc if the page has a header */
-  if (isset(flags, PageManager::kNoHeader))
-    page->set_without_header(true);
-  else if (isset(state->config.flags, UPS_ENABLE_CRC32))
+  page->set_without_header(isset(flags, PageManager::kNoHeader));
+  if (!page->is_without_header()
+          && isset(state->config.flags, UPS_ENABLE_CRC32))
     verify_crc32(page);
 
   state->page_count_fetched++;
@@ -366,10 +365,10 @@ done:
 }
 
 
-PageManagerState::PageManagerState(LocalEnvironment *_env)
-  : env(_env), config(_env->config()), header(_env->header()),
-    device(_env->device()), lsn_manager(_env->lsn_manager()),
-    cache(_env->config()), freelist(config), needs_flush(false),
+PageManagerState::PageManagerState(LocalEnv *_env)
+  : env(_env), config(_env->config), header(_env->header.get()),
+    device(_env->device.get()), lsn_manager(&_env->lsn_manager),
+    cache(_env->config), freelist(config), needs_flush(false),
     state_page(0), last_blob_page(0), last_blob_page_id(0),
     page_count_fetched(0), page_count_index(0), page_count_blob(0),
     page_count_page_manager(0), cache_hits(0), cache_misses(0), message(0),
@@ -460,12 +459,11 @@ PageManager::alloc_multiple_blob_pages(Context *context, size_t num_pages)
       if (i == 0) {
         page = fetch_unlocked(state.get(), context, address, 0);
         page->set_type(Page::kTypeBlob);
-        page->set_without_header(false);
       }
       else {
-        Page *p = fetch_unlocked(state.get(), context, address + (i * page_size), 0);
+        Page *p = fetch_unlocked(state.get(), context,
+                        address + (i * page_size), PageManager::kNoHeader);
         p->set_type(Page::kTypeBlob);
-        p->set_without_header(true);
       }
     }
 
@@ -535,7 +533,7 @@ PageManager::flush_all_pages()
 
     state->cache.purge_if(visitor);
 
-    if (state->header->header_page()->is_dirty())
+    if (state->header->header_page->is_dirty())
       message->page_ids.push_back(0);
 
     if (state->state_page && state->state_page->is_dirty())
@@ -584,7 +582,7 @@ PageManager::purge_cache(Context *context)
                   it++) {
     Page *page = *it;
     if (likely(page->mutex().try_lock())) {
-      assert(page->cursor_list() == 0);
+      assert(page->cursor_list.is_empty());
       state->cache.del(page);
       page->mutex().unlock();
       delete page;
@@ -632,7 +630,7 @@ PageManager::reclaim_space(Context *context)
 
 struct CloseDatabaseVisitor
 {
-  CloseDatabaseVisitor(LocalDatabase *db_, AsyncFlushMessage *message_)
+  CloseDatabaseVisitor(LocalDb *db_, AsyncFlushMessage *message_)
     : db(db_), message(message_) {
   }
 
@@ -644,13 +642,13 @@ struct CloseDatabaseVisitor
     return false;
   }
 
-  LocalDatabase *db;
+  LocalDb *db;
   std::vector<Page *> pages;
   AsyncFlushMessage *message;
 };
 
 void
-PageManager::close_database(Context *context, LocalDatabase *db)
+PageManager::close_database(Context *context, LocalDb *db)
 {
   Signal signal;
   AsyncFlushMessage *message = new AsyncFlushMessage(this, state->device,
@@ -669,7 +667,7 @@ PageManager::close_database(Context *context, LocalDatabase *db)
     context->changeset.clear();
     state->cache.purge_if(visitor);
 
-    if (state->header->header_page()->is_dirty())
+    if (state->header->header_page->is_dirty())
       message->page_ids.push_back(0);
   }
 
@@ -823,7 +821,7 @@ PageManager::try_lock_purge_candidate(uint64_t address)
     return 0;
 
   if (address == 0)
-    page = state->header->header_page();
+    page = state->header->header_page;
   else if (state->state_page && address == state->state_page->address())
     page = state->state_page;
   else
@@ -837,7 +835,7 @@ PageManager::try_lock_purge_candidate(uint64_t address)
   // directly into the page's data, and these pointers will be invalidated
   // as soon as the page is purged.
   //
-  if (page->cursor_list() != 0) {
+  if (!page->cursor_list.is_empty()) {
     page->mutex().unlock();
     return 0;
   }

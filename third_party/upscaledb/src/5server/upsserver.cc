@@ -43,26 +43,26 @@
 
 namespace upscaledb {
 
-static void
+static inline void
 on_write_cb(uv_write_t *req, int status)
 {
   Memory::release(req->data);
   delete req;
 };
 
-static void
+static inline void
 on_write_cb2(uv_write_t *req, int status)
 {
   delete req;
 };
 
-static void
+static inline void
 send_wrapper(ServerContext *srv, uv_stream_t *tcp, Protocol *reply)
 {
   uint8_t *data;
   uint32_t data_size;
 
-  if (!reply->pack(&data, &data_size))
+  if (unlikely(!reply->pack(&data, &data_size)))
     return;
 
   // |req| needs to exist till the request was finished asynchronously;
@@ -74,7 +74,7 @@ send_wrapper(ServerContext *srv, uv_stream_t *tcp, Protocol *reply)
   uv_write(req, (uv_stream_t *)tcp, &buf, 1, on_write_cb);
 }
 
-static void
+static inline void
 send_wrapper(ServerContext *srv, uv_stream_t *tcp, SerializedWrapper *reply)
 {
   int size_left = (int)reply->get_size();
@@ -101,9 +101,9 @@ static void
 handle_connect(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
 {
   assert(request != 0);
-  Environment *env = srv->open_envs[request->connect_request().path()];
+  Env *env = srv->open_envs[request->connect_request().path()];
 
-  if (ErrorInducer::is_active()) {
+  if (unlikely(ErrorInducer::is_active())) {
     if (ErrorInducer::induce(ErrorInducer::kServerConnect)) {
 #ifdef WIN32
       Sleep(5);
@@ -115,13 +115,12 @@ handle_connect(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   }
 
   Protocol reply(Protocol::CONNECT_REPLY);
-  if (!env) {
+  if (unlikely(!env)) {
     reply.mutable_connect_reply()->set_status(UPS_FILE_NOT_FOUND);
   }
   else {
     reply.mutable_connect_reply()->set_status(0);
-    reply.mutable_connect_reply()->set_env_flags(
-            ((Environment *)env)->get_flags());
+    reply.mutable_connect_reply()->set_env_flags(((Env *)env)->flags());
     reply.mutable_connect_reply()->set_env_handle(srv->allocate_handle(env));
   }
 
@@ -146,14 +145,14 @@ handle_env_get_parameters(ServerContext *srv, uv_stream_t *tcp,
 {
   uint32_t i;
   ups_status_t st = 0;
-  Environment *env = 0;
+  Env *env = 0;
   ups_parameter_t params[100]; /* 100 should be enough... */
 
   assert(request != 0);
   assert(request->has_env_get_parameters_request());
 
   /* initialize the ups_parameters_t array */
-  memset(&params[0], 0, sizeof(params));
+  ::memset(&params[0], 0, sizeof(params));
   for (i = 0;
       i < (uint32_t)request->env_get_parameters_request().names().size()
         && i < 100; i++)
@@ -166,7 +165,7 @@ handle_env_get_parameters(ServerContext *srv, uv_stream_t *tcp,
   /* and request the parameters from the Environment */
   st = ups_env_get_parameters((ups_env_t *)env, &params[0]);
   reply.mutable_env_get_parameters_reply()->set_status(st);
-  if (st) {
+  if (unlikely(st)) {
     send_wrapper(srv, tcp, &reply);
     return;
   }
@@ -216,7 +215,7 @@ handle_env_get_database_names(ServerContext *srv, uv_stream_t *tcp,
 {
   uint32_t num_names = 1024;
   uint16_t names[1024]; /* should be enough */
-  Environment *env = 0;
+  Env *env = 0;
 
   assert(request != 0);
   assert(request->has_env_get_database_names_request());
@@ -239,7 +238,7 @@ static void
 handle_env_flush(ServerContext *srv, uv_stream_t *tcp,
                 Protocol *request)
 {
-  Environment *env = 0;
+  Env *env = 0;
 
   assert(request != 0);
   assert(request->has_env_flush_request());
@@ -258,7 +257,7 @@ static void
 handle_env_rename(ServerContext *srv, uv_stream_t *tcp,
                 Protocol *request)
 {
-  Environment *env = 0;
+  Env *env = 0;
 
   assert(request != 0);
   assert(request->has_env_rename_request());
@@ -280,7 +279,7 @@ static void
 handle_env_create_db(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
 {
   ups_db_t *db;
-  Environment *env;
+  Env *env;
   ups_status_t st = 0;
   uint64_t db_handle = 0;
   std::vector<ups_parameter_t> params;
@@ -318,17 +317,16 @@ handle_env_create_db(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
             request->env_create_db_request().dbname(),
             request->env_create_db_request().flags(), &params[0]);
 
-  if (st == 0) {
+  if (likely(st == 0)) {
     /* allocate a new database handle in the Env wrapper structure */
-    db_handle = srv->allocate_handle((Database *)db);
+    db_handle = srv->allocate_handle((Db *)db);
   }
 
   Protocol reply(Protocol::ENV_CREATE_DB_REPLY);
   reply.mutable_env_create_db_reply()->set_status(st);
-  if (db_handle) {
+  if (likely(db_handle != 0)) {
     reply.mutable_env_create_db_reply()->set_db_handle(db_handle);
-    reply.mutable_env_create_db_reply()->set_db_flags(
-        ((Database *)db)->config().flags);
+    reply.mutable_env_create_db_reply()->set_db_flags(((Db *)db)->config.flags);
   }
 
   send_wrapper(srv, tcp, &reply);
@@ -346,7 +344,7 @@ handle_env_open_db(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   assert(request != 0);
   assert(request->has_env_open_db_request());
 
-  Environment *env = srv->get_env(request->env_open_db_request().env_handle());
+  Env *env = srv->get_env(request->env_open_db_request().env_handle());
 
   /* convert parameters */
   assert(request->env_open_db_request().param_names().size() < 100);
@@ -358,7 +356,7 @@ handle_env_open_db(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   }
 
   /* check if the database is already open */
-  Handle<Database> handle = srv->get_db_by_name(dbname);
+  Handle<Db> handle = srv->get_db_by_name(dbname);
   db = (ups_db_t *)handle.object;
   db_handle = handle.index;
 
@@ -367,16 +365,15 @@ handle_env_open_db(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
     st = ups_env_open_db((ups_env_t *)env, &db, dbname,
                 request->env_open_db_request().flags(), &params[0]);
 
-    if (st == 0)
-      db_handle = srv->allocate_handle((Database *)db);
+    if (likely(st == 0))
+      db_handle = srv->allocate_handle((Db *)db);
   }
 
   Protocol reply(Protocol::ENV_OPEN_DB_REPLY);
   reply.mutable_env_open_db_reply()->set_status(st);
-  if (st == 0) {
+  if (likely(st == 0)) {
     reply.mutable_env_open_db_reply()->set_db_handle(db_handle);
-    reply.mutable_env_open_db_reply()->set_db_flags(
-        ((Database *)db)->config().flags);
+    reply.mutable_env_open_db_reply()->set_db_flags(((Db *)db)->config.flags);
   }
 
   send_wrapper(srv, tcp, &reply);
@@ -389,7 +386,7 @@ handle_env_erase_db(ServerContext *srv, uv_stream_t *tcp,
   assert(request != 0);
   assert(request->has_env_erase_db_request());
 
-  Environment *env = srv->get_env(request->env_erase_db_request().env_handle());
+  Env *env = srv->get_env(request->env_erase_db_request().env_handle());
 
   ups_status_t st = ups_env_erase_db((ups_env_t *)env,
             request->env_erase_db_request().name(),
@@ -409,18 +406,12 @@ handle_db_close(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   assert(request != 0);
   assert(request->has_db_close_request());
 
-  Database *db = srv->get_db(request->db_close_request().db_handle());
-  if (!db) {
-    /* accept this - most likely the database was already closed by
-     * another process */
-    st = 0;
-    srv->remove_db_handle(request->db_close_request().db_handle());
-  }
-  else {
+  Db *db = srv->get_db(request->db_close_request().db_handle());
+  if (db)
     st = ups_db_close((ups_db_t *)db, request->db_close_request().flags());
-    if (st == 0)
-      srv->remove_db_handle(request->db_close_request().db_handle());
-  }
+
+  if (likely(st == 0))
+    srv->remove_db_handle(request->db_close_request().db_handle());
 
   Protocol reply(Protocol::DB_CLOSE_REPLY);
   reply.mutable_db_close_reply()->set_status(st);
@@ -439,15 +430,15 @@ handle_db_get_parameters(ServerContext *srv, uv_stream_t *tcp,
   assert(request->has_db_get_parameters_request());
 
   /* initialize the ups_parameters_t array */
-  memset(&params[0], 0, sizeof(params));
+  ::memset(&params[0], 0, sizeof(params));
   for (uint32_t i = 0;
       i < (uint32_t)request->db_get_parameters_request().names().size()
         && i < 100; i++)
     params[i].name = request->mutable_db_get_parameters_request()->mutable_names()->mutable_data()[i];
 
-  /* and request the parameters from the Database */
-  Database *db = srv->get_db(request->db_get_parameters_request().db_handle());
-  if (!db)
+  /* and request the parameters from the Db */
+  Db *db = srv->get_db(request->db_get_parameters_request().db_handle());
+  if (unlikely(!db))
     st = UPS_INV_PARAMETER;
   else
     st = ups_db_get_parameters((ups_db_t *)db, &params[0]);
@@ -455,7 +446,7 @@ handle_db_get_parameters(ServerContext *srv, uv_stream_t *tcp,
   Protocol reply(Protocol::DB_GET_PARAMETERS_REPLY);
   reply.mutable_db_get_parameters_reply()->set_status(st);
 
-  if (st) {
+  if (unlikely(st)) {
     send_wrapper(srv, tcp, &reply);
     return;
   }
@@ -513,17 +504,13 @@ handle_db_check_integrity(ServerContext *srv, uv_stream_t *tcp,
   assert(request != 0);
   assert(request->has_db_check_integrity_request());
 
-  Database *db = 0;
-
   uint32_t flags = request->db_check_integrity_request().flags();
 
-  if (st == 0) {
-    db = srv->get_db(request->db_check_integrity_request().db_handle());
-    if (!db)
-      st = UPS_INV_PARAMETER;
-    else
-      st = ups_db_check_integrity((ups_db_t *)db, flags);
-  }
+  Db *db = srv->get_db(request->db_check_integrity_request().db_handle());
+  if (unlikely(!db))
+    st = UPS_INV_PARAMETER;
+  else
+    st = ups_db_check_integrity((ups_db_t *)db, flags);
 
   Protocol reply(Protocol::DB_CHECK_INTEGRITY_REPLY);
   reply.mutable_db_check_integrity_reply()->set_status(st);
@@ -541,18 +528,18 @@ handle_db_count(ServerContext *srv, uv_stream_t *tcp,
   assert(request != 0);
   assert(request->has_db_count_request());
 
-  Transaction *txn = 0;
-  Database *db = 0;
+  Txn *txn = 0;
+  Db *db = 0;
   
   if (request->db_count_request().txn_handle()) {
     txn = srv->get_txn(request->db_count_request().txn_handle());
-    if (!txn)
+    if (unlikely(!txn))
       st = UPS_INV_PARAMETER;
   }
 
-  if (st == 0) {
+  if (likely(st == 0)) {
    db = srv->get_db(request->db_count_request().db_handle());
-    if (!db)
+    if (unlikely(!db))
       st = UPS_INV_PARAMETER;
     else
       st = ups_db_count((ups_db_t *)db, (ups_txn_t *)txn,
@@ -561,7 +548,7 @@ handle_db_count(ServerContext *srv, uv_stream_t *tcp,
 
   Protocol reply(Protocol::DB_GET_KEY_COUNT_REPLY);
   reply.mutable_db_count_reply()->set_status(st);
-  if (st == 0)
+  if (likely(st == 0))
     reply.mutable_db_count_reply()->set_keycount(keycount);
 
   send_wrapper(srv, tcp, &reply);
@@ -574,18 +561,18 @@ handle_db_count(ServerContext *srv, uv_stream_t *tcp,
   ups_status_t st = 0;
   uint64_t keycount;
 
-  Transaction *txn = 0;
-  Database *db = 0;
+  Txn *txn = 0;
+  Db *db = 0;
   
   if (request->db_count_request.txn_handle) {
     txn = srv->get_txn(request->db_count_request.txn_handle);
-    if (!txn)
+    if (unlikely(!txn))
       st = UPS_INV_PARAMETER;
   }
 
-  if (st == 0) {
+  if (likely(st == 0)) {
    db = srv->get_db(request->db_count_request.db_handle);
-    if (!db)
+    if (unlikely(!db))
       st = UPS_INV_PARAMETER;
     else
       st = ups_db_count((ups_db_t *)db, (ups_txn_t *)txn,
@@ -612,18 +599,18 @@ handle_db_insert(ServerContext *srv, uv_stream_t *tcp,
   assert(request != 0);
   assert(request->has_db_insert_request());
 
-  Transaction *txn = 0;
-  Database *db = 0;
+  Txn *txn = 0;
+  Db *db = 0;
 
   if (request->db_insert_request().txn_handle()) {
     txn = srv->get_txn(request->db_insert_request().txn_handle());
-    if (!txn)
+    if (unlikely(!txn))
       st = UPS_INV_PARAMETER;
   }
 
-  if (st == 0) {
+  if (likely(st == 0)) {
     db = srv->get_db(request->db_insert_request().db_handle());
-    if (!db)
+    if (unlikely(!db))
       st = UPS_INV_PARAMETER;
     else {
       if (request->db_insert_request().has_key()) {
@@ -634,9 +621,9 @@ handle_db_insert(ServerContext *srv, uv_stream_t *tcp,
                     & (~UPS_KEY_USER_ALLOC);
       }
 
-      if (request->db_insert_request().has_record()) {
+      if (likely(request->db_insert_request().has_record())) {
         rec.size = (uint32_t)request->db_insert_request().record().data().size();
-        if (rec.size)
+        if (likely(rec.size))
           rec.data = (void *)&request->db_insert_request().record().data()[0];
         rec.flags = request->db_insert_request().record().flags()
                     & (~UPS_RECORD_USER_ALLOC);
@@ -646,7 +633,7 @@ handle_db_insert(ServerContext *srv, uv_stream_t *tcp,
 
       /* recno: return the modified key */
       if ((st == 0)
-          && (((Database *)db)->get_flags()
+          && (((Db *)db)->flags()
                   & (UPS_RECORD_NUMBER32 | UPS_RECORD_NUMBER64))) {
         send_key = true;
       }
@@ -670,18 +657,18 @@ handle_db_insert(ServerContext *srv, uv_stream_t *tcp,
   ups_key_t key = {0};
   ups_record_t rec = {0};
 
-  Transaction *txn = 0;
-  Database *db = 0;
+  Txn *txn = 0;
+  Db *db = 0;
 
   if (request->db_insert_request.txn_handle) {
     txn = srv->get_txn(request->db_insert_request.txn_handle);
-    if (!txn)
+    if (unlikely(!txn))
       st = UPS_INV_PARAMETER;
   }
 
-  if (st == 0) {
+  if (likely(st == 0)) {
     db = srv->get_db(request->db_insert_request.db_handle);
-    if (!db)
+    if (unlikely(!db))
       st = UPS_INV_PARAMETER;
     else {
       if (request->db_insert_request.has_key) {
@@ -692,9 +679,9 @@ handle_db_insert(ServerContext *srv, uv_stream_t *tcp,
                         & (~UPS_KEY_USER_ALLOC);
       }
 
-      if (request->db_insert_request.has_record) {
+      if (likely(request->db_insert_request.has_record)) {
         rec.size = (uint32_t)request->db_insert_request.record.data.size;
-        if (rec.size)
+        if (likely(rec.size))
           rec.data = (void *)request->db_insert_request.record.data.value;
         rec.flags = request->db_insert_request.record.flags
                         & (~UPS_RECORD_USER_ALLOC);
@@ -704,7 +691,7 @@ handle_db_insert(ServerContext *srv, uv_stream_t *tcp,
 
       /* recno: return the modified key */
       if ((st == 0)
-          && (((Database *)db)->get_flags()
+          && (((Db *)db)->flags()
                   & (UPS_RECORD_NUMBER32 | UPS_RECORD_NUMBER64))) {
         send_key = true;
       }
@@ -738,25 +725,25 @@ handle_db_find(ServerContext *srv, uv_stream_t *tcp,
   assert(request != 0);
   assert(request->has_db_find_request());
 
-  Transaction *txn = 0;
-  Database *db = 0;
+  Txn *txn = 0;
+  Db *db = 0;
   Cursor *cursor = 0;
 
   if (request->db_find_request().txn_handle()) {
     txn = srv->get_txn(request->db_find_request().txn_handle());
-    if (!txn)
+    if (unlikely(!txn))
       st = UPS_INV_PARAMETER;
   }
 
   if (st == 0 && request->db_find_request().cursor_handle()) {
     cursor = srv->get_cursor(request->db_find_request().cursor_handle());
-    if (!cursor)
+    if (unlikely(!cursor))
       st = UPS_INV_PARAMETER;
   }
 
-  if (st == 0 && request->db_find_request().db_handle()) {
+  if (likely(st == 0 && request->db_find_request().db_handle())) {
     db = srv->get_db(request->db_find_request().db_handle());
-    if (!db)
+    if (unlikely(!db))
       st = UPS_INV_PARAMETER;
   }
 
@@ -808,29 +795,29 @@ handle_db_find(ServerContext *srv, uv_stream_t *tcp,
   ups_record_t rec = {0};
   bool send_key = false;
 
-  Transaction *txn = 0;
-  Database *db = 0;
+  Txn *txn = 0;
+  Db *db = 0;
   Cursor *cursor = 0;
 
   if (request->db_find_request.txn_handle) {
     txn = srv->get_txn(request->db_find_request.txn_handle);
-    if (!txn)
+    if (unlikely(!txn))
       st = UPS_INV_PARAMETER;
   }
 
   if (st == 0 && request->db_find_request.cursor_handle) {
     cursor = srv->get_cursor(request->db_find_request.cursor_handle);
-    if (!cursor)
+    if (unlikely(!cursor))
       st = UPS_INV_PARAMETER;
   }
 
-  if (st == 0 && request->db_find_request.db_handle) {
+  if (likely(st == 0 && request->db_find_request.db_handle)) {
     db = srv->get_db(request->db_find_request.db_handle);
-    if (!db)
+    if (unlikely(!db))
       st = UPS_INV_PARAMETER;
   }
 
-  if (st == 0) {
+  if (likely(st == 0)) {
     key.data = (void *)request->db_find_request.key.data.value;
     key.size = (uint16_t)request->db_find_request.key.data.size;
     key.flags = request->db_find_request.key.flags
@@ -887,18 +874,18 @@ handle_db_erase(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   assert(request != 0);
   assert(request->has_db_erase_request());
 
-  Transaction *txn = 0;
-  Database *db = 0;
+  Txn *txn = 0;
+  Db *db = 0;
 
   if (request->db_erase_request().txn_handle()) {
     txn = srv->get_txn(request->db_erase_request().txn_handle());
-    if (!txn)
+    if (unlikely(!txn))
       st = UPS_INV_PARAMETER;
   }
 
-  if (st == 0) {
+  if (likely(st == 0)) {
     db = srv->get_db(request->db_erase_request().db_handle());
-    if (!db)
+    if (unlikely(!db))
       st = UPS_INV_PARAMETER;
     else {
       ups_key_t key = {0};
@@ -924,18 +911,18 @@ handle_db_erase(ServerContext *srv, uv_stream_t *tcp,
                 SerializedWrapper *request)
 {
   ups_status_t st = 0;
-  Transaction *txn = 0;
-  Database *db = 0;
+  Txn *txn = 0;
+  Db *db = 0;
 
   if (request->db_erase_request.txn_handle) {
     txn = srv->get_txn(request->db_erase_request.txn_handle);
-    if (!txn)
+    if (unlikely(!txn))
       st = UPS_INV_PARAMETER;
   }
 
-  if (st == 0) {
+  if (likely(st == 0)) {
     db = srv->get_db(request->db_erase_request.db_handle);
-    if (!db)
+    if (unlikely(!db))
       st = UPS_INV_PARAMETER;
     else {
       ups_key_t key = {0};
@@ -965,7 +952,7 @@ handle_txn_begin(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   assert(request != 0);
   assert(request->has_txn_begin_request());
 
-  Environment *env = srv->get_env(request->txn_begin_request().env_handle());
+  Env *env = srv->get_env(request->txn_begin_request().env_handle());
 
   st = ups_txn_begin(&txn, (ups_env_t *)env,
             request->txn_begin_request().has_name()
@@ -973,8 +960,8 @@ handle_txn_begin(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
               : 0,
             0, request->txn_begin_request().flags());
 
-  if (st == 0)
-    txn_handle = srv->allocate_handle((Transaction *)txn);
+  if (likely(st == 0))
+    txn_handle = srv->allocate_handle((Txn *)txn);
 
   Protocol reply(Protocol::TXN_BEGIN_REPLY);
   reply.mutable_txn_begin_reply()->set_status(st);
@@ -991,14 +978,14 @@ handle_txn_begin(ServerContext *srv, uv_stream_t *tcp,
   ups_status_t st = 0;
   uint64_t txn_handle = 0;
 
-  Environment *env = srv->get_env(request->txn_begin_request.env_handle);
+  Env *env = srv->get_env(request->txn_begin_request.env_handle);
 
   st = ups_txn_begin(&txn, (ups_env_t *)env,
             (const char *)request->txn_begin_request.name.value,
             0, request->txn_begin_request.flags);
 
-  if (st == 0)
-    txn_handle = srv->allocate_handle((Transaction *)txn);
+  if (likely(st == 0))
+    txn_handle = srv->allocate_handle((Txn *)txn);
 
   SerializedWrapper reply;
   reply.id = kTxnBeginReply;
@@ -1016,14 +1003,14 @@ handle_txn_commit(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   assert(request != 0);
   assert(request->has_txn_commit_request());
 
-  Transaction *txn = srv->get_txn(request->txn_commit_request().txn_handle());
-  if (!txn) {
+  Txn *txn = srv->get_txn(request->txn_commit_request().txn_handle());
+  if (unlikely(!txn)) {
     st = UPS_INV_PARAMETER;
   }
   else {
     st = ups_txn_commit((ups_txn_t *)txn,
             request->txn_commit_request().flags());
-    if (st == 0) {
+    if (likely(st == 0)) {
       /* remove the handle from the Env wrapper structure */
       srv->remove_txn_handle(request->txn_commit_request().txn_handle());
     }
@@ -1041,13 +1028,13 @@ handle_txn_commit(ServerContext *srv, uv_stream_t *tcp,
 {
   ups_status_t st = 0;
 
-  Transaction *txn = srv->get_txn(request->txn_commit_request.txn_handle);
-  if (!txn) {
+  Txn *txn = srv->get_txn(request->txn_commit_request.txn_handle);
+  if (unlikely(!txn)) {
     st = UPS_INV_PARAMETER;
   }
   else {
     st = ups_txn_commit((ups_txn_t *)txn, request->txn_commit_request.flags);
-    if (st == 0) {
+    if (likely(st == 0)) {
       /* remove the handle from the Env wrapper structure */
       srv->remove_txn_handle(request->txn_commit_request.txn_handle);
     }
@@ -1068,14 +1055,14 @@ handle_txn_abort(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   assert(request != 0);
   assert(request->has_txn_abort_request());
 
-  Transaction *txn = srv->get_txn(request->txn_abort_request().txn_handle());
-  if (!txn) {
+  Txn *txn = srv->get_txn(request->txn_abort_request().txn_handle());
+  if (unlikely(!txn)) {
     st = UPS_INV_PARAMETER;
   }
   else {
     st = ups_txn_abort((ups_txn_t *)txn,
             request->txn_abort_request().flags());
-    if (st == 0) {
+    if (likely(st == 0)) {
       /* remove the handle from the Env wrapper structure */
       srv->remove_txn_handle(request->txn_abort_request().txn_handle());
     }
@@ -1093,13 +1080,13 @@ handle_txn_abort(ServerContext *srv, uv_stream_t *tcp,
 {
   ups_status_t st = 0;
 
-  Transaction *txn = srv->get_txn(request->txn_abort_request.txn_handle);
-  if (!txn) {
+  Txn *txn = srv->get_txn(request->txn_abort_request.txn_handle);
+  if (unlikely(!txn)) {
     st = UPS_INV_PARAMETER;
   }
   else {
     st = ups_txn_abort((ups_txn_t *)txn, request->txn_abort_request.flags);
-    if (st == 0) {
+    if (likely(st == 0)) {
       /* remove the handle from the Env wrapper structure */
       srv->remove_txn_handle(request->txn_abort_request.txn_handle);
     }
@@ -1122,19 +1109,19 @@ handle_cursor_create(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   assert(request != 0);
   assert(request->has_cursor_create_request());
 
-  Transaction *txn = 0;
-  Database *db = 0;
+  Txn *txn = 0;
+  Db *db = 0;
 
   if (request->cursor_create_request().txn_handle()) {
     txn = srv->get_txn(request->cursor_create_request().txn_handle());
-    if (!txn) {
+    if (unlikely(!txn)) {
       st = UPS_INV_PARAMETER;
       goto bail;
     }
   }
 
   db = srv->get_db(request->cursor_create_request().db_handle());
-  if (!db) {
+  if (unlikely(!db)) {
     st = UPS_INV_PARAMETER;
     goto bail;
   }
@@ -1143,7 +1130,7 @@ handle_cursor_create(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   st = ups_cursor_create(&cursor, (ups_db_t *)db, (ups_txn_t *)txn,
         request->cursor_create_request().flags());
 
-  if (st == 0) {
+  if (likely(st == 0)) {
     /* allocate a new handle in the Env wrapper structure */
     handle = srv->allocate_handle((Cursor *)cursor);
   }
@@ -1163,19 +1150,19 @@ handle_cursor_create(ServerContext *srv, uv_stream_t *tcp,
   ups_cursor_t *cursor;
   ups_status_t st = 0;
   uint64_t handle = 0;
-  Transaction *txn = 0;
-  Database *db = 0;
+  Txn *txn = 0;
+  Db *db = 0;
 
   if (request->cursor_create_request.txn_handle) {
     txn = srv->get_txn(request->cursor_create_request.txn_handle);
-    if (!txn) {
+    if (unlikely(!txn)) {
       st = UPS_INV_PARAMETER;
       goto bail;
     }
   }
 
   db = srv->get_db(request->cursor_create_request.db_handle);
-  if (!db) {
+  if (unlikely(!db)) {
     st = UPS_INV_PARAMETER;
     goto bail;
   }
@@ -1184,7 +1171,7 @@ handle_cursor_create(ServerContext *srv, uv_stream_t *tcp,
   st = ups_cursor_create(&cursor, (ups_db_t *)db, (ups_txn_t *)txn,
             request->cursor_create_request.flags);
 
-  if (st == 0) {
+  if (likely(st == 0)) {
     /* allocate a new handle in the Env wrapper structure */
     handle = srv->allocate_handle((Cursor *)cursor);
   }
@@ -1209,12 +1196,12 @@ handle_cursor_clone(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   assert(request->has_cursor_clone_request());
 
   Cursor *src = srv->get_cursor(request->cursor_clone_request().cursor_handle());
-  if (!src)
+  if (unlikely(!src))
     st = UPS_INV_PARAMETER;
   else {
     /* clone the cursor */
     st = ups_cursor_clone((ups_cursor_t *)src, &dest);
-    if (st == 0) {
+    if (likely(st == 0)) {
       /* allocate a new handle in the Env wrapper structure */
       handle = srv->allocate_handle((Cursor *)dest);
     }
@@ -1236,12 +1223,12 @@ handle_cursor_clone(ServerContext *srv, uv_stream_t *tcp,
   uint64_t handle = 0;
 
   Cursor *src = srv->get_cursor(request->cursor_clone_request.cursor_handle);
-  if (!src)
+  if (unlikely(!src))
     st = UPS_INV_PARAMETER;
   else {
     /* clone the cursor */
     st = ups_cursor_clone((ups_cursor_t *)src, &dest);
-    if (st == 0) {
+    if (likely(st == 0)) {
       /* allocate a new handle in the Env wrapper structure */
       handle = srv->allocate_handle((Cursor *)dest);
     }
@@ -1267,7 +1254,7 @@ handle_cursor_insert(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   assert(request->has_cursor_insert_request());
 
   Cursor *cursor = srv->get_cursor(request->cursor_insert_request().cursor_handle());
-  if (!cursor) {
+  if (unlikely(!cursor)) {
     st = UPS_INV_PARAMETER;
     goto bail;
   }
@@ -1280,9 +1267,9 @@ handle_cursor_insert(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
                 & (~UPS_KEY_USER_ALLOC);
   }
 
-  if (request->cursor_insert_request().has_record()) {
+  if (likely(request->cursor_insert_request().has_record())) {
     rec.size = (uint32_t)request->cursor_insert_request().record().data().size();
-    if (rec.size)
+    if (likely(rec.size))
       rec.data = (void *)&request->cursor_insert_request().record().data()[0];
     rec.flags = request->cursor_insert_request().record().flags()
                 & (~UPS_RECORD_USER_ALLOC);
@@ -1312,7 +1299,7 @@ handle_cursor_insert(ServerContext *srv, uv_stream_t *tcp,
   bool send_key;
 
   Cursor *cursor = srv->get_cursor(request->cursor_insert_request.cursor_handle);
-  if (!cursor) {
+  if (unlikely(!cursor)) {
     st = UPS_INV_PARAMETER;
     goto bail;
   }
@@ -1325,9 +1312,9 @@ handle_cursor_insert(ServerContext *srv, uv_stream_t *tcp,
                 & (~UPS_KEY_USER_ALLOC);
   }
 
-  if (request->cursor_insert_request.has_record) {
+  if (likely(request->cursor_insert_request.has_record)) {
     rec.size = (uint32_t)request->cursor_insert_request.record.data.size;
-    if (rec.size)
+    if (likely(rec.size))
       rec.data = request->cursor_insert_request.record.data.value;
     rec.flags = request->cursor_insert_request.record.flags
                 & (~UPS_RECORD_USER_ALLOC);
@@ -1363,7 +1350,7 @@ handle_cursor_erase(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   assert(request->has_cursor_erase_request());
 
   Cursor *cursor = srv->get_cursor(request->cursor_erase_request().cursor_handle());
-  if (!cursor)
+  if (unlikely(!cursor))
     st = UPS_INV_PARAMETER;
   else
     st = ups_cursor_erase((ups_cursor_t *)cursor,
@@ -1382,7 +1369,7 @@ handle_cursor_erase(ServerContext *srv, uv_stream_t *tcp,
   ups_status_t st = 0;
 
   Cursor *cursor = srv->get_cursor(request->cursor_erase_request.cursor_handle);
-  if (!cursor)
+  if (unlikely(!cursor))
     st = UPS_INV_PARAMETER;
   else
     st = ups_cursor_erase((ups_cursor_t *)cursor,
@@ -1406,7 +1393,7 @@ handle_cursor_get_record_count(ServerContext *srv, uv_stream_t *tcp,
   assert(request->has_cursor_get_record_count_request());
 
   Cursor *cursor = srv->get_cursor(request->cursor_get_record_count_request().cursor_handle());
-  if (!cursor)
+  if (unlikely(!cursor))
     st = UPS_INV_PARAMETER;
   else
     st = ups_cursor_get_duplicate_count((ups_cursor_t *)cursor, &count,
@@ -1427,7 +1414,7 @@ handle_cursor_get_record_count(ServerContext *srv, uv_stream_t *tcp,
   uint32_t count = 0;
 
   Cursor *cursor = srv->get_cursor(request->cursor_get_record_count_request.cursor_handle);
-  if (!cursor)
+  if (unlikely(!cursor))
     st = UPS_INV_PARAMETER;
   else
     st = ups_cursor_get_duplicate_count((ups_cursor_t *)cursor, &count,
@@ -1452,7 +1439,7 @@ handle_cursor_get_record_size(ServerContext *srv, uv_stream_t *tcp,
   assert(request->has_cursor_get_record_size_request());
 
   Cursor *cursor = srv->get_cursor(request->cursor_get_record_size_request().cursor_handle());
-  if (!cursor)
+  if (unlikely(!cursor))
     st = UPS_INV_PARAMETER;
   else
     st = ups_cursor_get_record_size((ups_cursor_t *)cursor, &size);
@@ -1472,7 +1459,7 @@ handle_cursor_get_record_size(ServerContext *srv, uv_stream_t *tcp,
   uint32_t size = 0;
 
   Cursor *cursor = srv->get_cursor(request->cursor_get_record_size_request.cursor_handle);
-  if (!cursor)
+  if (unlikely(!cursor))
     st = UPS_INV_PARAMETER;
   else
     st = ups_cursor_get_record_size((ups_cursor_t *)cursor, &size);
@@ -1496,7 +1483,7 @@ handle_cursor_get_duplicate_position(ServerContext *srv, uv_stream_t *tcp,
   assert(request->has_cursor_get_duplicate_position_request());
 
   Cursor *cursor = srv->get_cursor(request->cursor_get_duplicate_position_request().cursor_handle());
-  if (!cursor)
+  if (unlikely(!cursor))
     st = UPS_INV_PARAMETER;
   else
     st = ups_cursor_get_duplicate_position((ups_cursor_t *)cursor, &position);
@@ -1516,7 +1503,7 @@ handle_cursor_get_duplicate_position(ServerContext *srv, uv_stream_t *tcp,
   uint32_t position = 0;
 
   Cursor *cursor = srv->get_cursor(request->cursor_get_duplicate_position_request.cursor_handle);
-  if (!cursor)
+  if (unlikely(!cursor))
     st = UPS_INV_PARAMETER;
   else
     st = ups_cursor_get_duplicate_position((ups_cursor_t *)cursor, &position);
@@ -1540,7 +1527,7 @@ handle_cursor_overwrite(ServerContext *srv, uv_stream_t *tcp,
   assert(request->has_cursor_overwrite_request());
 
   Cursor *cursor = srv->get_cursor(request->cursor_overwrite_request().cursor_handle());
-  if (!cursor) {
+  if (unlikely(!cursor)) {
     st = UPS_INV_PARAMETER;
     goto bail;
   }
@@ -1568,7 +1555,7 @@ handle_cursor_overwrite(ServerContext *srv, uv_stream_t *tcp,
   ups_status_t st = 0;
 
   Cursor *cursor = srv->get_cursor(request->cursor_overwrite_request.cursor_handle);
-  if (!cursor) {
+  if (unlikely(!cursor)) {
     st = UPS_INV_PARAMETER;
     goto bail;
   }
@@ -1602,7 +1589,7 @@ handle_cursor_move(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   assert(request->has_cursor_move_request());
 
   Cursor *cursor = srv->get_cursor(request->cursor_move_request().cursor_handle());
-  if (!cursor) {
+  if (unlikely(!cursor)) {
     st = UPS_INV_PARAMETER;
     goto bail;
   }
@@ -1652,12 +1639,12 @@ handle_cursor_close(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   assert(request->has_cursor_close_request());
 
   Cursor *cursor = srv->get_cursor(request->cursor_close_request().cursor_handle());
-  if (!cursor)
+  if (unlikely(!cursor))
     st = UPS_INV_PARAMETER;
   else
     st = ups_cursor_close((ups_cursor_t *)cursor);
 
-  if (st==0) {
+  if (likely(st == 0)) {
     /* remove the handle from the Env wrapper structure */
     srv->remove_cursor_handle(request->cursor_close_request().cursor_handle());
   }
@@ -1675,12 +1662,12 @@ handle_cursor_close(ServerContext *srv, uv_stream_t *tcp,
   ups_status_t st = 0;
 
   Cursor *cursor = srv->get_cursor(request->cursor_close_request.cursor_handle);
-  if (!cursor)
+  if (unlikely(!cursor))
     st = UPS_INV_PARAMETER;
   else
     st = ups_cursor_close((ups_cursor_t *)cursor);
 
-  if (st==0) {
+  if (likely(st == 0)) {
     /* remove the handle from the Env wrapper structure */
     srv->remove_cursor_handle(request->cursor_close_request.cursor_handle);
   }
@@ -1707,7 +1694,7 @@ handle_select_range(ServerContext *srv, uv_stream_t *tcp, Protocol *request)
   if (request->select_range_request().end_cursor_handle())
     end = srv->get_cursor(request->select_range_request().end_cursor_handle());
 
-  Environment *env = srv->get_env(request->select_range_request().env_handle());
+  Env *env = srv->get_env(request->select_range_request().env_handle());
   const char *query = request->select_range_request().query().c_str();
 
   uint32_t *offsets;
@@ -1807,14 +1794,14 @@ dispatch(ServerContext *srv, uv_stream_t *tcp, uint32_t magic,
         ups_trace(("ignoring unknown request"));
         break;
     }
-    return (true);
+    return true;
   }
 
   // Protocol buffer requests are handled here
   Protocol *wrapper = Protocol::unpack(data, size);
-  if (!wrapper) {
+  if (unlikely(!wrapper)) {
     ups_trace(("failed to unpack wrapper (%d bytes)\n", size));
-    return (false);
+    return false;
   }
 
   switch (wrapper->type()) {
@@ -1915,7 +1902,7 @@ dispatch(ServerContext *srv, uv_stream_t *tcp, uint32_t magic,
 
   delete wrapper;
 
-  return (true);
+  return true;
 }
 
 static void
@@ -1936,7 +1923,7 @@ on_alloc_buffer(uv_handle_t *handle, size_t size, uv_buf_t *buf)
 static uv_buf_t
 on_alloc_buffer(uv_handle_t *handle, size_t size)
 {
-  return (uv_buf_init(Memory::allocate<char>(size), size));
+  return uv_buf_init(Memory::allocate<char>(size), size);
 }
 #endif
 
@@ -1962,7 +1949,7 @@ on_read_data(uv_stream_t *tcp, ssize_t nread, uv_buf_t buf_struct)
   // each request is prepended with a header:
   //   4 byte magic
   //   4 byte size  (without those 8 bytes)
-  if (nread >= 0) {
+  if (likely(nread >= 0)) {
     // if we already started buffering data: append the data to the buffer
     if (!buffer->is_empty()) {
       buffer->append((uint8_t *)buf->base, nread);
@@ -1975,7 +1962,7 @@ on_read_data(uv_stream_t *tcp, ssize_t nread, uv_buf_t buf_struct)
         if (magic == UPS_TRANSFER_MAGIC_V1)
           size += 8;
         // still not enough data? then return immediately
-        if (buffer->size() < size)
+        if (unlikely(buffer->size() < size))
           goto bail;
         // otherwise dispatch the message
         close_client = !dispatch(context->srv, tcp, magic, p, size);
@@ -1986,7 +1973,7 @@ on_read_data(uv_stream_t *tcp, ssize_t nread, uv_buf_t buf_struct)
         }
         else {
           uint32_t new_size = buffer->size() - size;
-          memmove(p, p + size, new_size);
+          ::memmove(p, p + size, new_size);
           buffer->set_size(new_size);
           // fall through and repeat the loop
         }
@@ -2004,7 +1991,7 @@ on_read_data(uv_stream_t *tcp, ssize_t nread, uv_buf_t buf_struct)
         size += 8;
       if (size <= (uint32_t)nread) {
         close_client = !dispatch(context->srv, tcp, magic, p, size);
-        if (close_client)
+        if (unlikely(close_client))
           goto bail;
         nread -= size;
         p += size;
@@ -2020,7 +2007,7 @@ on_read_data(uv_stream_t *tcp, ssize_t nread, uv_buf_t buf_struct)
   }
 
 bail:
-  if (close_client || nread < 0)
+  if (unlikely(close_client || nread < 0))
     uv_close((uv_handle_t *)tcp, on_close_connection);
   Memory::release(buf->base);
   //buf->base = 0;
@@ -2029,7 +2016,7 @@ bail:
 static void
 on_new_connection(uv_stream_t *server, int status)
 {
-  if (status == -1)
+  if (unlikely(status == -1))
     return;
 
   ServerContext *srv = (ServerContext *)server->data;
@@ -2042,7 +2029,7 @@ on_new_connection(uv_stream_t *server, int status)
 #else
   uv_tcp_init(srv->loop, client);
 #endif
-  if (uv_accept(server, (uv_stream_t *)client) == 0)
+  if (likely(uv_accept(server, (uv_stream_t *)client) == 0))
     uv_read_start((uv_stream_t *)client, on_alloc_buffer, on_read_data);
   else
     uv_close((uv_handle_t *)client, on_close_connection);
@@ -2097,9 +2084,9 @@ ups_srv_init(ups_srv_config_t *config, ups_srv_t **psrv)
   srv->server.data = srv;
   int r = uv_listen((uv_stream_t *)&srv->server, 128,
             upscaledb::on_new_connection);
-  if (r) {
+  if (unlikely(r)) {
     ups_log(("failed to listen to port %d", config->port)); 
-    return (UPS_IO_ERROR);
+    return UPS_IO_ERROR;
   }
 
   srv->async.data = srv;
@@ -2112,32 +2099,32 @@ ups_srv_init(ups_srv_config_t *config, ups_srv_t **psrv)
 #endif
 
   *psrv = (ups_srv_t *)srv;
-  return (UPS_SUCCESS);
+  return 0;
 }
 
 ups_status_t
 ups_srv_add_env(ups_srv_t *hsrv, ups_env_t *env, const char *urlname)
 {
   ServerContext *srv = (ServerContext *)hsrv;
-  if (!srv || !env || !urlname) {
+  if (unlikely(!srv || !env || !urlname)) {
     ups_log(("parameters srv, env, urlname must not be NULL"));
-    return (UPS_INV_PARAMETER);
+    return UPS_INV_PARAMETER;
   }
 
   {
     ScopedLock lock(srv->open_queue_mutex);
-    srv->open_queue[urlname] = (Environment *)env;
+    srv->open_queue[urlname] = (Env *)env;
   }
 
   uv_async_send(&srv->async);
-  return (UPS_SUCCESS);
+  return 0;
 }
 
 void
 ups_srv_close(ups_srv_t *hsrv)
 {
   ServerContext *srv = (ServerContext *)hsrv;
-  if (!srv)
+  if (unlikely(!srv))
     return;
 
   uv_unref((uv_handle_t *)&srv->server);

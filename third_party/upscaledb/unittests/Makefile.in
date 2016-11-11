@@ -115,7 +115,9 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
 	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
 	$(top_srcdir)/m4/ax_cxx_gcc_abi_demangle.m4 \
-	$(top_srcdir)/m4/boost.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/boost.m4 \
+	$(top_srcdir)/m4/ax_cxx_compile_stdcxx.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
@@ -151,10 +153,10 @@ am__test_SOURCES_DIST = api110.cpp approx.cpp blob_manager.cpp \
 	btree.cpp btree_cursor.cpp btree_default.cpp btree_erase.cpp \
 	btree_insert.cpp btree_key.cpp changeset.cpp check.cpp \
 	compression.cpp cppapi.cpp crc32.cpp cursor1.cpp cursor2.cpp \
-	db.cpp device.cpp duplicates.cpp env.cpp error.cpp \
-	upscaledb.cpp uqi.cpp journal.cpp misc.cpp os.cpp os.hpp \
-	page.cpp page_manager.cpp main.cpp recno.cpp simd.cpp txn.cpp \
-	txn_cursor.cpp utils.h zint32.cpp remote.cpp aes.cpp
+	db.cpp device.cpp duplicates.cpp env.cpp upscaledb.cpp uqi.cpp \
+	journal.cpp misc.cpp os.cpp os.hpp page.cpp page_manager.cpp \
+	main.cpp recordnumber.cpp simd.cpp txn.cpp txn_cursor.cpp \
+	zint32.cpp remote.cpp aes.cpp
 @ENABLE_REMOTE_TRUE@am__objects_1 = remote.$(OBJEXT)
 @ENABLE_ENCRYPTION_TRUE@am__objects_2 = aes.$(OBJEXT)
 am_test_OBJECTS = api110.$(OBJEXT) approx.$(OBJEXT) \
@@ -164,12 +166,11 @@ am_test_OBJECTS = api110.$(OBJEXT) approx.$(OBJEXT) \
 	check.$(OBJEXT) compression.$(OBJEXT) cppapi.$(OBJEXT) \
 	crc32.$(OBJEXT) cursor1.$(OBJEXT) cursor2.$(OBJEXT) \
 	db.$(OBJEXT) device.$(OBJEXT) duplicates.$(OBJEXT) \
-	env.$(OBJEXT) error.$(OBJEXT) upscaledb.$(OBJEXT) \
-	uqi.$(OBJEXT) journal.$(OBJEXT) misc.$(OBJEXT) os.$(OBJEXT) \
-	page.$(OBJEXT) page_manager.$(OBJEXT) main.$(OBJEXT) \
-	recno.$(OBJEXT) simd.$(OBJEXT) txn.$(OBJEXT) \
-	txn_cursor.$(OBJEXT) zint32.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_2)
+	env.$(OBJEXT) upscaledb.$(OBJEXT) uqi.$(OBJEXT) \
+	journal.$(OBJEXT) misc.$(OBJEXT) os.$(OBJEXT) page.$(OBJEXT) \
+	page_manager.$(OBJEXT) main.$(OBJEXT) recordnumber.$(OBJEXT) \
+	simd.$(OBJEXT) txn.$(OBJEXT) txn_cursor.$(OBJEXT) \
+	zint32.$(OBJEXT) $(am__objects_1) $(am__objects_2)
 test_OBJECTS = $(am_test_OBJECTS)
 test_DEPENDENCIES = $(top_builddir)/src/.libs/libupscaledb.a \
 	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_3) \
@@ -194,24 +195,6 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CFLAGS) $(CFLAGS)
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 = 
-CCLD = $(CC)
-LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 = 
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
@@ -230,6 +213,24 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_@AM_V@)
+am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
+am__v_CC_0 = @echo "  CC      " $@;
+am__v_CC_1 = 
+CCLD = $(CC)
+LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_@AM_V@)
+am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
+am__v_CCLD_0 = @echo "  CCLD    " $@;
+am__v_CCLD_1 = 
 SOURCES = $(issue32_SOURCES) $(issue43_SOURCES) $(recovery_SOURCES) \
 	$(test_SOURCES)
 DIST_SOURCES = $(issue32_SOURCES) $(issue43_SOURCES) \
@@ -306,6 +307,7 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 GREP = @GREP@
+HAVE_CXX11 = @HAVE_CXX11@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -320,6 +322,7 @@ LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
@@ -396,21 +399,20 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-EXTRA_DIST = recovery.pl valgrind.supp data/* plugin.cc
 noinst_BIN = test recovery issue32 issue43
+EXTRA_DIST = recovery.pl valgrind.supp data/* plugin.cc
 BOOST_LIBS = $(BOOST_SYSTEM_LIBS) $(BOOST_THREAD_LIBS) $(BOOST_FILESYSTEM_LIBS)
 BOOST_FLAGS = $(BOOST_SYSTEM_LDFLAGS) $(BOOST_THREAD_LDFLAGS) $(BOOST_FILESYSTEM_LDFLAGS)
-AM_CPPFLAGS = -I../include -I$(top_srcdir)/include -I../src \
+AM_CPPFLAGS = -I../include -I$(top_srcdir)/include -I../src -std=c++11 \
 	$(am__append_2)
 test_SOURCES = api110.cpp approx.cpp blob_manager.cpp btree.cpp \
 	btree_cursor.cpp btree_default.cpp btree_erase.cpp \
 	btree_insert.cpp btree_key.cpp changeset.cpp check.cpp \
 	compression.cpp cppapi.cpp crc32.cpp cursor1.cpp cursor2.cpp \
-	db.cpp device.cpp duplicates.cpp env.cpp error.cpp \
-	upscaledb.cpp uqi.cpp journal.cpp misc.cpp os.cpp os.hpp \
-	page.cpp page_manager.cpp main.cpp recno.cpp simd.cpp txn.cpp \
-	txn_cursor.cpp utils.h zint32.cpp $(am__append_1) \
-	$(am__append_5)
+	db.cpp device.cpp duplicates.cpp env.cpp upscaledb.cpp uqi.cpp \
+	journal.cpp misc.cpp os.cpp os.hpp page.cpp page_manager.cpp \
+	main.cpp recordnumber.cpp simd.cpp txn.cpp txn_cursor.cpp \
+	zint32.cpp $(am__append_1) $(am__append_5)
 recovery_SOURCES = recovery.cpp
 test_LDADD = $(top_builddir)/src/.libs/libupscaledb.a $(BOOST_LIBS) \
 	-lpthread -ldl $(am__append_3) $(am__append_6) $(am__append_8) \
@@ -422,14 +424,14 @@ test_LDFLAGS = $(BOOST_FLAGS)
 recovery_LDFLAGS = $(BOOST_FLAGS)
 AM_CFLAGS = $(am__append_12) $(am__append_14)
 AM_CXXFLAGS = $(am__append_13) $(am__append_15)
-issue32_SOURCES = issue32.c
+issue32_SOURCES = issue32.cc
 issue32_LDADD = $(top_builddir)/src/libupscaledb.la
 issue43_SOURCES = issue43.cc
 issue43_LDADD = $(top_builddir)/src/libupscaledb.la
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .cc .cpp .lo .o .obj
+.SUFFIXES: .cc .cpp .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -471,7 +473,7 @@ clean-noinstPROGRAMS:
 
 issue32$(EXEEXT): $(issue32_OBJECTS) $(issue32_DEPENDENCIES) $(EXTRA_issue32_DEPENDENCIES) 
 	@rm -f issue32$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(issue32_OBJECTS) $(issue32_LDADD) $(LIBS)
+	$(AM_V_CXXLD)$(CXXLINK) $(issue32_OBJECTS) $(issue32_LDADD) $(LIBS)
 
 issue43$(EXEEXT): $(issue43_OBJECTS) $(issue43_DEPENDENCIES) $(EXTRA_issue43_DEPENDENCIES) 
 	@rm -f issue43$(EXEEXT)
@@ -512,7 +514,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/device.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/duplicates.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/env.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/error.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/issue32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/issue43.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/journal.Po@am__quote@
@@ -521,7 +522,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/os.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/page.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/page_manager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/recno.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/recordnumber.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/recovery.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/remote.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/simd.Po@am__quote@
@@ -530,30 +531,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/upscaledb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/uqi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zint32.Po@am__quote@
-
-.c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
-
-.c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\

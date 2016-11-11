@@ -39,15 +39,14 @@
 
 namespace upscaledb {
 
-class Database;
-class LocalEnvironment;
+struct Db;
+struct LocalEnv;
 
-struct JournalState
-{
-  JournalState(LocalEnvironment *env_);
+struct JournalState {
+  JournalState(LocalEnv *env_);
 
   // References the Environment this journal file is for
-  LocalEnvironment *env;
+  LocalEnv *env;
 
   // The index of the file descriptor we are currently writing to (0 or 1)
   uint32_t current_fd;
@@ -55,22 +54,15 @@ struct JournalState
   // The two file descriptors
   File files[2];
 
-  // Buffers for writing data to the files
-  ByteArray buffer[2];
+  // Buffer for writing data to the files
+  ByteArray buffer;
 
-  // For counting all open transactions in the files
-  uint64_t open_txn[2];
+  // Counts all transactions in the current file
+  uint32_t num_transactions;
 
-  // For counting all closed transactions in the files
-  // This needs to be atomic since it's updated from the worker thread
-  boost::atomic<uint64_t> closed_txn[2];
-
-  // The lsn of the previous checkpoint
-  uint64_t last_cp_lsn;
-
-  // When having more than these Transactions in one file, we
+  // When having more than these Txns in one file, we
   // swap the files
-  uint64_t threshold;
+  uint32_t threshold;
 
   // Set to false to disable logging; used during recovery
   bool disable_logging;
@@ -84,8 +76,8 @@ struct JournalState
   // Counting the bytes after compression (for ups_env_get_metrics)
   uint64_t count_bytes_after_compression;
 
-  // A map of all opened Databases
-  typedef std::map<uint16_t, Database *> DatabaseMap;
+  // A map of all opened databases
+  typedef std::map<uint16_t, Db *> DatabaseMap;
   DatabaseMap database_map;
 
   // The compressor; can be null

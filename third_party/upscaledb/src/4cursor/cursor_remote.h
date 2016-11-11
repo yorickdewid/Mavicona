@@ -17,9 +17,6 @@
 
 /*
  * Implementation for remote cursors
- *
- * @exception_safe: unknown
- * @thread_safe: unknown
  */
 
 #ifdef UPS_ENABLE_REMOTE
@@ -40,55 +37,31 @@
 namespace upscaledb {
 
 struct Context;
-class RemoteEnvironment;
+struct RemoteEnv;
 
-class RemoteCursor : public Cursor
-{
-  public:
-    // Constructor; retrieves pointer to db and txn, initializes all members
-    RemoteCursor(RemoteDatabase *db, Transaction *txn = 0)
-      : Cursor(db, txn), m_remote_handle(0) {
-    }
+struct RemoteCursor : Cursor {
+  // Constructor; retrieves pointer to db and txn, initializes all members
+  RemoteCursor(RemoteDb *db, Txn *txn = 0)
+    : Cursor(db, txn), remote_handle(0) {
+  }
 
-    // Returns the remote Cursor handle
-    uint64_t remote_handle() {
-      return (m_remote_handle);
-    }
+  // Overwrites the current record
+  virtual ups_status_t overwrite(ups_record_t *record, uint32_t flags);
 
-    // Returns the remote Cursor handle
-    void set_remote_handle(uint64_t handle) {
-      m_remote_handle = handle;
-    }
+  // Get current record size (ups_cursor_get_record_size)
+  virtual uint32_t get_record_size();
 
-    // Closes the cursor (ups_cursor_close)
-    virtual void close();
+  // Implementation of get_duplicate_position()
+  virtual uint32_t get_duplicate_position();
 
-  private:
-    // Implementation of overwrite()
-    virtual ups_status_t do_overwrite(ups_record_t *record, uint32_t flags);
+  // Implementation of get_duplicate_count()
+  virtual uint32_t get_duplicate_count(uint32_t flags);
 
-    // Returns number of duplicates (ups_cursor_get_duplicate_count)
-    virtual ups_status_t do_get_duplicate_count(uint32_t flags,
-                                uint32_t *pcount);
+  // Closes the cursor (ups_cursor_close)
+  virtual void close();
 
-    // Get current record size (ups_cursor_get_record_size)
-    virtual ups_status_t do_get_record_size(uint32_t *psize);
-
-    // Implementation of get_duplicate_position()
-    virtual ups_status_t do_get_duplicate_position(uint32_t *pposition);
-
-    // Returns the RemoteDatabase instance
-    RemoteDatabase *rdb() {
-      return ((RemoteDatabase *)m_db);
-    }
-
-    // Returns the RemoteEnvironment instance
-    RemoteEnvironment *renv() {
-      return ((RemoteEnvironment *)m_db->get_env());
-    }
-
-    // The remote handle
-    uint64_t m_remote_handle;
+  // The remote handle
+  uint64_t remote_handle;
 };
 
 } // namespace upscaledb

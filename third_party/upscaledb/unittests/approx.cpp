@@ -17,26 +17,22 @@
 
 #include "3rdparty/catch/catch.hpp"
 
-#include "utils.h"
-#include "os.hpp"
-
 #include <vector>
 #include <string>
 #include <algorithm>
 
-#include "3btree/btree_index.h"
-#include "3btree/btree_cursor.h"
 #include "4db/db_local.h"
-#include "4cursor/cursor.h"
 #include "4env/env_local.h"
 #include "4context/context.h"
+
+#include "os.hpp"
+#include "fixture.hpp"
 
 using namespace upscaledb;
 
 static int
 slot_key_cmp(ups_db_t *db, const uint8_t *lhs, uint32_t lsz,
-        const uint8_t *rhs, uint32_t rsz)
-{
+                const uint8_t *rhs, uint32_t rsz) {
   uint32_t i;
 
   for (i = 0; i < lsz; ++i) {
@@ -47,78 +43,50 @@ slot_key_cmp(ups_db_t *db, const uint8_t *lhs, uint32_t lsz,
   return 0;
 }
 
-struct ApproxFixture {
-  ups_db_t *m_db;
-  ups_env_t *m_env;
-  ups_txn_t *m_txn;
+struct ApproxFixture : BaseFixture {
+  ups_txn_t *txn;
 
   ApproxFixture() {
-    (void)os::unlink(Utils::opath(".test"));
-
-    REQUIRE(0 ==
-          ups_env_create(&m_env, Utils::opath(".test"),
-              UPS_ENABLE_TRANSACTIONS, 0664, 0));
-    REQUIRE(0 == ups_env_create_db(m_env, &m_db, 1, 0, 0));
-    REQUIRE(0 == ups_txn_begin(&m_txn, m_env, 0, 0, 0));
+    require_create(UPS_ENABLE_TRANSACTIONS);
+    REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
   }
 
   ~ApproxFixture() {
-    teardown();
-  }
-
-  void teardown() {
-    if (m_txn) {
-      REQUIRE(0 == ups_txn_abort(m_txn, 0));
-      m_txn = 0;
-    }
-    REQUIRE(0 == ups_env_close(m_env, UPS_AUTO_CLEANUP));
+    close();
   }
 
   ups_status_t insertBtree(const char *s) {
-    ups_key_t k = {};
-    k.data = (void *)s;
-    k.size = strlen(s) + 1;
-    ups_record_t r = {};
-    r.data = k.data;
-    r.size = k.size;
+    ups_key_t k = ups_make_key((void *)s, (uint16_t)(::strlen(s) + 1));
+    ups_record_t r = ups_make_record(k.data, k.size);
 
-    Context context((LocalEnvironment *)m_env, 0, 0);
-
-    BtreeIndex *be = ((LocalDatabase *)m_db)->btree_index();
-    return (be->insert(&context, 0, &k, &r, 0));
+    Context context(lenv(), 0, 0);
+    return btree_index()->insert(&context, 0, &k, &r, 0);
   }
 
   ups_status_t insertTxn(const char *s, uint32_t flags = 0) {
-    ups_key_t k = {};
-    k.data = (void *)s;
-    k.size = strlen(s) + 1;
-    ups_record_t r = {};
-    r.data = k.data;
-    r.size = k.size;
+    ups_key_t k = ups_make_key((void *)s, (uint16_t)(::strlen(s) + 1));
+    ups_record_t r = ups_make_record(k.data, k.size);
 
-    return (ups_db_insert(m_db, m_txn, &k, &r, flags));
+    return ups_db_insert(db, txn, &k, &r, flags);
   }
 
   ups_status_t eraseTxn(const char *s) {
-    ups_key_t k = {};
-    k.data = (void *)s;
-    k.size = strlen(s)+1;
+    ups_key_t k = ups_make_key((void *)s, (uint16_t)(::strlen(s) + 1));
 
-    return (ups_db_erase(m_db, m_txn, &k, 0));
+    return ups_db_erase(db, txn, &k, 0);
   }
 
   ups_status_t find(uint32_t flags, const char *search, const char *expected) {
-    ups_key_t k = {};
-    k.data = (void *)search;
-    k.size = strlen(search) + 1;
-    ups_record_t r = {};
+    ups_key_t k = ups_make_key((void *)search,
+                    (uint16_t)(::strlen(search) + 1));
+    ups_record_t r = {0};
 
-    ups_status_t st = ups_db_find(m_db, m_txn, &k, &r, flags);
+    ups_status_t st = ups_db_find(db, txn, &k, &r, flags);
     if (st)
-      return (st);
-    if (strcmp(expected, (const char *)k.data))
+      return st;
+    if (::strcmp(expected, (const char *)k.data))
       REQUIRE((ups_key_get_intflags(&k) & BtreeKey::kApproximate));
-    return (::strcmp(expected, (const char *)r.data));
+    return ::strcmp(expected, (const char *)r.data);
   }
 
   void lessThanTest1() {
@@ -365,7 +333,7 @@ struct ApproxFixture {
   }
 
   void greaterThanTest9() {
-    teardown();
+    close();
 
     ups_parameter_t param[] = {
         {UPS_PARAM_KEY_TYPE, UPS_TYPE_BINARY},
@@ -373,18 +341,16 @@ struct ApproxFixture {
         {0, 0}
     };
 
-    REQUIRE(0 == ups_env_create(&m_env, Utils::opath(".test"), 0, 0664, 0));
-    REQUIRE(0 == ups_env_create_db(m_env, &m_db, 1, 0, &param[0]));
+    require_create(0, 0, 0, param);
 
-    char data[32] = {0};
-    ups_key_t key = ups_make_key(&data[0], sizeof(data));
-    ups_record_t rec = {0};
-    REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+    std::vector<uint8_t> data(32);
+    std::vector<uint8_t> expected_key(32);
+    std::vector<uint8_t> rec(32);
 
+    DbProxy dbp(db);
+    dbp.require_insert(data, rec);
     data[31] = 1;
-    REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LT_MATCH));
-    char newdata[32] = {0};
-    REQUIRE(0 == ::memcmp(key.data, &newdata[0], sizeof(newdata)));
+    dbp.require_find_approx(data, expected_key, rec, UPS_FIND_LT_MATCH);
   }
 
   void greaterOrEqualTest1() {
@@ -474,17 +440,15 @@ struct ApproxFixture {
   }
 
   void issue44Test() {
-    teardown();
-
     ups_parameter_t param[] = {
         {UPS_PARAM_KEY_TYPE, UPS_TYPE_CUSTOM},
         {UPS_PARAM_KEY_SIZE, 41},
         {0, 0}
     };
 
-    REQUIRE(0 == ups_env_create(&m_env, Utils::opath(".test"), 0, 0664, 0));
-    REQUIRE(0 == ups_env_create_db(m_env, &m_db, 1, 0, &param[0]));
-    REQUIRE(0 == ups_db_set_compare_func(m_db, slot_key_cmp));
+    close();
+    require_create(0, 0, 0, param);
+    REQUIRE(0 == ups_db_set_compare_func(db, slot_key_cmp));
 
     const char *values[] = { "11", "22", "33", "44", "55" };
     for (int i = 0; i < 5; i++) {
@@ -492,14 +456,14 @@ struct ApproxFixture {
       ::memcpy(&keydata[0], values[i], 3);
       ups_key_t key = ups_make_key(&keydata[0], sizeof(keydata));
       ups_record_t rec = ups_make_record((void *)values[i], 3);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      REQUIRE(0 == ups_db_insert(db, 0, &key, &rec, 0));
     }
 
     char keydata[41];
     ::memcpy(&keydata[0], "10", 3);
     ups_key_t key = ups_make_key((void *)keydata, sizeof(keydata));
     ups_record_t rec = {0};
-    REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GEQ_MATCH));
+    REQUIRE(0 == ups_db_find(db, 0, &key, &rec, UPS_FIND_GEQ_MATCH));
     REQUIRE(0 == ::strcmp((char *)key.data, "11"));
     REQUIRE(0 == ::strcmp((char *)rec.data, "11"));
   }
@@ -511,11 +475,10 @@ struct ApproxFixture {
     ups_key_t key = ups_make_key((void *)"aa", 3);
     ups_record_t rec = {0};
 
-    REQUIRE(0 == ups_db_find(m_db, m_txn, &key, &rec, UPS_FIND_GEQ_MATCH));
+    REQUIRE(0 == ups_db_find(db, txn, &key, &rec, UPS_FIND_GEQ_MATCH));
   }
 
   void issue52Test() {
-    teardown();
     uint8_t buffer[525933] = {0};
 
     ups_parameter_t param[] = {
@@ -523,10 +486,9 @@ struct ApproxFixture {
         {0, 0}
     };
 
-    REQUIRE(0 == ups_env_create(&m_env, Utils::opath(".test"),
-                UPS_ENABLE_TRANSACTIONS, 0664, 0));
-    REQUIRE(0 == ups_env_create_db(m_env, &m_db, 1,
-                UPS_ENABLE_DUPLICATE_KEYS, &param[0]));
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, 0,
+                    UPS_ENABLE_DUPLICATE_KEYS, &param[0]);
 
     uint64_t k1 = 1;
     uint64_t k2 = 2;
@@ -541,16 +503,16 @@ struct ApproxFixture {
     ups_record_t rec21 = ups_make_record(&buffer[0], 334157);
     ups_record_t rec22 = ups_make_record(&buffer[0], 120392);
 
-    REQUIRE(0 == ups_db_insert(m_db, 0, &key1, &rec1, UPS_DUPLICATE));
-    REQUIRE(0 == ups_db_insert(m_db, 0, &key2, &rec11, UPS_DUPLICATE));
-    REQUIRE(0 == ups_db_insert(m_db, 0, &key2, &rec12, UPS_DUPLICATE));
-    REQUIRE(0 == ups_db_insert(m_db, 0, &key3, &rec21, UPS_DUPLICATE));
-    REQUIRE(0 == ups_db_insert(m_db, 0, &key3, &rec22, UPS_DUPLICATE));
+    REQUIRE(0 == ups_db_insert(db, 0, &key1, &rec1, UPS_DUPLICATE));
+    REQUIRE(0 == ups_db_insert(db, 0, &key2, &rec11, UPS_DUPLICATE));
+    REQUIRE(0 == ups_db_insert(db, 0, &key2, &rec12, UPS_DUPLICATE));
+    REQUIRE(0 == ups_db_insert(db, 0, &key3, &rec21, UPS_DUPLICATE));
+    REQUIRE(0 == ups_db_insert(db, 0, &key3, &rec22, UPS_DUPLICATE));
 
     ups_txn_t *txn;
     ups_cursor_t *c;
-    REQUIRE(0 == ups_txn_begin(&txn, m_env, 0, 0, 0));
-    REQUIRE(0 == ups_cursor_create(&c, m_db, txn, 0));
+    REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
+    REQUIRE(0 == ups_cursor_create(&c, db, txn, 0));
 
     ups_key_t key = {0};
     ups_record_t rec = {0};
@@ -580,31 +542,28 @@ struct ApproxFixture {
   }
 
   void greaterThanTest() {
-    teardown();
-
     ups_parameter_t param[] = {
         {UPS_PARAM_KEY_TYPE, UPS_TYPE_BINARY},
         {UPS_PARAM_KEY_SIZE, 32},
         {0, 0}
     };
 
-    REQUIRE(0 == ups_env_create(&m_env, Utils::opath(".test"), 0, 0664, 0));
-    REQUIRE(0 == ups_env_create_db(m_env, &m_db, 1, 0, &param[0]));
+    close();
+    require_create(0, 0, 0, param);
 
-    char data[32] = {0};
-    ups_key_t key = ups_make_key(&data[0], sizeof(data));
-    ups_record_t rec = {0};
-    REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+    std::vector<uint8_t> data(32);
+    std::vector<uint8_t> expected_key(32);
+    std::vector<uint8_t> rec;
+
+    DbProxy dbp(db);
+    dbp.require_insert(data, rec);
 
     data[31] = 1;
-    REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LT_MATCH));
-    char newdata[32] = {0};
-    REQUIRE(0 == ::memcmp(key.data, &newdata[0], sizeof(newdata)));
+    dbp.require_find_approx(data, expected_key, rec, UPS_FIND_LT_MATCH);
   }
 
   template<typename Generator>
   void btreeLessThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -624,32 +583,30 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"), 0, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
+    close();
+    require_create(0, envparam, UPS_FORCE_RECORDS_INLINE, &dbparam[0]);
 
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    ups_record_t record = {0};
+    std::vector<uint8_t> rec(32);
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 0; i < 5000; i++) {
+    for (int i = 0; i < 5000; i++) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
     }
 
     gen.generate(0, &key);
     REQUIRE(UPS_KEY_NOT_FOUND
-            == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LT_MATCH));
+                    == ups_db_find(db, 0, &key, &record, UPS_FIND_LT_MATCH));
 
-    for (i = 1; i < 5000; i++) {
+    for (int i = 1; i < 5000; i++) {
+      ups_key_t key = {0};
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i - 1, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LT_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_LT_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
@@ -657,7 +614,6 @@ struct ApproxFixture {
 
   template<typename Generator>
   void btreeLessEqualThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -677,28 +633,25 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"), 0, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
+    close();
+    require_create(0, envparam, UPS_FORCE_RECORDS_INLINE, &dbparam[0]);
 
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    ups_record_t record = {0};
+    std::vector<uint8_t> rec(32);
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 0; i < 10000; i += 2) {
+    for (int i = 0; i < 10000; i += 2) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
     }
 
-    for (i = 0; i < 10000; i++) {
+    for (int i = 0; i < 10000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i & 1 ? i - 1 : i, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_LEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
@@ -706,7 +659,6 @@ struct ApproxFixture {
 
   template<typename Generator>
   void btreeGreaterThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -726,40 +678,36 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"), 0, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
+    close();
+    require_create(0, envparam, UPS_FORCE_RECORDS_INLINE, &dbparam[0]);
 
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    ups_record_t record = {0};
+    std::vector<uint8_t> rec(32);
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 1; i <= 5000; i++) {
+    for (int i = 0; i <= 5000; i++) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
     }
 
-    for (i = 0; i < 5000; i++) {
+    for (int i = 0; i < 5000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i + 1, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GT_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_GT_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
 
     gen.generate(5000, &key);
     REQUIRE(UPS_KEY_NOT_FOUND
-            == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GT_MATCH));
+                    == ups_db_find(db, 0, &key, &record, UPS_FIND_GT_MATCH));
   }
 
   template<typename Generator>
   void btreeGreaterEqualThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -779,39 +727,35 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"), 0, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
+    close();
+    require_create(0, envparam, UPS_FORCE_RECORDS_INLINE, &dbparam[0]);
 
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    ups_record_t record = {0};
+    std::vector<uint8_t> rec(32);
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 0; i <= 10000; i += 2) {
+    for (int i = 0; i <= 10000; i += 2) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
     }
 
-    for (i = 0; i < 10000; i++) {
+    for (int i = 0; i < 10000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i & 1 ? i + 1 : i, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_GEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
 
     gen.generate(10000, &key);
-    REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GEQ_MATCH));
+    REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_GEQ_MATCH));
   }
 
   template<typename Generator>
   void txnLessThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -831,34 +775,30 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"),
-                    UPS_ENABLE_TRANSACTIONS, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
-    REQUIRE(0 == ups_txn_begin(&m_txn, m_env, 0, 0, 0));
-
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, envparam,
+                    UPS_ENABLE_DUPLICATE_KEYS, dbparam);
+    REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    std::vector<uint8_t> rec(32);
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 0; i < 5000; i++) {
+    for (int i = 0; i < 5000; i++) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, m_txn, &key, &rec, 0));
+      dbp.require_insert(txn, &key, rec);
     }
 
     gen.generate(0, &key);
+    ups_record_t record = {0};
     REQUIRE(UPS_KEY_NOT_FOUND
-            == ups_db_find(m_db, m_txn, &key, &rec, UPS_FIND_LT_MATCH));
+                    == ups_db_find(db, txn, &key, &record, UPS_FIND_LT_MATCH));
 
-    for (i = 1; i < 5000; i++) {
+    for (int i = 1; i < 5000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i - 1, &key2);
-      REQUIRE(0 == ups_db_find(m_db, m_txn, &key, &rec, UPS_FIND_LT_MATCH));
+      REQUIRE(0 == ups_db_find(db, txn, &key, &record, UPS_FIND_LT_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
@@ -866,7 +806,6 @@ struct ApproxFixture {
 
   template<typename Generator>
   void txnLessEqualThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -886,30 +825,26 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"),
-                    UPS_ENABLE_TRANSACTIONS, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
-    REQUIRE(0 == ups_txn_begin(&m_txn, m_env, 0, 0, 0));
-
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, envparam,
+                    UPS_ENABLE_DUPLICATE_KEYS, dbparam);
+    REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
+    std::vector<uint8_t> rec(32);
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 0; i < 10000; i += 2) {
+    for (int i = 0; i < 10000; i += 2) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, m_txn, &key, &rec, 0));
+      dbp.require_insert(txn, &key, rec);
     }
 
-    for (i = 0; i < 10000; i++) {
+    ups_record_t record = {0};
+    for (int i = 0; i < 10000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i & 1 ? i - 1 : i, &key2);
-      REQUIRE(0 == ups_db_find(m_db, m_txn, &key, &rec, UPS_FIND_LEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, txn, &key, &record, UPS_FIND_LEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
@@ -917,7 +852,6 @@ struct ApproxFixture {
 
   template<typename Generator>
   void txnGreaterThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -937,42 +871,37 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"),
-                    UPS_ENABLE_TRANSACTIONS, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
-    REQUIRE(0 == ups_txn_begin(&m_txn, m_env, 0, 0, 0));
-
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, envparam,
+                    UPS_ENABLE_DUPLICATE_KEYS, dbparam);
+    REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
+    std::vector<uint8_t> rec(32);
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 1; i <= 5000; i++) {
+    for (int i = 1; i <= 5000; i++) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, m_txn, &key, &rec, 0));
+      dbp.require_insert(txn, &key, rec);
     }
 
-    for (i = 0; i < 5000; i++) {
+    ups_record_t record = {0};
+    for (int i = 0; i < 5000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i + 1, &key2);
-      REQUIRE(0 == ups_db_find(m_db, m_txn, &key, &rec, UPS_FIND_GT_MATCH));
+      REQUIRE(0 == ups_db_find(db, txn, &key, &record, UPS_FIND_GT_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
 
     gen.generate(5000, &key);
     REQUIRE(UPS_KEY_NOT_FOUND
-            == ups_db_find(m_db, m_txn, &key, &rec, UPS_FIND_GT_MATCH));
+                    == ups_db_find(db, txn, &key, &record, UPS_FIND_GT_MATCH));
   }
 
   template<typename Generator>
   void txnGreaterEqualThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -992,41 +921,36 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"),
-                    UPS_ENABLE_TRANSACTIONS, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
-    REQUIRE(0 == ups_txn_begin(&m_txn, m_env, 0, 0, 0));
-
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, envparam,
+                    UPS_ENABLE_DUPLICATE_KEYS, dbparam);
+    REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
+    std::vector<uint8_t> rec(32);
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 0; i <= 10000; i += 2) {
+    for (int i = 0; i <= 10000; i += 2) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, m_txn, &key, &rec, 0));
+      dbp.require_insert(txn, &key, rec);
     }
 
-    for (i = 0; i < 10000; i++) {
+    ups_record_t record = {0};
+    for (int i = 0; i < 10000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i & 1 ? i + 1 : i, &key2);
-      REQUIRE(0 == ups_db_find(m_db, m_txn, &key, &rec, UPS_FIND_GEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, txn, &key, &record, UPS_FIND_GEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
 
     gen.generate(10000, &key);
-    REQUIRE(0 == ups_db_find(m_db, m_txn, &key, &rec, UPS_FIND_GEQ_MATCH));
+    REQUIRE(0 == ups_db_find(db, txn, &key, &record, UPS_FIND_GEQ_MATCH));
   }
 
   template<typename Generator>
   void mixedLessThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -1046,33 +970,30 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"),
-                    UPS_ENABLE_TRANSACTIONS, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
-
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, envparam,
+                    UPS_ENABLE_DUPLICATE_KEYS, dbparam);
+    REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
+    std::vector<uint8_t> rec(32);
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 0; i < 5000; i++) {
+    for (int i = 0; i < 5000; i++) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
     }
 
+    ups_record_t record = {0};
     gen.generate(0, &key);
     REQUIRE(UPS_KEY_NOT_FOUND
-            == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LT_MATCH));
+                    == ups_db_find(db, 0, &key, &record, UPS_FIND_LT_MATCH));
 
-    for (i = 1; i < 5000; i++) {
+    for (int i = 1; i < 5000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i - 1, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LT_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_LT_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
@@ -1080,7 +1001,6 @@ struct ApproxFixture {
 
   template<typename Generator>
   void mixedLessEqualThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -1100,29 +1020,26 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"),
-                    UPS_ENABLE_TRANSACTIONS, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
-
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, envparam,
+                    UPS_ENABLE_DUPLICATE_KEYS, dbparam);
+    REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
+    std::vector<uint8_t> rec(32);
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 0; i < 10000; i += 2) {
+    for (int i = 0; i < 10000; i += 2) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
     }
 
-    for (i = 0; i < 10000; i++) {
+    ups_record_t record = {0};
+    for (int i = 0; i < 10000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i & 1 ? i - 1 : i, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_LEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
@@ -1130,7 +1047,6 @@ struct ApproxFixture {
 
   template<typename Generator>
   void mixedGreaterThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -1150,41 +1066,37 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"),
-                    UPS_ENABLE_TRANSACTIONS, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
-
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, envparam,
+                    UPS_ENABLE_DUPLICATE_KEYS, dbparam);
+    REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
+    std::vector<uint8_t> rec(32);
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 1; i <= 5000; i++) {
+    for (int i = 1; i <= 5000; i++) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
     }
 
-    for (i = 0; i < 5000; i++) {
+    ups_record_t record = {0};
+    for (int i = 0; i < 5000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i + 1, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GT_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_GT_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
 
     gen.generate(5000, &key);
     REQUIRE(UPS_KEY_NOT_FOUND
-            == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GT_MATCH));
+                    == ups_db_find(db, 0, &key, &record, UPS_FIND_GT_MATCH));
   }
 
   template<typename Generator>
   void mixedGreaterEqualThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -1204,40 +1116,36 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"),
-                    UPS_ENABLE_TRANSACTIONS, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
-
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, envparam,
+                    UPS_ENABLE_DUPLICATE_KEYS, dbparam);
+    REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
+    std::vector<uint8_t> rec(32);
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 0; i <= 10000; i += 2) {
+    for (int i = 0; i <= 10000; i += 2) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
     }
 
-    for (i = 0; i < 10000; i++) {
+    ups_record_t record = {0};
+    for (int i = 0; i < 10000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i & 1 ? i + 1 : i, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_GEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
 
     gen.generate(10000, &key);
-    REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GEQ_MATCH));
+    REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_GEQ_MATCH));
   }
 
   template<typename Generator>
   void mixed2LessThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -1257,45 +1165,42 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"),
-                    UPS_ENABLE_TRANSACTIONS, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
-
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, envparam,
+                    UPS_ENABLE_DUPLICATE_KEYS, dbparam);
+    std::vector<uint8_t> rec(32);
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 0; i < 5000; i += 4) {
+    for (int i = 0; i < 5000; i += 4) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
 
       gen.generate(i + 1, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
 
-      REQUIRE(0 == ups_txn_begin(&m_txn, m_env, 0, 0, 0));
+      REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
       gen.generate(i + 2, &key);
-      REQUIRE(0 == ups_db_insert(m_db, m_txn, &key, &rec, 0));
+      dbp.require_insert(txn, &key, rec);
 
       gen.generate(i + 3, &key);
-      REQUIRE(0 == ups_db_insert(m_db, m_txn, &key, &rec, 0));
-      REQUIRE(0 == ups_txn_commit(m_txn, 0));
+      dbp.require_insert(txn, &key, rec);
+      REQUIRE(0 == ups_txn_commit(txn, 0));
     }
-    m_txn = 0;
 
+    txn = 0;
+
+    ups_record_t record = {0};
     gen.generate(0, &key);
     REQUIRE(UPS_KEY_NOT_FOUND
-            == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LT_MATCH));
+                    == ups_db_find(db, 0, &key, &record, UPS_FIND_LT_MATCH));
 
-    for (i = 1; i < 5000; i++) {
+    for (int i = 1; i < 5000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i - 1, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LT_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_LT_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
@@ -1303,7 +1208,6 @@ struct ApproxFixture {
 
   template<typename Generator>
   void mixed2GreaterThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -1323,53 +1227,48 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"),
-                    UPS_ENABLE_TRANSACTIONS, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
-
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, envparam,
+                    UPS_ENABLE_DUPLICATE_KEYS, dbparam);
+    std::vector<uint8_t> rec(32);
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 1; i <= 5000; i += 4) {
+    for (int i = 1; i <= 5000; i += 4) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
 
       gen.generate(i + 1, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
 
-      REQUIRE(0 == ups_txn_begin(&m_txn, m_env, 0, 0, 0));
+      REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
       gen.generate(i + 2, &key);
-      REQUIRE(0 == ups_db_insert(m_db, m_txn, &key, &rec, 0));
+      dbp.require_insert(txn, &key, rec);
 
       gen.generate(i + 3, &key);
-      REQUIRE(0 == ups_db_insert(m_db, m_txn, &key, &rec, 0));
-      REQUIRE(0 == ups_txn_commit(m_txn, 0));
+      dbp.require_insert(txn, &key, rec);
+      REQUIRE(0 == ups_txn_commit(txn, 0));
     }
-    m_txn = 0;
+    txn = 0;
 
-    for (i = 0; i < 5000; i++) {
+    ups_record_t record = {0};
+    for (int i = 0; i < 5000; i++) {
       gen.generate(i, &key);
 
       ups_key_t key2 = {0};
       gen2.generate(i + 1, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GT_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_GT_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
 
     gen.generate(5000, &key);
     REQUIRE(UPS_KEY_NOT_FOUND
-            == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GT_MATCH));
+                    == ups_db_find(db, 0, &key, &record, UPS_FIND_GT_MATCH));
   }
 
   template<typename Generator>
   void mixed2LessEqualThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -1389,67 +1288,63 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"),
-                    UPS_ENABLE_TRANSACTIONS, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
-
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, envparam,
+                    UPS_ENABLE_DUPLICATE_KEYS, dbparam);
+    std::vector<uint8_t> rec(32);
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 0; i < 10000; i += 5) {
+    for (int i = 0; i < 10000; i += 5) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
 
       gen.generate(i + 1, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
 
-      REQUIRE(0 == ups_txn_begin(&m_txn, m_env, 0, 0, 0));
+      REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
       gen.generate(i + 2, &key);
-      REQUIRE(0 == ups_db_insert(m_db, m_txn, &key, &rec, 0));
+      dbp.require_insert(txn, &key, rec);
 
       gen.generate(i + 3, &key);
-      REQUIRE(0 == ups_db_insert(m_db, m_txn, &key, &rec, 0));
-      REQUIRE(0 == ups_txn_commit(m_txn, 0));
+      dbp.require_insert(txn, &key, rec);
+      REQUIRE(0 == ups_txn_commit(txn, 0));
 
       // skip i + 4
     }
-    m_txn = 0;
+    txn = 0;
 
-    for (i = 0; i < 10000; i += 5) {
+    ups_record_t record = {0};
+    for (int i = 0; i < 10000; i += 5) {
       ups_key_t key2 = {0};
 
       gen.generate(i, &key);
       gen2.generate(i, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_LEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
 
       gen.generate(i + 1, &key);
       gen2.generate(i + 1, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_LEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
 
       gen.generate(i + 2, &key);
       gen2.generate(i + 2, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_LEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
 
       gen.generate(i + 3, &key);
       gen2.generate(i + 3, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_LEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
 
       gen.generate(i + 4, &key);
       gen2.generate(i + 3, &key2); // !!
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_LEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_LEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
     }
@@ -1457,7 +1352,6 @@ struct ApproxFixture {
 
   template<typename Generator>
   void mixed2GreaterEqualThanTest() {
-    teardown();
     Generator gen, gen2;
 
     ups_parameter_t envparam[] = {
@@ -1477,68 +1371,64 @@ struct ApproxFixture {
       dbparam[2].value = gen.get_key_size();
     }
 
-    REQUIRE(0 ==
-        ups_env_create(&m_env, Utils::opath(".test"),
-                    UPS_ENABLE_TRANSACTIONS, 0664, &envparam[0]));
-    REQUIRE(0 ==
-        ups_env_create_db(m_env, &m_db, 1,
-                    UPS_FORCE_RECORDS_INLINE, &dbparam[0]));
-
+    close();
+    require_create(UPS_ENABLE_TRANSACTIONS, envparam,
+                    UPS_ENABLE_DUPLICATE_KEYS, dbparam);
+    std::vector<uint8_t> rec(32);
     ups_key_t key = {0};
-    char recbuffer[32] = {0};
-    ups_record_t rec = ups_make_record(&recbuffer[0], sizeof(recbuffer));
+    DbProxy dbp(db);
 
-    int i;
-    for (i = 0; i < 10000; i += 5) {
+    for (int i = 0; i < 10000; i += 5) {
       gen.generate(i, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
 
       gen.generate(i + 1, &key);
-      REQUIRE(0 == ups_db_insert(m_db, 0, &key, &rec, 0));
+      dbp.require_insert(&key, rec);
 
-      REQUIRE(0 == ups_txn_begin(&m_txn, m_env, 0, 0, 0));
+      REQUIRE(0 == ups_txn_begin(&txn, env, 0, 0, 0));
       gen.generate(i + 2, &key);
-      REQUIRE(0 == ups_db_insert(m_db, m_txn, &key, &rec, 0));
+      dbp.require_insert(txn, &key, rec);
 
       gen.generate(i + 3, &key);
-      REQUIRE(0 == ups_db_insert(m_db, m_txn, &key, &rec, 0));
-      REQUIRE(0 == ups_txn_commit(m_txn, 0));
+      dbp.require_insert(txn, &key, rec);
+      REQUIRE(0 == ups_txn_commit(txn, 0));
 
       // skip i + 4
     }
-    m_txn = 0;
+    txn = 0;
 
-    for (i = 0; i < 10000; i += 5) {
+    ups_record_t record = {0};
+    for (int i = 0; i < 10000; i += 5) {
       ups_key_t key2 = {0};
 
       gen.generate(i, &key);
       gen2.generate(i, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_GEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
 
       gen.generate(i + 1, &key);
       gen2.generate(i + 1, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_GEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
 
       gen.generate(i + 2, &key);
       gen2.generate(i + 2, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_GEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
 
       gen.generate(i + 3, &key);
       gen2.generate(i + 3, &key2);
-      REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GEQ_MATCH));
+      REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_GEQ_MATCH));
       REQUIRE(key2.size == key.size);
       REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
 
       if (i + 5 < 10000) {
         gen.generate(i + 4, &key);
         gen2.generate(i + 5, &key2); // !!
-        REQUIRE(0 == ups_db_find(m_db, 0, &key, &rec, UPS_FIND_GEQ_MATCH));
+        REQUIRE(0 == ups_db_find(db, 0, &key, &record, UPS_FIND_GEQ_MATCH));
         REQUIRE(key2.size == key.size);
         REQUIRE(0 == ::memcmp(key.data, key2.data, key2.size));
       }
@@ -2030,7 +1920,7 @@ TEST_CASE("Approx/btreeGreaterEqualThanReal64Test", "") {
   f.btreeGreaterEqualThanTest<PodGenerator<UPS_TYPE_REAL64, double> >();
 }
 
-// Transaction tests for UPS_FIND_LT_MATCH
+// Txn tests for UPS_FIND_LT_MATCH
 
 TEST_CASE("Approx/txnLessThanBinary8Test", "") {
   ApproxFixture f;
@@ -2077,7 +1967,7 @@ TEST_CASE("Approx/txnLessThanReal64Test", "") {
   f.txnLessThanTest<PodGenerator<UPS_TYPE_REAL64, double> >();
 }
 
-// Transaction tests for UPS_FIND_GT_MATCH
+// Txn tests for UPS_FIND_GT_MATCH
 
 TEST_CASE("Approx/txnGreaterThanBinary8Test", "") {
   ApproxFixture f;
@@ -2124,7 +2014,7 @@ TEST_CASE("Approx/txnGreaterThanReal64Test", "") {
   f.txnGreaterThanTest<PodGenerator<UPS_TYPE_REAL64, double> >();
 }
 
-// Transaction tests for UPS_FIND_LEQ_MATCH
+// Txn tests for UPS_FIND_LEQ_MATCH
 
 TEST_CASE("Approx/txnLessEqualThanBinary8Test", "") {
   ApproxFixture f;
@@ -2171,7 +2061,7 @@ TEST_CASE("Approx/txnLessEqualThanReal64Test", "") {
   f.txnLessEqualThanTest<PodGenerator<UPS_TYPE_REAL64, double> >();
 }
 
-// Transaction tests for UPS_FIND_GEQ_MATCH
+// Txn tests for UPS_FIND_GEQ_MATCH
 
 TEST_CASE("Approx/txnGreaterEqualThanBinary8Test", "") {
   ApproxFixture f;
@@ -2218,7 +2108,7 @@ TEST_CASE("Approx/txnGreaterEqualThanReal64Test", "") {
   f.txnGreaterEqualThanTest<PodGenerator<UPS_TYPE_REAL64, double> >();
 }
 
-// Mixed tests (Transaction + Btree) for UPS_FIND_LT_MATCH
+// Mixed tests (Txn + Btree) for UPS_FIND_LT_MATCH
 
 TEST_CASE("Approx/mixedLessThanBinary8Test", "") {
   ApproxFixture f;
@@ -2265,7 +2155,7 @@ TEST_CASE("Approx/mixedLessThanReal64Test", "") {
   f.mixedLessThanTest<PodGenerator<UPS_TYPE_REAL64, double> >();
 }
 
-// Mixed tests (Transaction + Btree) for UPS_FIND_GT_MATCH
+// Mixed tests (Txn + Btree) for UPS_FIND_GT_MATCH
 
 TEST_CASE("Approx/mixedGreaterThanBinary8Test", "") {
   ApproxFixture f;
@@ -2312,7 +2202,7 @@ TEST_CASE("Approx/mixedGreaterThanReal64Test", "") {
   f.mixedGreaterThanTest<PodGenerator<UPS_TYPE_REAL64, double> >();
 }
 
-// Mixed tests (Transaction + Btree) for UPS_FIND_LEQ_MATCH
+// Mixed tests (Txn + Btree) for UPS_FIND_LEQ_MATCH
 
 TEST_CASE("Approx/mixedLessEqualThanBinary8Test", "") {
   ApproxFixture f;
@@ -2359,7 +2249,7 @@ TEST_CASE("Approx/mixedLessEqualThanReal64Test", "") {
   f.mixedLessEqualThanTest<PodGenerator<UPS_TYPE_REAL64, double> >();
 }
 
-// Mixed tests (Transaction + Btree) for UPS_FIND_GEQ_MATCH
+// Mixed tests (Txn + Btree) for UPS_FIND_GEQ_MATCH
 
 TEST_CASE("Approx/mixedGreaterEqualThanBinary8Test", "") {
   ApproxFixture f;
@@ -2406,7 +2296,7 @@ TEST_CASE("Approx/mixedGreaterEqualThanReal64Test", "") {
   f.mixedGreaterEqualThanTest<PodGenerator<UPS_TYPE_REAL64, double> >();
 }
 
-// Mixed tests (Transaction + Btree) for UPS_FIND_LT_MATCH
+// Mixed tests (Txn + Btree) for UPS_FIND_LT_MATCH
 
 TEST_CASE("Approx/mixed2LessThanBinary8Test", "") {
   ApproxFixture f;
@@ -2453,7 +2343,7 @@ TEST_CASE("Approx/mixed2LessThanReal64Test", "") {
   f.mixed2LessThanTest<PodGenerator<UPS_TYPE_REAL64, double> >();
 }
 
-// Mixed tests (Transaction + Btree) for UPS_FIND_GT_MATCH
+// Mixed tests (Txn + Btree) for UPS_FIND_GT_MATCH
 
 TEST_CASE("Approx/mixed2GreaterThanBinary8Test", "") {
   ApproxFixture f;
@@ -2500,7 +2390,7 @@ TEST_CASE("Approx/mixed2GreaterThanReal64Test", "") {
   f.mixed2GreaterThanTest<PodGenerator<UPS_TYPE_REAL64, double> >();
 }
 
-// Mixed tests (Transaction + Btree) for UPS_FIND_LEQ_MATCH
+// Mixed tests (Txn + Btree) for UPS_FIND_LEQ_MATCH
 
 TEST_CASE("Approx/mixed2LessEqualThanBinary8Test", "") {
   ApproxFixture f;
@@ -2547,7 +2437,7 @@ TEST_CASE("Approx/mixed2LessEqualThanReal64Test", "") {
   f.mixed2LessEqualThanTest<PodGenerator<UPS_TYPE_REAL64, double> >();
 }
 
-// Mixed tests (Transaction + Btree) for UPS_FIND_GEQ_MATCH
+// Mixed tests (Txn + Btree) for UPS_FIND_GEQ_MATCH
 
 TEST_CASE("Approx/mixed2GreaterEqualThanBinary8Test", "") {
   ApproxFixture f;

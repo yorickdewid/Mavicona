@@ -23,16 +23,16 @@
  * The logical information describes the database operation (i.e. insert/erase),
  * the physical information describes the modified pages.
  *
- * "Undo" information is not required because aborted Transactions are never
+ * "Undo" information is not required because aborted Txns are never
  * written to disk. The journal only can "redo" operations.
  *
  * The journal is organized in two files. If one of the files grows too large
- * then all new Transactions are stored in the other file
- * ("Log file switching"). When all Transactions from file #0 are committed,
+ * then all new Txns are stored in the other file
+ * ("Log file switching"). When all Txns from file #0 are committed,
  * and file #1 exceeds a limit, then the files are switched back again.
  *
  * For writing, files are buffered. The buffers are flushed when they
- * exceed a certain threshold, when a Transaction is committed or a Changeset
+ * exceed a certain threshold, when a Txn is committed or a Changeset
  * was written. In case of a commit or a changeset there will also be an
  * fsync, if UPS_ENABLE_FSYNC is enabled.
  *
@@ -97,11 +97,11 @@ namespace upscaledb {
 
 struct Context;
 class Page;
-class Database;
-class Transaction;
-class LocalEnvironment;
-class LocalTransaction;
-class LocalTransactionManager;
+struct Db;
+struct Txn;
+class LocalEnv;
+class LocalTxn;
+class LocalTxnManager;
 
 #include "1base/packstart.h"
 
@@ -149,7 +149,7 @@ struct Journal
   };
 
   // Constructor
-  Journal(LocalEnvironment *env);
+  Journal(LocalEnv *env);
 
   // Creates a new journal
   void create();
@@ -172,22 +172,19 @@ struct Journal
   }
 
   // Appends a journal entry for ups_txn_begin/kEntryTypeTxnBegin
-  void append_txn_begin(LocalTransaction *txn, const char *name,
+  void append_txn_begin(LocalTxn *txn, const char *name,
                   uint64_t lsn);
 
-  // Appends a journal entry for ups_txn_abort/kEntryTypeTxnAbort
-  void append_txn_abort(LocalTransaction *txn, uint64_t lsn);
-
   // Appends a journal entry for ups_txn_commit/kEntryTypeTxnCommit
-  void append_txn_commit(LocalTransaction *txn, uint64_t lsn);
+  void append_txn_commit(LocalTxn *txn, uint64_t lsn);
 
   // Appends a journal entry for ups_insert/kEntryTypeInsert
-  void append_insert(Database *db, LocalTransaction *txn,
+  void append_insert(Db *db, LocalTxn *txn,
                   ups_key_t *key, ups_record_t *record, uint32_t flags,
                   uint64_t lsn);
 
   // Appends a journal entry for ups_erase/kEntryTypeErase
-  void append_erase(Database *db, LocalTransaction *txn,
+  void append_erase(Db *db, LocalTxn *txn,
                   ups_key_t *key, int duplicate_index, uint32_t flags,
                   uint64_t lsn);
 
@@ -197,21 +194,15 @@ struct Journal
   int append_changeset(std::vector<Page *> &pages, uint64_t last_blob_page,
                   uint64_t lsn);
 
-  // Called by the worker thread as soon as a changeset was flushed
-  void changeset_flushed(int fd_index);
-
-  // Adjusts the transaction counters; called whenever |txn| is flushed.
-  void transaction_flushed(LocalTransaction *txn);
-
   // Empties the journal, removes all entries
   void clear();
 
   // Closes the journal, frees all allocated resources
   void close(bool noclear = false);
 
-  // Performs the recovery! All committed Transactions will be re-applied,
+  // Performs the recovery! All committed Txns will be re-applied,
   // all others are automatically aborted
-  void recover(LocalTransactionManager *txn_manager);
+  void recover(LocalTxnManager *txn_manager);
 
   // Fills the metrics
   void fill_metrics(ups_env_metrics_t *metrics) {

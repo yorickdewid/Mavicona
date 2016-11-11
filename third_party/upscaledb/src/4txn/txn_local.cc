@@ -34,7 +34,7 @@
 
 namespace upscaledb {
 
-/* stuff for rb.h */
+// stuff for rb.h
 #ifndef __ssize_t_defined
 typedef signed ssize_t;
 #endif
@@ -42,90 +42,126 @@ typedef signed ssize_t;
 typedef int bool;
 #define true 1
 #define false (!true)
-#endif /* __cpluscplus */
+#endif // __cpluscplus
 
 static int
 compare(void *vlhs, void *vrhs)
 {
-  TransactionNode *lhs = (TransactionNode *)vlhs;
-  TransactionNode *rhs = (TransactionNode *)vrhs;
-  LocalDatabase *db = lhs->get_db();
+  TxnNode *lhs = (TxnNode *)vlhs;
+  TxnNode *rhs = (TxnNode *)vrhs;
+  LocalDb *db = lhs->db;
 
-  if (lhs == rhs)
-    return (0);
+  if (unlikely(lhs == rhs))
+    return 0;
 
-  ups_key_t *lhskey = lhs->get_key();
-  ups_key_t *rhskey = rhs->get_key();
+  ups_key_t *lhskey = lhs->key();
+  ups_key_t *rhskey = rhs->key();
   assert(lhskey && rhskey);
-  return (db->btree_index()->compare_keys(lhskey, rhskey));
+  return db->btree_index->compare_keys(lhskey, rhskey);
 }
 
-rb_proto(static, rbt_, TransactionIndex, TransactionNode)
-rb_gen(static, rbt_, TransactionIndex, TransactionNode, node, compare)
+rb_proto(static, rbt_, TxnIndex, TxnNode)
+rb_gen(static, rbt_, TxnIndex, TxnNode, node, compare)
 
-void
-TransactionOperation::initialize(LocalTransaction *txn, TransactionNode *node,
-            uint32_t flags, uint32_t orig_flags, uint64_t lsn,
-            ups_key_t *key, ups_record_t *record)
+static inline void
+flush_committed_txns_impl(LocalTxnManager *tm, Context *context)
 {
-  memset(this, 0, sizeof(*this));
+  LocalTxn *oldest;
+  uint64_t highest_lsn = 0;
 
-  m_txn = txn;
-  m_node = node;
-  m_flags = flags;
-  m_lsn = lsn;
-  m_orig_flags = orig_flags;
+  assert(context->changeset.is_empty());
 
-  /* copy the key data */
-  if (key) {
-    m_key = *key;
-    if (key->size) {
-      m_key.data = &m_data[0];
-      memcpy(m_key.data, key->data, key->size);
+  // always get the oldest transaction; if it was committed: flush
+  // it; if it was aborted: discard it; otherwise return
+  while ((oldest = (LocalTxn *)tm->oldest_txn())) {
+    if (oldest->is_committed()) {
+      uint64_t lsn = tm->flush_txn_to_changeset(context, (LocalTxn *)oldest);
+      if (lsn > highest_lsn)
+        highest_lsn = lsn;
+    }
+    else if (oldest->is_aborted()) {
+      ; // nop
+    }
+    else
+      break;
+
+    // now remove the txn from the linked list
+    tm->remove_txn_from_head(oldest);
+
+    // and release the memory
+    delete oldest;
+  }
+
+  // now flush the changeset and write the modified pages to disk
+  if (highest_lsn && tm->lenv()->journal.get())
+    context->changeset.flush(tm->lenv()->lsn_manager.next());
+  else
+    context->changeset.clear();
+  assert(context->changeset.is_empty());
+}
+
+void
+TxnOperation::initialize(LocalTxn *txn_, TxnNode *node_,
+            uint32_t flags_, uint32_t original_flags_, uint64_t lsn_,
+            ups_key_t *key_, ups_record_t *record_)
+{
+  ::memset(this, 0, sizeof(*this));
+
+  txn = txn_;
+  node = node_;
+  lsn = lsn_;
+  flags = flags_;
+  original_flags = original_flags_;
+
+  // copy the key data
+  if (key_) {
+    key = *key_;
+    if (likely(key.size)) {
+      key.data = &_data[0];
+      ::memcpy(key.data, key_->data, key.size);
     }
   }
 
-  /* copy the record data */
-  if (record) {
-    m_record = *record;
-    if (record->size) {
-      m_record.data = &m_data[key ? key->size : 0];
-      memcpy(m_record.data, record->data, record->size);
+  // copy the record data
+  if (record_) {
+    record = *record_;
+    if (likely(record.size)) {
+      record.data = &_data[key_ ? key.size : 0];
+      ::memcpy(record.data, record_->data, record.size);
     }
   }
 }
 
 void
-TransactionOperation::destroy()
+TxnOperation::destroy()
 {
   bool delete_node = false;
 
-  /* remove this op from the node */
-  TransactionNode *node = get_node();
-  if (node->get_oldest_op() == this) {
-    /* if the node is empty: remove the node from the tree */
+  // remove this op from the node
+  if (node->oldest_op == this) {
+    // if the node is empty: remove the node from the tree
     // TODO should this be done in here??
-    if (get_next_in_node() == 0) {
-      node->get_db()->txn_index()->remove(node);
+    if (next_in_node == 0) {
+      node->db->txn_index->remove(node);
       delete_node = true;
     }
-    node->set_oldest_op(get_next_in_node());
+    node->oldest_op = next_in_node;
   }
 
-  /* remove this operation from the two linked lists */
-  TransactionOperation *next = get_next_in_node();
-  TransactionOperation *prev = get_previous_in_node();
+  // remove this operation from the two linked lists
+  TxnOperation *next = next_in_node;
+  TxnOperation *prev = previous_in_node;
   if (next)
-    next->set_previous_in_node(prev);
+    next->previous_in_node = prev;
   if (prev)
-    prev->set_next_in_node(next);
+    prev->next_in_node = next;
 
-  next = get_next_in_txn();
-  prev = get_previous_in_txn();
+  next = next_in_txn;
+  prev = previous_in_txn;
   if (next)
-    next->set_previous_in_txn(prev);
+    next->previous_in_txn = prev;
   if (prev)
-    prev->set_next_in_txn(next);
+    prev->next_in_txn = next;
 
   if (delete_node)
     delete node;
@@ -133,165 +169,196 @@ TransactionOperation::destroy()
   Memory::release(this);
 }
 
-TransactionNode *
-TransactionNode::get_next_sibling()
+TxnNode *
+TxnNode::next_sibling()
 {
-  return (rbt_next(get_db()->txn_index(), this));
+  return rbt_next(db->txn_index.get(), this);
 }
 
-TransactionNode *
-TransactionNode::get_previous_sibling()
+TxnNode *
+TxnNode::previous_sibling()
 {
-  return (rbt_prev(get_db()->txn_index(), this));
+  return rbt_prev(db->txn_index.get(), this);
 }
 
-TransactionNode::TransactionNode(LocalDatabase *db, ups_key_t *key)
-  : m_db(db), m_oldest_op(0), m_newest_op(0), m_key(key)
-{
-  /* make sure that a node with this key does not yet exist */
-  // TODO re-enable this; currently leads to a stack overflow because
-  // TransactionIndex::get() creates a new TransactionNode
-  // assert(TransactionIndex::get(key, 0) == 0);
-}
-
-TransactionNode::~TransactionNode()
+TxnNode::TxnNode(LocalDb *db_, ups_key_t *key)
+  : db(db_), oldest_op(0), newest_op(0), _key(key)
 {
 }
 
-TransactionOperation *
-TransactionNode::append(LocalTransaction *txn, uint32_t orig_flags,
-            uint32_t flags, uint64_t lsn, ups_key_t *key,
-            ups_record_t *record)
+TxnOperation *
+TxnNode::append(LocalTxn *txn, uint32_t orig_flags, uint32_t flags,
+                uint64_t lsn, ups_key_t *key, ups_record_t *record)
 {
-  TransactionOperation *op = TransactionFactory::create_operation(txn,
-                                    this, flags, orig_flags, lsn,
-                                    key, record);
+  TxnOperation *op = TxnFactory::create_operation(txn, this, flags,
+                        orig_flags, lsn, key, record);
 
-  /* store it in the chronological list which is managed by the node */
-  if (!get_newest_op()) {
-    assert(get_oldest_op() == 0);
-    set_newest_op(op);
-    set_oldest_op(op);
+  // store it in the chronological list which is managed by the node
+  if (!newest_op) {
+    assert(oldest_op == 0);
+    newest_op = op;
+    oldest_op = op;
   }
   else {
-    TransactionOperation *newest = get_newest_op();
-    newest->set_next_in_node(op);
-    op->set_previous_in_node(newest);
-    set_newest_op(op);
+    TxnOperation *newest = newest_op;
+    newest->next_in_node = op;
+    op->previous_in_node = newest;
+    newest_op = op;
   }
 
-  /* store it in the chronological list which is managed by the transaction */
-  if (!txn->get_newest_op()) {
-    assert(txn->get_oldest_op() == 0);
-    txn->set_newest_op(op);
-    txn->set_oldest_op(op);
+  // store it in the chronological list which is managed by the transaction
+  if (!txn->newest_op) {
+    assert(txn->oldest_op == 0);
+    txn->newest_op = op;
+    txn->oldest_op = op;
   }
   else {
-    TransactionOperation *newest = txn->get_newest_op();
-    newest->set_next_in_txn(op);
-    op->set_previous_in_txn(newest);
-    txn->set_newest_op(op);
+    TxnOperation *newest = txn->newest_op;
+    newest->next_in_txn = op;
+    op->previous_in_txn = newest;
+    txn->newest_op = op;
   }
 
   // now that an operation is attached make sure that the node no
   // longer uses the temporary key pointer
-  m_key = 0;
+  _key = 0;
 
-  return (op);
+  return op;
 }
 
-void
-TransactionIndex::store(TransactionNode *node)
+TxnNode *
+TxnIndex::store(ups_key_t *key, bool *node_created)
 {
-  rbt_insert(this, node);
+  *node_created = false;
+  TxnNode *node = get(key, 0);
+  if (!node) {
+    node = new TxnNode(db, key);
+    *node_created = true;
+    rbt_insert(this, node);
+  }
+
+  return node;
 }
 
 void
-TransactionIndex::remove(TransactionNode *node)
+TxnIndex::remove(TxnNode *node)
 {
   rbt_remove(this, node);
 }
 
-LocalTransactionManager::LocalTransactionManager(Environment *env)
-  : TransactionManager(env), m_txn_id(0)
+static inline void
+flush_transaction_to_journal(LocalTxn *txn)
 {
-}
+  LocalEnv *lenv = (LocalEnv *)txn->env;
+  Journal *journal = lenv->journal.get();
 
-LocalTransaction::LocalTransaction(LocalEnvironment *env, const char *name,
-        uint32_t flags)
-  : Transaction(env, name, flags), m_log_desc(0), m_oldest_op(0),
-    m_newest_op(0), m_op_counter(0), m_accum_data_size(0)
-{
-  LocalTransactionManager *ltm = 
-        (LocalTransactionManager *)env->txn_manager();
-  m_id = ltm->get_incremented_txn_id();
+  if (unlikely(journal == 0))
+    return;
+ 
+  if (notset(txn->flags, UPS_TXN_TEMPORARY))
+    journal->append_txn_begin(txn, txn->name.empty() ? 0 : txn->name.c_str(),
+                    txn->lsn);
 
-  /* append journal entry */
-  if (env->journal() && !(flags & UPS_TXN_TEMPORARY)) {
-    env->journal()->append_txn_begin(this, name, env->next_lsn());
+  for (TxnOperation *op = txn->oldest_op;
+                  op != 0;
+                  op = op->next_in_txn) {
+    if (isset(op->flags, TxnOperation::kErase)) {
+      journal->append_erase(op->node->db, txn,
+                      op->node->key(), op->referenced_duplicate,
+                      op->original_flags, op->lsn);
+      continue;
+    }
+    if (isset(op->flags, TxnOperation::kInsert)) {
+      journal->append_insert(op->node->db, txn,
+                      op->node->key(), &op->record,
+                      op->original_flags, op->lsn);
+      continue;
+    }
+    if (isset(op->flags, TxnOperation::kInsertOverwrite)) {
+      journal->append_insert(op->node->db, txn,
+                      op->node->key(), &op->record,
+                      op->original_flags | UPS_OVERWRITE, op->lsn);
+      continue;
+    }
+    if (isset(op->flags, TxnOperation::kInsertDuplicate)) {
+      journal->append_insert(op->node->db, txn,
+                    op->node->key(), &op->record,
+                      op->original_flags | UPS_DUPLICATE, op->lsn);
+      continue;
+    }
+    assert(!"shouldn't be here");
   }
+
+  if (notset(txn->flags, UPS_TXN_TEMPORARY))
+    journal->append_txn_commit(txn, lenv->lsn_manager.next());
 }
 
-LocalTransaction::~LocalTransaction()
+LocalTxn::LocalTxn(LocalEnv *env, const char *name, uint32_t flags)
+  : Txn(env, name, flags), log_descriptor(0), oldest_op(0), newest_op(0)
+{
+  LocalTxnManager *ltm = (LocalTxnManager *)env->txn_manager.get();
+  id = ltm->incremented_txn_id();
+  lsn = env->lsn_manager.next();
+}
+
+LocalTxn::~LocalTxn()
 {
   free_operations();
 }
 
 void
-LocalTransaction::commit(uint32_t flags)
+LocalTxn::commit()
 {
-  /* are cursors attached to this txn? if yes, fail */
-  if (get_cursor_refcount()) {
-    ups_trace(("Transaction cannot be committed till all attached "
-          "Cursors are closed"));
+  // are cursors attached to this txn? if yes, fail
+  if (unlikely(refcounter > 0)) {
+    ups_trace(("Txn cannot be committed till all attached Cursors are closed"));
     throw Exception(UPS_CURSOR_STILL_OPEN);
   }
 
-  /* this transaction is now committed! */
-  m_flags |= kStateCommitted;
+  // this transaction is now committed!
+  flags |= kStateCommitted;
 }
 
 void
-LocalTransaction::abort(uint32_t flags)
+LocalTxn::abort()
 {
-  /* are cursors attached to this txn? if yes, fail */
-  if (get_cursor_refcount()) {
-    ups_trace(("Transaction cannot be aborted till all attached "
-          "Cursors are closed"));
+  // are cursors attached to this txn? if yes, fail
+  if (unlikely(refcounter > 0)) {
+    ups_trace(("Txn cannot be aborted till all attached Cursors are closed"));
     throw Exception(UPS_CURSOR_STILL_OPEN);
   }
 
-  /* this transaction is now aborted!  */
-  m_flags |= kStateAborted;
+  // this transaction is now aborted!
+  flags |= kStateAborted;
 
-  /* immediately release memory of the cached operations */
+  // immediately release memory of the cached operations
   free_operations();
 }
 
 void
-LocalTransaction::free_operations()
+LocalTxn::free_operations()
 {
-  TransactionOperation *n, *op = get_oldest_op();
+  TxnOperation *n, *op = oldest_op;
 
   while (op) {
-    n = op->get_next_in_txn();
-    TransactionFactory::destroy_operation(op);
+    n = op->next_in_txn;
+    TxnFactory::destroy_operation(op);
     op = n;
   }
 
-  set_oldest_op(0);
-  set_newest_op(0);
+  oldest_op = 0;
+  newest_op = 0;
 }
 
-TransactionIndex::TransactionIndex(LocalDatabase *db)
-  : m_db(db)
+TxnIndex::TxnIndex(LocalDb *db)
+  : db(db)
 {
   rbt_new(this);
 }
 
-TransactionIndex::~TransactionIndex()
+TxnIndex::~TxnIndex()
 {
-  TransactionNode *node;
+  TxnNode *node;
 
   while ((node = rbt_last(this))) {
     remove(node);
@@ -302,50 +369,50 @@ TransactionIndex::~TransactionIndex()
   rbt_new(this);
 }
 
-TransactionNode *
-TransactionIndex::get(ups_key_t *key, uint32_t flags)
+TxnNode *
+TxnIndex::get(ups_key_t *key, uint32_t flags)
 {
-  TransactionNode *node = 0;
+  TxnNode *node = 0;
   int match = 0;
 
-  /* create a temporary node that we can search for */
-  TransactionNode tmp(m_db, key);
+  // create a temporary node that we can search for
+  TxnNode tmp(db, key);
 
-  /* search if node already exists - if yes, return it */
-  if ((flags & UPS_FIND_GEQ_MATCH) == UPS_FIND_GEQ_MATCH) {
+  // search if node already exists - if yes, return it
+  if (isset(flags, UPS_FIND_GEQ_MATCH)) {
     node = rbt_nsearch(this, &tmp);
     if (node)
       match = compare(&tmp, node);
   }
-  else if ((flags & UPS_FIND_LEQ_MATCH) == UPS_FIND_LEQ_MATCH) {
+  else if (isset(flags, UPS_FIND_LEQ_MATCH)) {
     node = rbt_psearch(this, &tmp);
     if (node)
       match = compare(&tmp, node);
   }
-  else if (flags & UPS_FIND_GT_MATCH) {
+  else if (isset(flags, UPS_FIND_GT_MATCH)) {
     node = rbt_search(this, &tmp);
     if (node)
-      node = node->get_next_sibling();
+      node = node->next_sibling();
     else
       node = rbt_nsearch(this, &tmp);
     match = 1;
   }
-  else if (flags & UPS_FIND_LT_MATCH) {
+  else if (isset(flags, UPS_FIND_LT_MATCH)) {
     node = rbt_search(this, &tmp);
     if (node)
-      node = node->get_previous_sibling();
+      node = node->previous_sibling();
     else
       node = rbt_psearch(this, &tmp);
     match = -1;
   }
   else
-    return (rbt_search(this, &tmp));
+    return rbt_search(this, &tmp);
 
-  /* tree is empty? */
+  // Nothing found?
   if (!node)
-    return (0);
+    return 0;
 
-  /* approx. matching: set the key flag */
+  // approx. matching: set the key flag
   if (match < 0)
     ups_key_set_intflags(key, (ups_key_get_intflags(key)
             & ~BtreeKey::kApproximate) | BtreeKey::kLower);
@@ -353,26 +420,25 @@ TransactionIndex::get(ups_key_t *key, uint32_t flags)
     ups_key_set_intflags(key, (ups_key_get_intflags(key)
             & ~BtreeKey::kApproximate) | BtreeKey::kGreater);
 
-  return (node);
+  return node;
 }
 
-TransactionNode *
-TransactionIndex::get_first()
+TxnNode *
+TxnIndex::first()
 {
-  return (rbt_first(this));
+  return rbt_first(this);
 }
 
-TransactionNode *
-TransactionIndex::get_last()
+TxnNode *
+TxnIndex::last()
 {
-  return (rbt_last(this));
+  return rbt_last(this);
 }
 
 void
-TransactionIndex::enumerate(Context *context,
-                TransactionIndex::Visitor *visitor)
+TxnIndex::enumerate(Context *context, TxnIndex::Visitor *visitor)
 {
-  TransactionNode *node = rbt_first(this);
+  TxnNode *node = rbt_first(this);
 
   while (node) {
     visitor->visit(context, node);
@@ -380,56 +446,61 @@ TransactionIndex::enumerate(Context *context,
   }
 }
 
-struct KeyCounter : public TransactionIndex::Visitor
-{
-  KeyCounter(LocalDatabase *_db, LocalTransaction *_txn, bool _distinct)
+struct KeyCounter : TxnIndex::Visitor {
+  KeyCounter(LocalDb *_db, LocalTxn *_txn, bool _distinct)
     : counter(0), distinct(_distinct), txn(_txn), db(_db) {
   }
 
-  void visit(Context *context, TransactionNode *node) {
-    BtreeIndex *be = db->btree_index();
-    TransactionOperation *op;
+  void visit(Context *context, TxnNode *node) {
+    BtreeIndex *be = db->btree_index.get();
 
-    /*
-     * look at each tree_node and walk through each operation
-     * in reverse chronological order (from newest to oldest):
-     * - is this op part of an aborted txn? then skip it
-     * - is this op part of a committed txn? then include it
-     * - is this op part of an txn which is still active? then include it
-     * - if a committed txn has erased the item then there's no need
-     *    to continue checking older, committed txns of the same key
-     *
-     * !!
-     * if keys are overwritten or a duplicate key is inserted, then
-     * we have to consolidate the btree keys with the txn-tree keys.
-     */
-    op = node->get_newest_op();
-    while (op) {
-      LocalTransaction *optxn = op->get_txn();
+    //
+    // look at each tree_node and walk through each operation
+    // in reverse chronological order (from newest to oldest):
+    // - is this op part of an aborted txn? then skip it
+    // - is this op part of a committed txn? then include it
+    // - is this op part of an txn which is still active? then include it
+    // - if a committed txn has erased the item then there's no need
+    //    to continue checking older, committed txns of the same key
+    //
+    // !!
+    // if keys are overwritten or a duplicate key is inserted, then
+    // we have to consolidate the btree keys with the txn-tree keys.
+    //
+    for (TxnOperation *op = node->newest_op;
+                    op != 0;
+                    op = op->previous_in_node) {
+      LocalTxn *optxn = op->txn;
       if (optxn->is_aborted())
-        ; // nop
-      else if (optxn->is_committed() || txn == optxn) {
-        if (op->get_flags() & TransactionOperation::kIsFlushed)
-          ; // nop
+        continue;
+
+      if (optxn->is_committed() || txn == optxn) {
+        if (isset(op->flags, TxnOperation::kIsFlushed))
+          continue;
+
         // if key was erased then it doesn't exist
-        else if (op->get_flags() & TransactionOperation::kErase)
+        if (isset(op->flags, TxnOperation::kErase))
           return;
-        else if (op->get_flags() & TransactionOperation::kInsert) {
+
+        if (isset(op->flags, TxnOperation::kInsert)) {
           counter++;
           return;
         }
+
         // key exists - include it
-        else if ((op->get_flags() & TransactionOperation::kInsert)
-            || (op->get_flags() & TransactionOperation::kInsertOverwrite)) {
+        if (isset(op->flags, TxnOperation::kInsert)
+            || (isset(op->flags, TxnOperation::kInsertOverwrite))) {
           // check if the key already exists in the btree - if yes,
           // we do not count it (it will be counted later)
-          if (UPS_KEY_NOT_FOUND == be->find(context, 0, node->get_key(), 0, 0, 0, 0))
+          if (UPS_KEY_NOT_FOUND
+                    == be->find(context, 0, node->key(), 0, 0, 0, 0))
             counter++;
           return;
         }
-        else if (op->get_flags() & TransactionOperation::kInsertDuplicate) {
+
+        if (isset(op->flags, TxnOperation::kInsertDuplicate)) {
           // check if btree has other duplicates
-          if (0 == be->find(context, 0, node->get_key(), 0, 0, 0, 0)) {
+          if (0 == be->find(context, 0, node->key(), 0, 0, 0, 0)) {
             // yes, there's another one
             if (distinct)
               return;
@@ -441,186 +512,112 @@ struct KeyCounter : public TransactionIndex::Visitor
             if (distinct)
               return;
           }
+          continue;
         }
-        else if (!(op->get_flags() & TransactionOperation::kNop)) {
+
+        if (notset(op->flags, TxnOperation::kNop)) {
           assert(!"shouldn't be here");
           return;
         }
       }
-      else { // txn is still active
-        counter++;
-      }
 
-      op = op->get_previous_in_node();
+      // txn is still active
+      counter++;
     }
   }
 
   uint64_t counter;
   bool distinct;
-  LocalTransaction *txn;
-  LocalDatabase *db;
+  LocalTxn *txn;
+  LocalDb *db;
 };
 
 uint64_t
-TransactionIndex::count(Context *context, LocalTransaction *txn, bool distinct)
+TxnIndex::count(Context *context, LocalTxn *txn, bool distinct)
 {
-  KeyCounter k(m_db, txn, distinct);
+  KeyCounter k(db, txn, distinct);
   enumerate(context, &k);
-  return (k.counter);
+  return k.counter;
 }
 
 void
-LocalTransactionManager::begin(Transaction *txn)
+LocalTxnManager::begin(Txn *txn)
 {
   append_txn_at_tail(txn);
 }
 
-ups_status_t 
-LocalTransactionManager::commit(Transaction *htxn, uint32_t flags)
+ups_status_t
+LocalTxnManager::commit(Txn *htxn)
 {
-  LocalTransaction *txn = dynamic_cast<LocalTransaction *>(htxn);
+  LocalTxn *txn = dynamic_cast<LocalTxn *>(htxn);
   Context context(lenv(), txn, 0);
 
   try {
-    txn->commit(flags);
+    txn->commit();
 
-    /* append journal entry */
-    if (lenv()->journal() && !(txn->get_flags() & UPS_TXN_TEMPORARY))
-      lenv()->journal()->append_txn_commit(txn, lenv()->next_lsn());
+    // if this transaction can NOT be flushed immediately then write its
+    // operations to the journal; otherwise skip this step
+    flush_transaction_to_journal(txn);
 
-    /* flush committed transactions */
-    maybe_flush_committed_txns(&context);
+    // flush committed transactions
+    if (likely(notset(lenv()->flags(), UPS_DONT_FLUSH_TRANSACTIONS)))
+      flush_committed_txns_impl(this, &context);
   }
   catch (Exception &ex) {
-    return (ex.code);
+    return ex.code;
   }
-  return (0);
+  return 0;
 }
 
-ups_status_t 
-LocalTransactionManager::abort(Transaction *htxn, uint32_t flags)
+ups_status_t
+LocalTxnManager::abort(Txn *htxn)
 {
-  LocalTransaction *txn = dynamic_cast<LocalTransaction *>(htxn);
+  LocalTxn *txn = dynamic_cast<LocalTxn *>(htxn);
   Context context(lenv(), txn, 0);
 
   try {
-    txn->abort(flags);
+    txn->abort();
 
-    /* append journal entry */
-    if (lenv()->journal() && !(txn->get_flags() & UPS_TXN_TEMPORARY))
-      lenv()->journal()->append_txn_abort(txn, lenv()->next_lsn());
-
-    /* no need to increment m_queued_{ops,bytes}_for_flush because this
-     * operation does no longer contain any operations */
-    maybe_flush_committed_txns(&context);
+    // flush committed transactions
+    if (likely(notset(lenv()->flags(), UPS_DONT_FLUSH_TRANSACTIONS)))
+      flush_committed_txns_impl(this, &context);
   }
   catch (Exception &ex) {
-    return (ex.code);
+    return ex.code;
   }
-  return (0);
+  return 0;
 }
 
 void
-LocalTransactionManager::maybe_flush_committed_txns(Context *context)
-{
-  if ((lenv()->get_flags() & UPS_DONT_FLUSH_TRANSACTIONS) == 0)
-    flush_committed_txns_impl(context);
-}
-
-void 
-LocalTransactionManager::flush_committed_txns(Context *context /* = 0 */)
+LocalTxnManager::flush_committed_txns(Context *context /* = 0 */)
 {
   if (!context) {
     Context new_context(lenv(), 0, 0);
-    flush_committed_txns_impl(&new_context);
+    flush_committed_txns_impl(this, &new_context);
   }
   else
-    flush_committed_txns_impl(context);
-}
-
-void 
-LocalTransactionManager::flush_committed_txns_impl(Context *context)
-{
-  LocalTransaction *oldest;
-  Journal *journal = lenv()->journal();
-  uint64_t highest_lsn = 0;
-
-  assert(context->changeset.is_empty());
-
-  /* always get the oldest transaction; if it was committed: flush
-   * it; if it was aborted: discard it; otherwise return */
-  while ((oldest = (LocalTransaction *)get_oldest_txn())) {
-    if (oldest->is_committed()) {
-      uint64_t lsn = flush_txn(context, (LocalTransaction *)oldest);
-      if (lsn > highest_lsn)
-        highest_lsn = lsn;
-
-      /* this transaction was flushed! */
-      if (journal && (oldest->get_flags() & UPS_TXN_TEMPORARY) == 0)
-        journal->transaction_flushed(oldest);
-    }
-    else if (oldest->is_aborted()) {
-      ; /* nop */
-    }
-    else
-      break;
-
-    /* now remove the txn from the linked list */
-    remove_txn_from_head(oldest);
-
-    /* and release the memory */
-    delete oldest;
-  }
-
-  /* now flush the changeset and write the modified pages to disk */
-  if (highest_lsn && context->env->journal())
-    context->changeset.flush(highest_lsn);
-  else
-    context->changeset.clear();
-  assert(context->changeset.is_empty());
+    flush_committed_txns_impl(this, context);
 }
 
 uint64_t
-LocalTransactionManager::flush_txn(Context *context, LocalTransaction *txn)
+LocalTxnManager::flush_txn_to_changeset(Context *context, LocalTxn *txn)
 {
-  TransactionOperation *op = txn->get_oldest_op();
-  TransactionCursor *cursor = 0;
   uint64_t highest_lsn = 0;
 
-  while (op) {
-    TransactionNode *node = op->get_node();
-
-    if (op->get_flags() & TransactionOperation::kIsFlushed)
-      goto next_op;
+  for (TxnOperation *op = txn->oldest_op;
+                  op != 0;
+                  op = op->next_in_txn) {
+    TxnNode *node = op->node;
 
     // perform the actual operation in the btree
-    node->get_db()->flush_txn_operation(context, txn, op);
+    if (notset(op->flags, TxnOperation::kIsFlushed))
+      node->db->flush_txn_operation(context, txn, op);
 
-    /*
-     * this op is about to be flushed!
-     *
-     * as a consequence, all (txn)cursors which are coupled to this op
-     * have to be uncoupled, as their parent (btree) cursor was
-     * already coupled to the btree item instead
-     */
-    op->set_flushed();
-next_op:
-    while ((cursor = op->cursor_list())) {
-      LocalCursor *pc = cursor->get_parent();
-      assert(pc->get_txn_cursor() == cursor);
-      pc->couple_to_btree(); // TODO merge both calls?
-      if (!pc->is_nil(LocalCursor::kTxn))
-        pc->set_to_nil(LocalCursor::kTxn);
-    }
-
-    assert(op->get_lsn() > highest_lsn);
-    highest_lsn = op->get_lsn();
-
-    /* continue with the next operation of this txn */
-    op = op->get_next_in_txn();
+    assert(op->lsn > highest_lsn);
+    highest_lsn = op->lsn;
   }
 
-  return (highest_lsn);
+  return highest_lsn;
 }
 
 } // namespace upscaledb

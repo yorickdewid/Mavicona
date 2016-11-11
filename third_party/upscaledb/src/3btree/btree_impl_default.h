@@ -101,8 +101,7 @@ namespace upscaledb {
 // Same for the distinct RecordList (if duplicates are disabled).
 //
 template<typename KeyList, typename RecordList>
-struct DefaultNodeImpl : public BaseNodeImpl<KeyList, RecordList>
-{
+struct DefaultNodeImpl : BaseNodeImpl<KeyList, RecordList> {
   // C++ does not allow access to members of base classes unless they're
   // explicitly named; this typedef helps to make the code "less" ugly,
   // but it still sucks that i have to use it
@@ -207,7 +206,7 @@ struct DefaultNodeImpl : public BaseNodeImpl<KeyList, RecordList>
     assert(check_index_integrity(context, node_count));
 
     // still here? then there's no way to avoid the split
-    BtreeIndex *bi = P::page->db()->btree_index();
+    BtreeIndex *bi = P::page->db()->btree_index.get();
     bi->statistics()->set_keylist_range_size(P::node->is_leaf(),
                     load_range_size());
     bi->statistics()->set_keylist_capacities(P::node->is_leaf(),
@@ -267,8 +266,8 @@ struct DefaultNodeImpl : public BaseNodeImpl<KeyList, RecordList>
     size_t key_range_size, record_range_size;
     size_t required_key_range, required_record_range;
     size_t usable_size = usable_range_size();
-    required_key_range = P::keys.get_required_range_size(node_count)
-                              + P::keys.get_full_key_size(key);
+    required_key_range = P::keys.required_range_size(node_count)
+                              + P::keys.full_key_size(key);
     required_record_range = P::records.required_range_size(node_count)
                               + P::records.full_record_size();
 
@@ -291,13 +290,13 @@ struct DefaultNodeImpl : public BaseNodeImpl<KeyList, RecordList>
 
     // Now split the remainder between both lists
     size_t additional_capacity = remainder
-            / (P::keys.get_full_key_size(0) +
+            / (P::keys.full_key_size(0) +
                             P::records.full_record_size());
     if (additional_capacity == 0)
       return false;
 
     key_range_size = required_key_range + additional_capacity
-            * P::keys.get_full_key_size(0);
+            * P::keys.full_key_size(0);
     record_range_size = usable_size - key_range_size;
 
     assert(key_range_size + record_range_size <= usable_size);
@@ -320,7 +319,7 @@ struct DefaultNodeImpl : public BaseNodeImpl<KeyList, RecordList>
       return false;
 
     if (capacity_hint == 0) {
-      BtreeStatistics *bstats = P::page->db()->btree_index()->statistics();
+      BtreeStatistics *bstats = P::page->db()->btree_index->statistics();
       capacity_hint = bstats->keylist_capacities(P::node->is_leaf());
     }
 
@@ -364,7 +363,7 @@ struct DefaultNodeImpl : public BaseNodeImpl<KeyList, RecordList>
 
   // Initializes the node
   void initialize(NodeType *other = 0) {
-    LocalDatabase *db = P::page->db();
+    LocalDb *db = P::page->db();
     size_t usable_size = usable_range_size();
 
     // initialize this page in the same way as |other| was initialized
@@ -381,13 +380,13 @@ struct DefaultNodeImpl : public BaseNodeImpl<KeyList, RecordList>
       P::records.create(p + key_range_size, usable_size - key_range_size);
     }
     // initialize a new page from scratch
-    else if (P::node->length() == 0 && notset(db->get_flags(), UPS_READ_ONLY)) {
+    else if (P::node->length() == 0 && notset(db->flags(), UPS_READ_ONLY)) {
       size_t key_range_size;
       size_t record_range_size;
 
       // if yes then ask the btree for the default range size (it keeps
       // track of the average range size of older pages).
-      BtreeStatistics *bstats = db->btree_index()->statistics();
+      BtreeStatistics *bstats = db->btree_index->statistics();
       key_range_size = bstats->keylist_range_size(P::node->is_leaf());
 
       // no data so far? then come up with a good default
@@ -399,9 +398,9 @@ struct DefaultNodeImpl : public BaseNodeImpl<KeyList, RecordList>
         // Otherwise split the range between both lists
         else {
           size_t capacity = usable_size
-                  / (P::keys.get_full_key_size(0) +
+                  / (P::keys.full_key_size(0) +
                                 P::records.full_record_size());
-          key_range_size = capacity * P::keys.get_full_key_size(0);
+          key_range_size = capacity * P::keys.full_key_size(0);
         }
       }
 
@@ -419,7 +418,7 @@ struct DefaultNodeImpl : public BaseNodeImpl<KeyList, RecordList>
       P::records.create(p + key_range_size, record_range_size);
 
       P::estimated_capacity = key_range_size
-              / (size_t)P::keys.get_full_key_size();
+              / (size_t)P::keys.full_key_size();
     }
     // open a page; read initialization parameters from persisted storage
     else {
@@ -433,7 +432,7 @@ struct DefaultNodeImpl : public BaseNodeImpl<KeyList, RecordList>
                       P::node->length());
 
       P::estimated_capacity = key_range_size
-              / (size_t)P::keys.get_full_key_size();
+              / (size_t)P::keys.full_key_size();
     }
   }
 
@@ -441,7 +440,7 @@ struct DefaultNodeImpl : public BaseNodeImpl<KeyList, RecordList>
   // those lists with an UpfrontIndex to better arrange their layout
   size_t get_capacity_hint(size_t key_range_size, size_t record_range_size) {
     if (KeyList::kHasSequentialData)
-      return key_range_size / P::keys.get_full_key_size();
+      return key_range_size / P::keys.full_key_size();
     if (RecordList::kHasSequentialData && P::records.full_record_size())
       return record_range_size / P::records.full_record_size();
     return 0;
@@ -479,4 +478,4 @@ struct DefaultNodeImpl : public BaseNodeImpl<KeyList, RecordList>
 
 } // namespace upscaledb
 
-#endif /* UPS_BTREE_IMPL_DEFAULT_H */
+#endif // UPS_BTREE_IMPL_DEFAULT_H

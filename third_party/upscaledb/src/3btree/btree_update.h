@@ -37,8 +37,7 @@ struct BtreeCursor;
 /*
  * Base class for updates; derived for erasing and inserting keys.
  */
-struct BtreeUpdateAction
-{
+struct BtreeUpdateAction {
   // Constructor
   BtreeUpdateAction(BtreeIndex *btree_, Context *context_,
                   BtreeCursor *cursor_, uint32_t duplicate_index_)
@@ -50,7 +49,7 @@ struct BtreeUpdateAction
   // split or merge nodes while descending.
   // Returns the leaf page and the |parent| of the leaf (can be null if
   // there is no parent).
-  Page *traverse_tree(const ups_key_t *key,
+  Page *traverse_tree(Context *context, const ups_key_t *key,
                       BtreeStatistics::InsertHints &hints, Page **parent);
 
   // Splits |page| and updates the |parent|. If |parent| is null then

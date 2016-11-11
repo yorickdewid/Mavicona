@@ -18,19 +18,16 @@
 /*
  * A cursor which can iterate over transaction nodes and operations
  *
- * A Transaction Cursor can walk over Transaction trees (TransactionIndex).
+ * A Txn Cursor can walk over Txn trees (TxnIndex).
  *
- * Transaction Cursors are only used as part of the Cursor structure as defined
- * in cursor.h. Like all Transaction operations it is in-memory only,
+ * Txn Cursors are only used as part of the Cursor structure as defined
+ * in cursor.h. Like all Txn operations it is in-memory only,
  * traversing the red-black tree that is implemented in txn.h, and
- * consolidating multiple operations in a node (i.e. if a Transaction first
+ * consolidating multiple operations in a node (i.e. if a Txn first
  * overwrites a record, and another transaction then erases the key).
  *
- * The Transaction Cursor has two states: either it is coupled to a
- * Transaction operation (TransactionOperation) or it is unused.
- *
- * @exception_safe: unknown
- * @thread_safe: unknown
+ * The Txn Cursor has two states: either it is coupled to a
+ * Txn operation (TxnOperation) or it is unused.
  */
 
 #ifndef UPS_TXN_CURSOR_H
@@ -50,120 +47,104 @@ namespace upscaledb {
 class LocalCursor;
 struct Context;
 
+struct TxnCursorState {
+  // The parent cursor
+  LocalCursor *parent;
+
+  // A Cursor can either be coupled or nil ("not in list"). If it's
+  // coupled, it directly points to a TxnOperation structure.
+  // If it's nil then |m_coupled_op| is null.
+  //
+  // the txn operation to which we're pointing
+  TxnOperation *coupled_op;
+
+  // a double linked list with other cursors that are coupled
+  // to the same Operation
+  TxnCursor *coupled_next, *coupled_previous;
+};
+
 //
-// An cursor which can iterate over Transaction nodes
+// An cursor which can iterate over Txn nodes
 //
-class TransactionCursor
-{
-  public:
-    // Constructor
-    TransactionCursor(LocalCursor *parent)
-      : m_parent(parent) {
-      m_coupled_op = 0;
-      m_coupled_next = 0;
-      m_coupled_previous = 0;
-    }
+struct TxnCursor {
+  // Constructor
+  TxnCursor(LocalCursor *parent) {
+    state_.parent = parent;
+    state_.coupled_op = 0;
+    state_.coupled_next = 0;
+    state_.coupled_previous = 0;
+  }
 
-    // Destructor; sets the cursor to nil
-    ~TransactionCursor() {
-      set_to_nil();
-    }
+  // Destructor; sets the cursor to nil
+  ~TxnCursor() {
+    close();
+  }
 
-    // Clones another TransactionCursor
-    void clone(const TransactionCursor *other);
+  // Clones another TxnCursor
+  void clone(const TxnCursor *other);
 
-    // Returns the parent cursor
-    // TODO this should be private
-    LocalCursor *get_parent() {
-      return (m_parent);
-    }
+  // Returns true if the cursor is nil (does not point to any item)
+  bool is_nil() const {
+    return state_.coupled_op == 0;
+  }
 
-    // Couples this cursor to a TransactionOperation structure
-    void couple_to_op(TransactionOperation *op);
+  // Sets the cursor to nil
+  void set_to_nil();
 
-    // Returns the pointer to the coupled TransactionOperation
-    TransactionOperation *get_coupled_op() const {
-      return (m_coupled_op);
-    }
+  // Couples this cursor to a TxnOperation structure
+  void couple_to(TxnOperation *op);
 
-    // Sets the cursor to nil
-    void set_to_nil();
+  // Closes the cursor
+  void close() {
+    set_to_nil();
+  }
 
-    // Returns true if the cursor is nil (does not point to any item)
-    bool is_nil() const {
-      return (m_coupled_op == 0);
-    }
+  // Returns the parent cursor
+  LocalCursor *parent() {
+    return state_.parent;
+  }
 
-    // Retrieves the key from the current item; creates a deep copy.
-    //
-    // If the cursor is uncoupled, UPS_CURSOR_IS_NIL is returned. this
-    // means that the item was already flushed to the btree, and the caller has
-    // to use the btree lookup function to retrieve the key.
-    void copy_coupled_key(ups_key_t *key);
+  // Returns the pointer to the coupled TxnOperation
+  TxnOperation *get_coupled_op() const {
+    return state_.coupled_op;
+  }
 
-    // Retrieves the record from the current item; creates a deep copy.
-    //
-    // If the cursor is uncoupled, UPS_CURSOR_IS_NIL will be returned. this
-    // means that the item was already flushed to the btree, and the caller has
-    // to use the btree lookup function to retrieve the record.
-    void copy_coupled_record(ups_record_t *record);
+  // Retrieves the key from the current item; creates a shallow copy.
+  ups_key_t *coupled_key() {
+    TxnNode *node = state_.coupled_op->node;
+    return node->key();
+  }
 
-    // Moves the cursor to first, last, previous or next
-    ups_status_t move(uint32_t flags);
+  // Retrieves the key from the current item; creates a deep copy.
+  //
+  // If the cursor is uncoupled, UPS_CURSOR_IS_NIL is returned. this
+  // means that the item was already flushed to the btree, and the caller has
+  // to use the btree lookup function to retrieve the key.
+  void copy_coupled_key(ups_key_t *key);
 
-    // Overwrites the record of a cursor
-    ups_status_t overwrite(Context *context, LocalTransaction *txn,
-                    ups_record_t *record);
+  // Retrieves the record from the current item; creates a deep copy.
+  //
+  // If the cursor is uncoupled, UPS_CURSOR_IS_NIL will be returned. this
+  // means that the item was already flushed to the btree, and the caller has
+  // to use the btree lookup function to retrieve the record.
+  void copy_coupled_record(ups_record_t *record);
 
-    // Looks up an item, places the cursor
-    ups_status_t find(ups_key_t *key, uint32_t flags);
+  // Moves the cursor to first, last, previous or next
+  ups_status_t move(uint32_t flags);
 
-    // Retrieves the record size of the current item
-    uint32_t get_record_size();
+  // Looks up an item, places the cursor
+  ups_status_t find(ups_key_t *key, uint32_t flags);
 
-    // Returns the pointer to the next cursor in the linked list of coupled
-    // cursors
-    TransactionCursor *get_coupled_next() {
-      return (m_coupled_next);
-    }
+  // Retrieves the record size of the current item
+  uint32_t record_size();
 
-    // Closes the cursor
-    void close() {
-      set_to_nil();
-    }
+  // Returns the pointer to the next cursor in the linked list of coupled
+  // cursors
+  TxnCursor *next() {
+    return state_.coupled_next;
+  }
 
-  private:
-    friend struct TxnCursorFixture;
-
-    // Removes this cursor from this TransactionOperation
-    void remove_cursor_from_op(TransactionOperation *op);
-
-    // Inserts an item, places the cursor on the new item.
-    // This function is only used in the unittests.
-    ups_status_t test_insert(ups_key_t *key, ups_record_t *record,
-                    uint32_t flags);
-
-    // Returns the database pointer
-    LocalDatabase *get_db();
-
-    // Moves the cursor to the first valid Operation in a Node
-    ups_status_t move_top_in_node(TransactionNode *node,
-                    TransactionOperation *op, bool ignore_conflicts,
-                    uint32_t flags);
-
-    // The parent cursor
-    LocalCursor *m_parent;
-
-    // A Cursor can either be coupled or nil ("not in list"). If it's
-    // coupled, it directly points to a TransactionOperation structure.
-    // If it's nil then |m_coupled_op| is null.
-    //
-    // the txn operation to which we're pointing
-    TransactionOperation *m_coupled_op;
-
-    // a double linked list with other cursors that are coupled
-    // to the same Operation
-    TransactionCursor *m_coupled_next, *m_coupled_previous;
+  TxnCursorState state_;
 };
 
 } // namespace upscaledb

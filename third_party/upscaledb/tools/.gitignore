@@ -1,0 +1,16 @@
+*.o
+.dirstamp
+*.lo
+*.la
+.libs
+.deps
+*.exe
+*.db
+*.db.*
+export.pb.*
+ups_dump
+ups_info
+ups_export
+ups_import
+upszilla
+ups_recover

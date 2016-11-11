@@ -15,11 +15,6 @@
  * See the file COPYING for License information.
  */
 
-/*
- * @exception_safe: unknown
- * @thread_safe: unknown
- */
-
 #ifndef UPS_ENV_LOCAL_H
 #define UPS_ENV_LOCAL_H
 
@@ -30,10 +25,12 @@
 // Always verify that a file of level N does not include headers > N!
 #include "1base/scoped_ptr.h"
 #include "2lsn_manager/lsn_manager.h"
+#include "2device/device.h"
 #include "3journal/journal.h"
+#include "3blob_manager/blob_manager.h"
+#include "3page_manager/page_manager.h"
 #include "4env/env.h"
 #include "4env/env_header.h"
-#include "4env/env_local_test.h"
 #include "4context/context.h"
 
 #ifndef UPS_ROOT_H
@@ -44,157 +41,81 @@ namespace upscaledb {
 
 struct PBtreeHeader;
 class PFreelistPayload;
-struct Journal;
-class LocalTransaction;
-struct PageManager;
-struct BlobManager;
-struct MessageBase;
+struct LocalTxn;
 
 //
 // The Environment implementation for local file access
 //
-class LocalEnvironment : public Environment
+struct LocalEnv : public Env
 {
-  public:
-    LocalEnvironment(EnvConfig &config);
+  LocalEnv(EnvConfig &config)
+    : Env(config) {
+  }
 
-    // Returns the Device object
-    Device *device() {
-      return (m_device.get());
-    }
+  // Creates a new Environment (ups_env_create)
+  virtual ups_status_t create();
 
-    // Returns the Environment's header object with the persistent configuration
-    EnvironmentHeader *header() {
-      return (m_header.get());
-    }
+  // Opens a new Environment (ups_env_open)
+  virtual ups_status_t open();
 
-    // Returns the blob manager
-    BlobManager *blob_manager() {
-      return (m_blob_manager.get());
-    }
+  // Creates a new database in the environment (ups_env_create_db)
+  virtual Db *do_create_db(DbConfig &config, const ups_parameter_t *param);
 
-    // Returns the PageManager instance
-    PageManager *page_manager() {
-      return (m_page_manager.get());
-    }
+  // Opens an existing database in the environment (ups_env_open_db)
+  virtual Db *do_open_db(DbConfig &config, const ups_parameter_t *param);
 
-    // Returns the Journal
-    Journal *journal() {
-      return (m_journal.get());
-    }
+  // Returns all database names (ups_env_get_database_names)
+  virtual std::vector<uint16_t> get_database_names();
 
-    // Returns the lsn manager
-    LsnManager *lsn_manager() {
-      return (&m_lsn_manager);
-    }
+  // Returns environment parameters and flags (ups_env_get_parameters)
+  virtual ups_status_t get_parameters(ups_parameter_t *param);
 
-    // The transaction manager
-    TransactionManager *txn_manager() {
-      return (m_txn_manager.get());
-    }
+  // Flushes the environment and its databases to disk (ups_env_flush)
+  virtual ups_status_t flush(uint32_t flags);
 
-    // Increments the lsn and returns the incremented value
-    uint64_t next_lsn() {
-      return (m_lsn_manager.next());
-    }
+  // Begins a new transaction (ups_txn_begin)
+  virtual Txn *txn_begin(const char *name, uint32_t flags);
 
-    // Performs a UQI select
-    virtual ups_status_t select_range(const char *query, Cursor *begin,
-                            const Cursor *end, Result **result);
+  // Commits a transaction (ups_txn_commit)
+  virtual ups_status_t txn_commit(Txn *txn, uint32_t flags);
 
-    // Returns a test gateway
-    LocalEnvironmentTest test();
+  // Commits a transaction (ups_txn_abort)
+  virtual ups_status_t txn_abort(Txn *txn, uint32_t flags);
 
-  protected:
-    // Creates a new Environment (ups_env_create)
-    virtual ups_status_t do_create();
+  // Renames a database in the Environment (ups_env_rename_db)
+  virtual ups_status_t rename_db(uint16_t oldname, uint16_t newname,
+                  uint32_t flags);
 
-    // Opens a new Environment (ups_env_open)
-    virtual ups_status_t do_open();
+  // Erases (deletes) a database from the Environment (ups_env_erase_db)
+  virtual ups_status_t erase_db(uint16_t name, uint32_t flags);
 
-    // Returns all database names (ups_env_get_database_names)
-    virtual ups_status_t do_get_database_names(uint16_t *names,
-                    uint32_t *count);
+  // Fills in the current metrics
+  virtual void fill_metrics(ups_env_metrics_t *metrics);
 
-    // Returns environment parameters and flags (ups_env_get_parameters)
-    virtual ups_status_t do_get_parameters(ups_parameter_t *param);
+  // Performs a UQI select
+  virtual ups_status_t select_range(const char *query, Cursor *begin,
+                          const Cursor *end, Result **result);
 
-    // Flushes the environment and its databases to disk (ups_env_flush)
-    virtual ups_status_t do_flush(uint32_t flags);
+  // Closes the Environment (ups_env_close)
+  virtual ups_status_t do_close(uint32_t flags);
 
-    // Creates a new database in the environment (ups_env_create_db)
-    virtual ups_status_t do_create_db(Database **db,
-                    DbConfig &config,
-                    const ups_parameter_t *param);
+  // The Environment's header page/configuration
+  ScopedPtr<EnvHeader> header;
 
-    // Opens an existing database in the environment (ups_env_open_db)
-    virtual ups_status_t do_open_db(Database **db,
-                    DbConfig &config,
-                    const ups_parameter_t *param);
+  // The device instance (either a file or an in-memory-db)
+  ScopedPtr<Device> device;
 
-    // Renames a database in the Environment (ups_env_rename_db)
-    virtual ups_status_t do_rename_db(uint16_t oldname, uint16_t newname,
-                    uint32_t flags);
+  // The BlobManager instance
+  ScopedPtr<BlobManager> blob_manager;
 
-    // Erases (deletes) a database from the Environment (ups_env_erase_db)
-    virtual ups_status_t do_erase_db(uint16_t name, uint32_t flags);
+  // The PageManager instance
+  ScopedPtr<PageManager> page_manager;
 
-    // Begins a new transaction (ups_txn_begin)
-    virtual Transaction *do_txn_begin(const char *name, uint32_t flags);
+  // The logical journal
+  ScopedPtr<Journal> journal;
 
-    // Commits a transaction (ups_txn_commit)
-    virtual ups_status_t do_txn_commit(Transaction *txn, uint32_t flags);
-
-    // Commits a transaction (ups_txn_abort)
-    virtual ups_status_t do_txn_abort(Transaction *txn, uint32_t flags);
-
-    // Closes the Environment (ups_env_close)
-    virtual ups_status_t do_close(uint32_t flags);
-
-    // Fills in the current metrics
-    virtual void do_fill_metrics(ups_env_metrics_t *metrics) const;
-
-  private:
-    friend class LocalEnvironmentTest;
-
-    // Runs the recovery process
-    void recover(uint32_t flags);
-
-    // Returns a database handle if the database is already open, otherwise
-    // opens the database
-    ups_status_t get_or_open_database(uint16_t dbname, LocalDatabase **pdb,
-                        bool *is_opened);
-
-    // Get the btree configuration of the database #i, where |i| is a
-    // zero-based index
-    PBtreeHeader *btree_header(int i);
-
-    // Sets the dirty-flag of the header page and adds the header page
-    // to the Changeset (if recovery is enabled)
-    void mark_header_page_dirty(Context *context) {
-      Page *page = m_header->header_page();
-      page->set_dirty(true);
-      if (journal())
-        context->changeset.put(page);
-    }
-
-    // The Environment's header page/configuration
-    ScopedPtr<EnvironmentHeader> m_header;
-
-    // The device instance (either a file or an in-memory-db)
-    ScopedPtr<Device> m_device;
-
-    // The BlobManager instance
-    ScopedPtr<BlobManager> m_blob_manager;
-
-    // The PageManager instance
-    ScopedPtr<PageManager> m_page_manager;
-
-    // The logical journal
-    ScopedPtr<Journal> m_journal;
-
-    // The lsn manager
-    LsnManager m_lsn_manager;
+  // The lsn manager
+  LsnManager lsn_manager;
 };
 
 } // namespace upscaledb
