@@ -10,7 +10,7 @@ import simplejson
 import signal
 import zipfile
 
-url = 'http://ecoli.mavicona.net/index.json'
+default_url = 'http://ecoli.mavicona.net/api/v1/repository'
 file_name = 'index.json'
 
 def query_yes_no(question, default="yes"):
@@ -109,6 +109,7 @@ def remove(remove_list, db):
 				shutil.rmtree('.ecoli/packages/' + install['name'])
 				db.lpop('packages_installed', index)
 
+#TODO: traverse additional repsitories
 def update_repo(db):
 	print('Updating catalogs...', end="")
 
@@ -162,7 +163,7 @@ def list_repo(db, search=""):
 		data = simplejson.load(repo)
 		for package in data['packages']:
 			if search:
-				if search not in package['name'].lower():
+				if search not in package['name'].lower() and search not in package['description'].lower():
 					continue
 			
 			print("{}\t\t{}".format(package['name'], package['description']))
@@ -189,7 +190,7 @@ def main(args=sys.argv[1:]):
 	except KeyError:
 		localdb.lcreate('packages_installed')
 		localdb.lcreate('sources')
-		localdb.ladd('sources', url)
+		localdb.ladd('sources', default_url)
 
 	parser = argparse.ArgumentParser(description='Processing library manager')
 
@@ -240,7 +241,7 @@ def main(args=sys.argv[1:]):
 		cleanup()
 
 	if not take_action:
-		print('No actions requested, see --help')
+		parser.print_help()
 
 	localdb.dump()
 

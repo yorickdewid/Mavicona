@@ -73,7 +73,7 @@ class Application
 
 		$controller = new $dest[0];
 
-		return $controller->$dest[1]();
+		return $controller->{$dest[1]}();
 	}
 
 	/**

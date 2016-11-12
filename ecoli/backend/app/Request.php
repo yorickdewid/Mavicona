@@ -101,7 +101,7 @@ class Request
 	 */
 	private function gatherUri()
 	{
-		$this->uri = @$_SERVER['PATH_INFO'];
+		$this->uri = @$_SERVER['REQUEST_URI'];
 
 		if (empty($this->uri)) {
 			$this->uri = '/';
