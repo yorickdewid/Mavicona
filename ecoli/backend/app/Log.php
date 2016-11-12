@@ -12,6 +12,13 @@ class Log implements SingletonContract
 	static $app;
 
 	/**
+	 * Default log file.
+	 *
+	 * @var string
+	 */
+	static $defaultLog = "core.log";
+
+	/**
 	 * @var Singleton The reference to *Singleton* instance of this class
 	 */
 	private static $instance;

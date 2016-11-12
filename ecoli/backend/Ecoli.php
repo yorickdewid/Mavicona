@@ -17,7 +17,6 @@ class Ecoli //extends Core
 		return [
 			'name' => 'Ecoli',
 			'description' => 'Central package manager',
-
 			'database' => [
 				'type' => 'pgsql',
 				'host' => $config->getConfigOption('DB_HOST'),

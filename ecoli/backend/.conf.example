@@ -1,4 +1,5 @@
-NAME=
+NAME=app
+DEBUG=false
 
 DB_HOST=
 DB_NAME=

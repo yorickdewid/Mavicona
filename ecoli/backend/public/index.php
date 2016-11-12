@@ -15,6 +15,9 @@ define("FW_VERSION", "Version 0.1");
 |--------------------------------------------------------------------------
 */
 
+try {
+
+require __DIR__ . '/../app/Exception.php';
 require __DIR__ . '/../app/Application.php';
 require __DIR__ . '/../app/SingletonContract.php';
 require __DIR__ . '/../app/Config.php';
@@ -67,3 +70,7 @@ $response = $app->handle(
 $response->send();
 
 $app->terminate();
+
+} catch (\Exception $e) {
+	echo "<pre>Uncaught exception: " . $e->getMessage() . "</pre>";
+}

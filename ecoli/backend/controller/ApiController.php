@@ -12,8 +12,8 @@ class ApiController
 	 */
 	public function getMainRepository()
 	{
-		$db_prs = Database::query('SELECT * FROM package');
-		$db_srs = Database::query('SELECT key, value FROM setting WHERE active=true');
+		$db_prs = Database::query('SELECT * FROM packages');
+		$db_srs = Database::query('SELECT key, value FROM settings WHERE active=true');
 
 		$settings = [];
 		foreach ($db_srs as $row) {
@@ -31,6 +31,8 @@ class ApiController
 
 			/* Lower name */
 			$row['name'] = strtolower($row['name']);
+			$row['license'] = $row['license'];
+			$row['author'] = $row['author'];
 
 			/* Split database array */
 			$keywords = substr($row['keywords'], 1, strlen($row['keywords']) - 2);
@@ -38,9 +40,9 @@ class ApiController
 			$row['keywords'] = $keyword;
 
 			/* Location specific properties */
-            $row['location'] = 'http:// ' . $_SERVER['HTTP_HOST'] . '/packages/' . $row['name'] . '/download';
-            $row['checksum'] = sha1($row['name']);
-            $row['url'] = 'http:// ' . $_SERVER['HTTP_HOST'] . '/packages/' . $row['name'];
+			$row['location'] = 'http:// ' . $_SERVER['HTTP_HOST'] . '/packages/' . $row['name'] . '/download';
+			$row['checksum'] = $row['checksum'];
+			$row['url'] = 'http:// ' . $_SERVER['HTTP_HOST'] . '/packages/' . $row['name'];
 
 			array_push($packages, $row);
 		}

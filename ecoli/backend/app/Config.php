@@ -38,9 +38,10 @@ class Config implements SingletonContract
 	private function readConfig()
 	{
 		$dir = __DIR__ . '/../';
-		if (file_exists($dir . self::$defaultConfig)) {
-			$this->config = parse_ini_file($dir . self::$defaultConfig);
+		if (!file_exists($dir . self::$defaultConfig)) {
+			throw new CoreException('No config file found');
 		}
+		$this->config = parse_ini_file($dir . self::$defaultConfig);
 	}
 
 	/**

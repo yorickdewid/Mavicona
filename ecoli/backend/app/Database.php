@@ -65,6 +65,9 @@ class Database implements SingletonContract
 		$object = static::getInstance();
 
 		$rs = $object->getdb()->query($sql);
+		if (!$rs) {
+			throw new DatabaseException('Invalid query: ' . $object->getdb()->errorInfo()[2]);
+		}
 
 		return $rs->fetchAll(\PDO::FETCH_ASSOC);
 	}
