@@ -40,17 +40,13 @@ class AbstractEngine {
 
 		assert(strlen(name_prefix) == 3);
 
-		ups_parameter_t params[] = {
-			{0,}
-		};
-
 		try {
-			const char *dbfile = dbname(datadir).c_str();
+			const auto dbfile = dbname(datadir);
 			if (!file_exist(dbfile)) {
-				env.create(dbfile);
-				db = env.create_db(1, allow_duplicates ? UPS_ENABLE_DUPLICATE_KEYS : 0, &params[0]);
+				env.create(dbfile.c_str());
+				db = env.create_db(1, allow_duplicates ? UPS_ENABLE_DUPLICATE_KEYS : 0);
 			} else {
-				env.open(dbfile);
+				env.open(dbfile.c_str());
 				db = env.open_db(1);
 			}
 		} catch (upscaledb::error& e) {
