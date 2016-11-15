@@ -7,6 +7,8 @@
 #define DATA_FLAG_ADI	0x1
 #define DATA_FLAG_LFB	0x2
 
+#define LFB_MINIMUM_SIZE	1024 * 1024 * 8
+
 struct StorageType {
 	unsigned short page = 0;
 	unsigned int pointer = 0; /* No one knows why there's a pointer hanging around here... */
@@ -30,7 +32,7 @@ void DataIndex::put(std::string quid, std::string value, bool override) {
 	type.flags = DATA_FLAG_ADI;
 
 	/* Store content in LFB */
-	if (value.size() > 240000 /*ITEM_SIZE*/) { //TODO
+	if (value.size() > LFB_MINIMUM_SIZE && value.size() < value.max_size()) {
 		type.flags = DATA_FLAG_LFB;
 		type.page = lfb->put(quid, value);
 

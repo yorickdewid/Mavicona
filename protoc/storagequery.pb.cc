@@ -111,7 +111,7 @@ void protobuf_AddDesc_storagequery_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\022storagequery.proto\"\253\003\n\014StorageQuery\022\014\n"
+    "\n\022storagequery.proto\"\270\003\n\014StorageQuery\022\014\n"
     "\004name\030\001 \002(\t\022\n\n\002id\030\002 \002(\005\022\014\n\004quid\030\003 \002(\t\022\017\n"
     "\007content\030\004 \001(\014\022)\n\013queryaction\030\005 \002(\0162\024.St"
     "orageQuery.Action\022)\n\013queryresult\030\006 \002(\0162\024"
@@ -120,9 +120,9 @@ void protobuf_AddDesc_storagequery_2eproto() {
     "ageQuery\032N\n\tMetaEntry\022\013\n\003key\030\001 \002(\t\022\r\n\005va"
     "lue\030\002 \001(\014\022%\n\004meta\030\003 \003(\0132\027.StorageQuery.M"
     "etaEntry\"D\n\006Action\022\n\n\006SELECT\020\000\022\n\n\006INSERT"
-    "\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE\020\003\022\n\n\006SEARCH\020\004\"2"
+    "\020\001\022\n\n\006UPDATE\020\002\022\n\n\006DELETE\020\003\022\n\n\006SEARCH\020\004\"\?"
     "\n\006Result\022\013\n\007SUCCESS\020\000\022\014\n\010NOTFOUND\020\001\022\r\n\tD"
-    "UPLICATE\020\002", 450);
+    "UPLICATE\020\002\022\013\n\007UNKNOWN\020\003", 463);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "storagequery.proto", &protobuf_RegisterTypes);
   StorageQuery::default_instance_ = new StorageQuery();
@@ -177,6 +177,7 @@ bool StorageQuery_Result_IsValid(int value) {
     case 0:
     case 1:
     case 2:
+    case 3:
       return true;
     default:
       return false;
@@ -187,6 +188,7 @@ bool StorageQuery_Result_IsValid(int value) {
 const StorageQuery_Result StorageQuery::SUCCESS;
 const StorageQuery_Result StorageQuery::NOTFOUND;
 const StorageQuery_Result StorageQuery::DUPLICATE;
+const StorageQuery_Result StorageQuery::UNKNOWN;
 const StorageQuery_Result StorageQuery::Result_MIN;
 const StorageQuery_Result StorageQuery::Result_MAX;
 const int StorageQuery::Result_ARRAYSIZE;

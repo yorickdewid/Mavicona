@@ -60,11 +60,12 @@ inline bool StorageQuery_Action_Parse(
 enum StorageQuery_Result {
   StorageQuery_Result_SUCCESS = 0,
   StorageQuery_Result_NOTFOUND = 1,
-  StorageQuery_Result_DUPLICATE = 2
+  StorageQuery_Result_DUPLICATE = 2,
+  StorageQuery_Result_UNKNOWN = 3
 };
 bool StorageQuery_Result_IsValid(int value);
 const StorageQuery_Result StorageQuery_Result_Result_MIN = StorageQuery_Result_SUCCESS;
-const StorageQuery_Result StorageQuery_Result_Result_MAX = StorageQuery_Result_DUPLICATE;
+const StorageQuery_Result StorageQuery_Result_Result_MAX = StorageQuery_Result_UNKNOWN;
 const int StorageQuery_Result_Result_ARRAYSIZE = StorageQuery_Result_Result_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* StorageQuery_Result_descriptor();
@@ -275,6 +276,7 @@ class StorageQuery : public ::google::protobuf::Message {
   static const Result SUCCESS = StorageQuery_Result_SUCCESS;
   static const Result NOTFOUND = StorageQuery_Result_NOTFOUND;
   static const Result DUPLICATE = StorageQuery_Result_DUPLICATE;
+  static const Result UNKNOWN = StorageQuery_Result_UNKNOWN;
   static inline bool Result_IsValid(int value) {
     return StorageQuery_Result_IsValid(value);
   }
