@@ -2,7 +2,7 @@ OBJS = cynder.o engine.o data_index.o key_index.o text_index.o filepage.o ../pro
 CC = g++
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq -lz -ldl -lboost_system -lboost_thread -lcrypto
-CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. -I../quid -I../third_party/upscaledb/include
+CXXFLAGS = -Wall -std=c++11 -DZMQ_CPP11 -c $(DEBUG) -I.. -I../quid -I../third_party/upscaledb/include
 LFLAGS = -Wall $(DEBUG) $(LIBS)
 
 all: $(OBJS)

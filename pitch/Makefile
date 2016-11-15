@@ -2,7 +2,7 @@ OBJS = ../protoc/task.pb.o ../protoc/processjob.pb.o provision.o pitcher.o
 CC = g++
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq -lleveldb -lpthread
-CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I..
+CXXFLAGS = -Wall -std=c++11 -DZMQ_CPP11 -c $(DEBUG) -I..
 LFLAGS = -Wall $(DEBUG) $(LIBS)
 
 all: $(OBJS)

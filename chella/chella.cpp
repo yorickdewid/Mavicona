@@ -162,15 +162,15 @@ void initMaster() {
 	master.bind("tcp://*:5566");
 
 	/* Initialize poll set */
-	zmq::pollitem_t items[] = {
-		{&worker, 0, ZMQ_POLLIN, 0},
-		{&controller, 0, ZMQ_POLLIN, 0},
-		{&master, 0, ZMQ_POLLIN, 0}
+	std::vector<zmq::pollitem_t> items = {
+		{static_cast<void *>(worker), 0, ZMQ_POLLIN, 0},
+		{static_cast<void *>(controller), 0, ZMQ_POLLIN, 0},
+		{static_cast<void *>(master), 0, ZMQ_POLLIN, 0},
 	};
 
 	while (true) {
 		try {
-			zmq::poll(&items[0], 3, -1);
+			zmq::poll(items, -1);
 
 			if (items[0].revents & ZMQ_POLLIN)
 				handleWorkerRequest(worker);
