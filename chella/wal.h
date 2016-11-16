@@ -44,7 +44,7 @@ struct Wal {
 		m_pFile = fopen(walname(param.jobid, param.jobquid).c_str(), "w+");
 
 		assert(module.size() == 40);
-		assert(param.jobquid.size() == 36);
+		assert(param.jobquid.size() == 38);
 
 		writeLog();
 	}

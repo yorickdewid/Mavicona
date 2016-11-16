@@ -50,7 +50,7 @@ int create(char *tarfile, char *rootdir, libtar_list_t *l) {
 		if (pathname[0] != '/' && rootdir != NULL)
 			snprintf(buf, sizeof(buf), "%s/%s", rootdir, pathname);
 		else
-			strlcpy(buf, pathname, sizeof(buf));
+			strncpy(buf, pathname, sizeof(buf));
 		if (tar_append_tree(t, buf, pathname) != 0) {
 			fprintf(stderr,
 			        "tar_append_tree(\"%s\", \"%s\"): %s\n", buf,
@@ -86,19 +86,29 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	int c, f = 0;
+	int c, f = 0, f2 = 0;
 	libtar_list_t *l = libtar_list_new(LIST_QUEUE, NULL);
 	for (c = 2; c < argc; ++c) {
 		libtar_list_add(l, argv[c]);
 
-		if (find_in_file(argv[c], "job_main()") > 0) {
+		if (find_in_file(argv[c], "ace.init") > 0) {
 			f = 1;
+		}
+		
+		if (find_in_file(argv[c], "ace.Job") > 0) {
+			f2 = 1;
 		}
 	}
 
 	if (!f) {
 		libtar_list_free(l, NULL);
-		fprintf(stderr, "missing job_main()\n");
+		fprintf(stderr, "missing ace.init()\n");
+		return 1;
+	}
+
+	if (!f2) {
+		libtar_list_free(l, NULL);
+		fprintf(stderr, "class must inherit ace.Job\n");
 		return 1;
 	}
 
