@@ -97,7 +97,21 @@ int remove_directory(const char *path) {
 	return r;
 }
 
-void append_header(const char *tarfile) {
+static int verify_header(struct jobheader *header) {
+	if (memcmp(header->signature, magic, 8)) {
+		fprintf(stderr, "not a mavicona package\n");
+		return 1;
+	}
+
+	if (header->version != PKGVER) {
+		fprintf(stderr, "invalid package version\n");
+		return 1;
+	}
+
+	return 0;
+}
+
+static void append_header(const char *tarfile) {
 	FILE *fp = fopen(tarfile, "r+b");
 	if (!fp)
 		return;
@@ -125,8 +139,50 @@ void append_header(const char *tarfile) {
 	header.compression = 0;
 
 	fwrite(&header, 1, sizeof(struct jobheader), fpo);
-	fwrite(buffer, sizeof(uint8_t), fsize, fpo);
+	fwrite(buffer, 1, fsize, fpo);
 
+	free(buffer);
+	fclose(fpo);
+	fclose(fp);
+}
+
+static void remove_header(const char *jobfile) {
+	FILE *fp = fopen(jobfile, "rb");
+	if (!fp)
+		return;
+
+	struct jobheader header;
+	fread(&header, 1, sizeof(struct jobheader), fp);
+	if (verify_header(&header)) {
+		fclose(fp);
+		return;
+	}
+
+	rewind(fp);
+
+	char *str = strdup(jobfile);
+	char *tarfile = strtok(str, ".");
+	if (!tarfile) {
+		free(str);
+		return;
+	}
+
+	FILE *fpo = fopen(tarfile, "wb");
+	if (!fpo)
+		return;
+
+	fseek(fp, 0, SEEK_END);
+	size_t fsize = ftell(fp);
+	fseek(fp, sizeof(struct jobheader), SEEK_SET);
+
+	uint8_t *buffer = (uint8_t *)malloc(sizeof(uint8_t) * (fsize - sizeof(struct jobheader)));
+	if (!buffer)
+		return;
+
+	fread(buffer, 1, (fsize - sizeof(struct jobheader)), fp);
+	fwrite(buffer, 1, fsize, fpo);
+
+	free(str);
 	free(buffer);
 	fclose(fpo);
 	fclose(fp);
@@ -139,7 +195,7 @@ int package_create(const char *tarfile, char *rootdir, libtar_list_t *list) {
 
 	if (tar_open(&tar, tarfile, NULL, O_WRONLY | O_CREAT, 0644, (verbose ? TAR_VERBOSE : 0) | (use_gnu ? TAR_GNU : 0)) == -1) {
 		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
-		return -1;
+		return 1;
 	}
 
 	libtar_listptr_reset(&listpointer);
@@ -153,23 +209,61 @@ int package_create(const char *tarfile, char *rootdir, libtar_list_t *list) {
 		if (tar_append_tree(tar, buf, pathname) != 0) {
 			fprintf(stderr, "tar_append_tree(\"%s\", \"%s\"): %s\n", buf, pathname, strerror(errno));
 			tar_close(tar);
-			return -1;
+			return 1;
 		}
 	}
 
 	if (tar_append_eof(tar) != 0) {
 		fprintf(stderr, "tar_append_eof(): %s\n", strerror(errno));
 		tar_close(tar);
-		return -1;
+		return 1;
 	}
 
 	if (tar_close(tar) != 0) {
 		fprintf(stderr, "tar_close(): %s\n", strerror(errno));
-		return -1;
+		return 1;
 	}
 
 	append_header(tarfile);
 
+	unlink(tarfile);
+
+	return 0;
+}
+
+int package_extract(const char *jobfile) {
+	TAR *tar;
+	char dirname[1024];
+
+	remove_header(jobfile);
+
+	char *str = strdup(jobfile);
+	char *tarfile = strtok(str, ".");
+
+	strcpy(dirname, "package_");
+	strcat(dirname, tarfile);
+
+	mkdir(dirname, 0775);
+
+	if (tar_open(&tar, tarfile, NULL, O_RDONLY, 0, (verbose ? TAR_VERBOSE : 0) | (use_gnu ? TAR_GNU : 0)) == -1) {
+		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
+		return 1;
+	}
+
+	if (tar_extract_all(tar, dirname) != 0) {
+		fprintf(stderr, "tar_extract_all(): %s\n", strerror(errno));
+		tar_close(tar);
+		return 1;
+	}
+
+	if (tar_close(tar) != 0) {
+		fprintf(stderr, "tar_close(): %s\n", strerror(errno));
+		return 1;
+	}
+
+	unlink(tarfile);
+
+	free(str);
 	return 0;
 }
 
@@ -180,14 +274,7 @@ int package_verify(const char *pkgfile) {
 
 	struct jobheader header;
 	fread(&header, 1, sizeof(struct jobheader), fp);
-	if (memcmp(header.signature, magic, 8)) {
-		fprintf(stderr, "not a mavicona package\n");
-		fclose(fp);
-		return 1;
-	}
-
-	if (header.version != PKGVER) {
-		fprintf(stderr, "invalid package version\n");
+	if (verify_header(&header)) {
 		fclose(fp);
 		return 1;
 	}
@@ -199,23 +286,16 @@ int package_verify(const char *pkgfile) {
 	return 0;
 }
 
-int package_info(const char *pkgfile) {
+void package_info(const char *pkgfile) {
 	FILE *fp = fopen(pkgfile, "rb");
 	if (!fp)
-		return 1;
+		return;
 
 	struct jobheader header;
 	fread(&header, 1, sizeof(struct jobheader), fp);
-	if (memcmp(header.signature, magic, 8)) {
-		fprintf(stderr, "not a mavicona package\n");
+	if (verify_header(&header)) {
 		fclose(fp);
-		return 1;
-	}
-
-	if (header.version != PKGVER) {
-		fprintf(stderr, "invalid package version\n");
-		fclose(fp);
-		return 1;
+		return;
 	}
 
 	printf(
@@ -227,8 +307,6 @@ int package_info(const char *pkgfile) {
 		, header.compression  ? "Yes" : "No");
 
 	fclose(fp);
-
-	return 0;
 }
 
 void build_package() {
@@ -271,6 +349,10 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
+	if (!strcmp(argv[1], "--extract") && argc == 3) {
+		return package_extract(argv[2]);
+	}
+
 	wchar_t *program = Py_DecodeLocale(progname, NULL);
 	if (!program) {
 		fprintf(stderr, "cannot decode argv[0]\n");
@@ -284,7 +366,6 @@ int main(int argc, char *argv[]) {
 	int c, has_job_init = 0, has_ace_job = 0, has_package = 0;
 	libtar_list_t *l = libtar_list_new(LIST_QUEUE, NULL);
 	for (c = 1; c < argc; ++c) {
-
 		if (!strcmp(argv[c], "--verbose")) {
 			verbose = 1;
 			++jobname_idx;
@@ -309,10 +390,16 @@ int main(int argc, char *argv[]) {
 			char *module = strtok(str, ".");
 			if (module) {
 				snprintf(buf, sizeof(buf),
-					"import json\n"
-					"import %s\n"
+					"import socket\nimport json\n"
+					"import time\nimport %s\n"
+					"r=%s.package()\n"
 					"with open('package.json', 'w') as fp:\n"
-					"\tjson.dump(%s.package(), fp)\n", module, module);
+					"\tr['meta']={}\n"
+					"\tr['meta']['main']='%s'\n"
+					"\tr['meta']['invoke']='job_init'\n"
+					"\tr['meta']['host']=socket.gethostname()\n"
+					"\tr['meta']['timestamp']=time.time()\n"
+					"\tjson.dump(r, fp)\n", module, module, argv[c]);
 				PyRun_SimpleString(buf);
 
 				if (file_exist("package.json"))
@@ -330,7 +417,8 @@ int main(int argc, char *argv[]) {
 			has_ace_job = 1;
 		}
 		
-		libtar_list_add(l, argv[c]);
+		if (file_exist(argv[c]))
+			libtar_list_add(l, argv[c]);
 	}
 
 	if (!has_job_init && job_check) {
@@ -363,8 +451,6 @@ int main(int argc, char *argv[]) {
 	libtar_list_free(l, NULL);
 
 cleanup:
-	if (file_exist(argv[jobname_idx]))
-		unlink(argv[jobname_idx]);
 	if (file_exist("LICENSE"))
 		unlink("LICENSE");
 	if (file_exist("package.json"))
@@ -373,7 +459,7 @@ cleanup:
 	remove_directory("__pycache__");
 
 	// return extract(argv[1], ".");
-	// return create(argv[1], ".");
+
 	Py_Finalize();
 	return return_code;
 }
