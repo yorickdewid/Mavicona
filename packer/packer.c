@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <dirent.h>
 #include <errno.h>
 #include <libtar.h>
 #include <Python.h>
@@ -11,7 +12,7 @@
 int use_gnu = 0;
 int verbose = 0;
 
-int find_in_file(char *fname, char *str) {
+int find_in_file(const char *fname, char *str) {
 	FILE *fp;
 	int line_num = 1;
 	int find_result = 0;
@@ -32,6 +33,48 @@ int find_in_file(char *fname, char *str) {
 		fclose(fp);
 	}
 	return find_result;
+}
+
+int remove_directory(const char *path) {
+	DIR *dir = opendir(path);
+	size_t path_len = strlen(path);
+	int r = -1;
+
+	if (dir) {
+		struct dirent *p;
+		r = 0;
+		while (!r && (p = readdir(dir))) {
+			int r2 = -1;
+
+			/* Skip "." and ".." */
+			if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))
+				continue;
+
+			size_t len = path_len + strlen(p->d_name) + 2; 
+			char *buf = (char *)malloc(len);
+			if (buf) {
+				struct stat statbuf;
+				snprintf(buf, len, "%s/%s", path, p->d_name);
+
+				if (!stat(buf, &statbuf))
+					if (S_ISDIR(statbuf.st_mode))
+						r2 = remove_directory(buf);
+					else
+						r2 = unlink(buf);
+
+				free(buf);
+			}
+
+			r = r2;
+		}
+
+		closedir(dir);
+	}
+
+	if (!r)
+		r = rmdir(path);
+
+	return r;
 }
 
 void append_header(const char *tarfile) {
@@ -96,7 +139,7 @@ int create(const char *tarfile, char *rootdir, libtar_list_t *l) {
 			strncpy(buf, pathname, sizeof(buf));
 		if (tar_append_tree(t, buf, pathname) != 0) {
 			fprintf(stderr, "tar_append_tree(\"%s\", \"%s\"): %s\n", buf,
-			        pathname, strerror(errno));
+					pathname, strerror(errno));
 			tar_close(t);
 			return -1;
 		}
@@ -113,15 +156,15 @@ int create(const char *tarfile, char *rootdir, libtar_list_t *l) {
 		return -1;
 	}
 
-	append_header(tarfile);
+	// append_header(tarfile);
 
 	return 0;
 }
 
 void usage(const char *prog) {
 	printf("JobPacker " VERSION " Copyright (C) 2015-2016 Mavicona, Quenza Inc.\n"
-	       "All Rights Reserved\n"
-	       "usage: %s <job> [source...]\n", prog);
+		   "All Rights Reserved\n"
+		   "usage: %s <job> [source...]\n", prog);
 }
 
 int main(int argc, char *argv[]) {
@@ -137,74 +180,55 @@ int main(int argc, char *argv[]) {
 	}
 
 	setenv("PYTHONPATH", ".", 1);
-
 	Py_SetProgramName(program);
 	Py_Initialize();
 
-	int c, f = 0, f2 = 0;
+	int c, has_job_init = 0, has_ace_job = 0, has_package = 0;
 	libtar_list_t *l = libtar_list_new(LIST_QUEUE, NULL);
 	for (c = 2; c < argc; ++c) {
 		libtar_list_add(l, argv[c]);
 
-		if (find_in_file(argv[c], "def meta") > 0) {
+		if (find_in_file(argv[c], "def package") > 0) {
 			char buf[512];
-			char *module = strtok(argv[c], ".");
+			char *str = strdup(argv[c]);
+			char *module = strtok(str, ".");
 			if (module) {
 				snprintf(buf, sizeof(buf),
 					"import json\n"
 					"import %s\n"
 					"with open('package.json', 'w') as fp:\n"
-					"\tjson.dump(%s.meta(), fp)\n", module, module);
+					"\tjson.dump(%s.package(), fp)\n", module, module);
 				PyRun_SimpleString(buf);
 
 				libtar_list_add(l, "package.json");
+				has_package = 1;
 			}
-
-			/*PyObject *pModule = PyImport_ImportModule("job_example");
-			if (pModule) {
-				PyObject *pFunc = PyObject_GetAttrString(pModule, "meta");
-				if (pFunc && PyCallable_Check(pFunc)) {
-					puts("might work");
-
-					PyObject *pMeta = PyObject_CallObject(pFunc, NULL);
-					if (pMeta) {
-						puts("check");
-						Py_ssize_t size = PyObject_Length(pMeta);
-						if (!size) {
-							fprintf(stderr, "meta cannot return empty dict\n");
-						}
-						PyObject *item = PyObject_GetItem(pMeta, key);
-					} else {
-						PyErr_Print();
-						fprintf(stderr, "cannot call meta\n");
-					}
-				}
-				Py_DECREF(pModule);
-			} else {
-				PyErr_Print();
-				fprintf(stderr, "cannot to load module %s\n", argv[c]);
-			}*/
+			free(str);
 		}
 
-		if (find_in_file(argv[c], "job_init") > 0) {
-			f = 1;
+		if (find_in_file(argv[c], "def job_init") > 0) {
+			has_job_init = 1;
 		}
-		
+
 		if (find_in_file(argv[c], "ace.Job") > 0) {
-			f2 = 1;
+			has_ace_job = 1;
 		}
 	}
 
-	if (!f) {
+	if (!has_job_init) {
 		libtar_list_free(l, NULL);
-		fprintf(stderr, "missing ace.init()\n");
+		fprintf(stderr, "missing job_init()\n");
 		return 1;
 	}
 
-	if (!f2) {
+	if (!has_ace_job) {
 		libtar_list_free(l, NULL);
 		fprintf(stderr, "class must inherit ace.Job\n");
 		return 1;
+	}
+
+	if (!has_package) {
+		fprintf(stderr, "no package data provided\nthis is not required, but recommended\n");
 	}
 
 	FILE *pf = fopen("LICENSE", "w");
@@ -214,12 +238,18 @@ int main(int argc, char *argv[]) {
 		libtar_list_add(l, "LICENSE");
 	}
 
+	libtar_list_add(l, "ace.py");
+
 	int return_code = create(argv[1], ".", l);
 	libtar_list_free(l, NULL);
 
+	// unlink(argv[1]);
 	unlink("LICENSE");
-	unlink("package.json");
-	unlink(argv[1]);
+	
+	if (has_package)
+		unlink("package.json");
+
+	remove_directory("__pycache__");
 
 	// return extract(argv[1], ".");
 	// return create(argv[1], ".");
