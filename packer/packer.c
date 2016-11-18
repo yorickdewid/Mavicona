@@ -130,6 +130,15 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	wchar_t *program = Py_DecodeLocale(argv[0], NULL);
+	if (!program) {
+		fprintf(stderr, "cannot decode argv[0]\n");
+		return 1;
+	}
+
+	setenv("PYTHONPATH", ".", 1);
+
+	Py_SetProgramName(program);
 	Py_Initialize();
 
 	int c, f = 0, f2 = 0;
@@ -137,12 +146,45 @@ int main(int argc, char *argv[]) {
 	for (c = 2; c < argc; ++c) {
 		libtar_list_add(l, argv[c]);
 
-		// if (find_in_file(argv[c], "ace.meta") > 0) {
-		// 	PyObject *pModule = PyImport_Import(argv[c]);
-		// 	if (pModule) {
-		// 		//
-		// 	}
-		// }
+		if (find_in_file(argv[c], "def meta") > 0) {
+			char buf[512];
+			char *module = strtok(argv[c], ".");
+			if (module) {
+				snprintf(buf, sizeof(buf),
+					"import json\n"
+					"import %s\n"
+					"with open('package.json', 'w') as fp:\n"
+					"\tjson.dump(%s.meta(), fp)\n", module, module);
+				PyRun_SimpleString(buf);
+
+				libtar_list_add(l, "package.json");
+			}
+
+			/*PyObject *pModule = PyImport_ImportModule("job_example");
+			if (pModule) {
+				PyObject *pFunc = PyObject_GetAttrString(pModule, "meta");
+				if (pFunc && PyCallable_Check(pFunc)) {
+					puts("might work");
+
+					PyObject *pMeta = PyObject_CallObject(pFunc, NULL);
+					if (pMeta) {
+						puts("check");
+						Py_ssize_t size = PyObject_Length(pMeta);
+						if (!size) {
+							fprintf(stderr, "meta cannot return empty dict\n");
+						}
+						PyObject *item = PyObject_GetItem(pMeta, key);
+					} else {
+						PyErr_Print();
+						fprintf(stderr, "cannot call meta\n");
+					}
+				}
+				Py_DECREF(pModule);
+			} else {
+				PyErr_Print();
+				fprintf(stderr, "cannot to load module %s\n", argv[c]);
+			}*/
+		}
 
 		if (find_in_file(argv[c], "job_init") > 0) {
 			f = 1;
@@ -170,13 +212,6 @@ int main(int argc, char *argv[]) {
 		fputs("Copyright (C) 2015-2016 Mavicona, Quenza Inc.\n", pf);
 		fclose(pf);
 		libtar_list_add(l, "LICENSE");
-	}
-
-	pf = fopen("package.json", "w");
-	if (pf) {
-		fputs("{\"name\":\"random\"}\n", pf);
-		fclose(pf);
-		libtar_list_add(l, "package.json");
 	}
 
 	int return_code = create(argv[1], ".", l);
