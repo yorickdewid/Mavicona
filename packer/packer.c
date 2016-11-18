@@ -35,6 +35,14 @@ int find_in_file(const char *fname, char *str) {
 	return find_result;
 }
 
+int file_exist(const char *fname) {
+	if (access(fname, F_OK) != -1) {
+	    return 1;
+	} else {
+	    return 0;
+	}
+}
+
 int remove_directory(const char *path) {
 	DIR *dir = opendir(path);
 	size_t path_len = strlen(path);
@@ -120,12 +128,12 @@ void append_header(const char *tarfile) {
 	fclose(fp);
 }
 
-int create(const char *tarfile, char *rootdir, libtar_list_t *l) {
-	TAR *t;
+int package_create(const char *tarfile, char *rootdir, libtar_list_t *l) {
+	TAR *tar;
 	char buf[1024];
 	libtar_listptr_t lp;
 
-	if (tar_open(&t, tarfile, NULL, O_WRONLY | O_CREAT, 0644, (verbose ? TAR_VERBOSE : 0) | (use_gnu ? TAR_GNU : 0)) == -1) {
+	if (tar_open(&tar, tarfile, NULL, O_WRONLY | O_CREAT, 0644, (verbose ? TAR_VERBOSE : 0) | (use_gnu ? TAR_GNU : 0)) == -1) {
 		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
 		return -1;
 	}
@@ -137,26 +145,26 @@ int create(const char *tarfile, char *rootdir, libtar_list_t *l) {
 			snprintf(buf, sizeof(buf), "%s/%s", rootdir, pathname);
 		else
 			strncpy(buf, pathname, sizeof(buf));
-		if (tar_append_tree(t, buf, pathname) != 0) {
-			fprintf(stderr, "tar_append_tree(\"%s\", \"%s\"): %s\n", buf,
-					pathname, strerror(errno));
-			tar_close(t);
+		
+		if (tar_append_tree(tar, buf, pathname) != 0) {
+			fprintf(stderr, "tar_append_tree(\"%s\", \"%s\"): %s\n", buf, pathname, strerror(errno));
+			tar_close(tar);
 			return -1;
 		}
 	}
 
-	if (tar_append_eof(t) != 0) {
+	if (tar_append_eof(tar) != 0) {
 		fprintf(stderr, "tar_append_eof(): %s\n", strerror(errno));
-		tar_close(t);
+		tar_close(tar);
 		return -1;
 	}
 
-	if (tar_close(t) != 0) {
+	if (tar_close(tar) != 0) {
 		fprintf(stderr, "tar_close(): %s\n", strerror(errno));
 		return -1;
 	}
 
-	// append_header(tarfile);
+	append_header(tarfile);
 
 	return 0;
 }
@@ -200,7 +208,8 @@ int main(int argc, char *argv[]) {
 					"\tjson.dump(%s.package(), fp)\n", module, module);
 				PyRun_SimpleString(buf);
 
-				libtar_list_add(l, "package.json");
+				if (file_exist("package.json"))
+					libtar_list_add(l, "package.json");
 				has_package = 1;
 			}
 			free(str);
@@ -218,13 +227,13 @@ int main(int argc, char *argv[]) {
 	if (!has_job_init) {
 		libtar_list_free(l, NULL);
 		fprintf(stderr, "missing job_init()\n");
-		return 1;
+		goto cleanup;
 	}
 
 	if (!has_ace_job) {
 		libtar_list_free(l, NULL);
 		fprintf(stderr, "class must inherit ace.Job\n");
-		return 1;
+		goto cleanup;
 	}
 
 	if (!has_package) {
@@ -238,15 +247,18 @@ int main(int argc, char *argv[]) {
 		libtar_list_add(l, "LICENSE");
 	}
 
-	libtar_list_add(l, "ace.py");
+	if (file_exist("ace.py"))
+		libtar_list_add(l, "ace.py");
 
-	int return_code = create(argv[1], ".", l);
+	int return_code = package_create(argv[1], ".", l);
 	libtar_list_free(l, NULL);
 
-	// unlink(argv[1]);
-	unlink("LICENSE");
-	
-	if (has_package)
+cleanup:
+	if (file_exist(argv[1]))
+		unlink(argv[1]);
+	if (file_exist("LICENSE"))
+		unlink("LICENSE");
+	if (file_exist("package.json"))
 		unlink("package.json");
 
 	remove_directory("__pycache__");
