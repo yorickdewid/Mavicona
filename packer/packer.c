@@ -13,6 +13,7 @@
 int use_gnu = 0;
 int verbose = 0;
 int job_check = 1;
+int compression = 1;
 
 struct jobheader {
 	uint8_t signature[8];
@@ -198,6 +199,38 @@ int package_verify(const char *pkgfile) {
 	return 0;
 }
 
+int package_info(const char *pkgfile) {
+	FILE *fp = fopen(pkgfile, "rb");
+	if (!fp)
+		return 1;
+
+	struct jobheader header;
+	fread(&header, 1, sizeof(struct jobheader), fp);
+	if (memcmp(header.signature, magic, 8)) {
+		fprintf(stderr, "not a mavicona package\n");
+		fclose(fp);
+		return 1;
+	}
+
+	if (header.version != PKGVER) {
+		fprintf(stderr, "invalid package version\n");
+		fclose(fp);
+		return 1;
+	}
+
+	printf(
+		"Version: %u\n"
+		"Use optimization: %s\n"
+		"Use compression: %s\n"
+		, header.version
+		, header.optimization ? "Yes" : "No"
+		, header.compression  ? "Yes" : "No");
+
+	fclose(fp);
+
+	return 0;
+}
+
 void build_package() {
 
 }
@@ -233,6 +266,11 @@ int main(int argc, char *argv[]) {
 		return package_verify(argv[2]);
 	}
 
+	if (!strcmp(argv[1], "--info") && argc == 3) {
+		package_info(argv[2]);
+		return 0;
+	}
+
 	wchar_t *program = Py_DecodeLocale(progname, NULL);
 	if (!program) {
 		fprintf(stderr, "cannot decode argv[0]\n");
@@ -255,6 +293,12 @@ int main(int argc, char *argv[]) {
 
 		if (!strcmp(argv[c], "--skip-check")) {
 			job_check = 0;
+			++jobname_idx;
+			continue;
+		}
+
+		if (!strcmp(argv[c], "--no-compression")) {
+			compression = 0;
 			++jobname_idx;
 			continue;
 		}
