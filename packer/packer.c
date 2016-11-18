@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <libtar.h>
+#include <Python.h>
 
 #define VERSION "1.0"
 
@@ -33,9 +34,51 @@ int find_in_file(char *fname, char *str) {
 	return find_result;
 }
 
-int create(char *tarfile, char *rootdir, libtar_list_t *l) {
+void append_header(const char *tarfile) {
+	FILE *fp = fopen(tarfile, "r+b");
+	if (!fp)
+		return;
+
+	char jobfile[1024];
+	snprintf(jobfile, sizeof(jobfile), "%s.job", tarfile);
+	FILE *fpo = fopen(jobfile, "wb");
+	if (!fpo)
+		return;
+
+	// obtain file size:
+	fseek(fp , 0 , SEEK_END);
+	size_t fsize = ftell(fp);
+	rewind(fp);
+
+	uint8_t *buffer = (uint8_t *)malloc(sizeof(uint8_t) * fsize);
+	if (!buffer)
+		return;
+
+	fread(buffer, 1, fsize, fp);
+
+	struct jobheader {
+		char signature[8];
+		char version;
+		char optimization;
+	};
+
+	const char magic[8] = {0x17, 'M', 'A', 'V', 'J', 'O', 'B', 0x80};
+
+	struct jobheader header;
+	strncpy(header.signature, magic, 8);
+	header.version = 3;
+	header.optimization = 1;
+
+	fwrite(&header, 1, sizeof(struct jobheader), fpo);
+	fwrite(buffer, sizeof(uint8_t), fsize, fpo);
+
+	free(buffer);
+	fclose(fpo);
+	fclose(fp);
+}
+
+int create(const char *tarfile, char *rootdir, libtar_list_t *l) {
 	TAR *t;
-	char *pathname;
 	char buf[1024];
 	libtar_listptr_t lp;
 
@@ -46,14 +89,13 @@ int create(char *tarfile, char *rootdir, libtar_list_t *l) {
 
 	libtar_listptr_reset(&lp);
 	while (libtar_list_next(l, &lp) != 0) {
-		pathname = (char *)libtar_listptr_data(&lp);
+		char *pathname = (char *)libtar_listptr_data(&lp);
 		if (pathname[0] != '/' && rootdir != NULL)
 			snprintf(buf, sizeof(buf), "%s/%s", rootdir, pathname);
 		else
 			strncpy(buf, pathname, sizeof(buf));
 		if (tar_append_tree(t, buf, pathname) != 0) {
-			fprintf(stderr,
-			        "tar_append_tree(\"%s\", \"%s\"): %s\n", buf,
+			fprintf(stderr, "tar_append_tree(\"%s\", \"%s\"): %s\n", buf,
 			        pathname, strerror(errno));
 			tar_close(t);
 			return -1;
@@ -71,6 +113,8 @@ int create(char *tarfile, char *rootdir, libtar_list_t *l) {
 		return -1;
 	}
 
+	append_header(tarfile);
+
 	return 0;
 }
 
@@ -86,12 +130,21 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	Py_Initialize();
+
 	int c, f = 0, f2 = 0;
 	libtar_list_t *l = libtar_list_new(LIST_QUEUE, NULL);
 	for (c = 2; c < argc; ++c) {
 		libtar_list_add(l, argv[c]);
 
-		if (find_in_file(argv[c], "ace.init") > 0) {
+		// if (find_in_file(argv[c], "ace.meta") > 0) {
+		// 	PyObject *pModule = PyImport_Import(argv[c]);
+		// 	if (pModule) {
+		// 		//
+		// 	}
+		// }
+
+		if (find_in_file(argv[c], "job_init") > 0) {
 			f = 1;
 		}
 		
@@ -112,10 +165,29 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	FILE *pf = fopen("LICENSE", "w");
+	if (pf) {
+		fputs("Copyright (C) 2015-2016 Mavicona, Quenza Inc.\n", pf);
+		fclose(pf);
+		libtar_list_add(l, "LICENSE");
+	}
+
+	pf = fopen("package.json", "w");
+	if (pf) {
+		fputs("{\"name\":\"random\"}\n", pf);
+		fclose(pf);
+		libtar_list_add(l, "package.json");
+	}
+
 	int return_code = create(argv[1], ".", l);
 	libtar_list_free(l, NULL);
 
+	unlink("LICENSE");
+	unlink("package.json");
+	unlink(argv[1]);
+
 	// return extract(argv[1], ".");
 	// return create(argv[1], ".");
+	Py_Finalize();
 	return return_code;
 }
