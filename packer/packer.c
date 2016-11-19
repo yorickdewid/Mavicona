@@ -6,11 +6,13 @@
 #include <errno.h>
 #include <libtar.h>
 #include <Python.h>
+#include <zlib.h>
 
 #define VERSION "1.0"
 #define PKGVER 0x3
 
 int use_gnu = 0;
+int use_zlib = 1;
 int verbose = 0;
 int job_check = 1;
 int compression = 1;
@@ -18,11 +20,57 @@ int compression = 1;
 struct jobheader {
 	uint8_t signature[8];
 	uint8_t version;
-	uint8_t optimization;
 	uint8_t compression;
 };
 
 const char magic[8] = {0x17, 'M', 'A', 'V', 'J', 'O', 'B', 0x80};
+
+gzFile gzopen_frontend(char *pathname, int oflags, int mode) {
+	char *gzoflags;
+	gzFile gzf;
+	int fd;
+
+	switch (oflags & O_ACCMODE) {
+		case O_WRONLY:
+			gzoflags = "wb";
+			break;
+		case O_RDONLY:
+			gzoflags = "rb";
+			break;
+		default:
+		case O_RDWR:
+			errno = EINVAL;
+			return NULL;
+	}
+
+	fd = open(pathname, oflags, mode);
+	if (fd == -1)
+		return NULL;
+
+	if ((oflags & O_CREAT) && fchmod(fd, mode)) {
+		close(fd);
+		return NULL;
+	}
+
+	gzf = gzdopen(fd, gzoflags);
+	if (!gzf) {
+		errno = ENOMEM;
+		return NULL;
+	}
+
+	/* This is a bad thing to do on big-endian lp64 systems, where the
+	   size and placement of integers is different than pointers.
+	   However, to fix the problem 4 wrapper functions would be needed and
+	   an extra bit of data associating GZF with the wrapper functions.  */
+	return gzf;
+}
+
+tartype_t gztype = {
+	(openfunc_t)gzopen_frontend,
+	(closefunc_t)gzclose,
+	(readfunc_t)gzread,
+	(writefunc_t)gzwrite
+};
 
 int find_in_file(const char *fname, char *str) {
 	FILE *fp;
@@ -135,7 +183,6 @@ static void append_header(const char *tarfile) {
 	struct jobheader header;
 	strncpy(header.signature, magic, 8);
 	header.version = PKGVER;
-	header.optimization = 1;
 	header.compression = 0;
 
 	fwrite(&header, 1, sizeof(struct jobheader), fpo);
@@ -193,7 +240,7 @@ int package_create(const char *tarfile, char *rootdir, libtar_list_t *list) {
 	char buf[1024];
 	libtar_listptr_t listpointer;
 
-	if (tar_open(&tar, tarfile, NULL, O_WRONLY | O_CREAT, 0644, (verbose ? TAR_VERBOSE : 0) | (use_gnu ? TAR_GNU : 0)) == -1) {
+	if (tar_open(&tar, tarfile, (use_zlib ? &gztype : NULL), O_WRONLY | O_CREAT, 0644, (verbose ? TAR_VERBOSE : 0) | (use_gnu ? TAR_GNU : 0)) == -1) {
 		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
 		return 1;
 	}
@@ -245,7 +292,7 @@ int package_extract(const char *jobfile) {
 
 	mkdir(dirname, 0775);
 
-	if (tar_open(&tar, tarfile, NULL, O_RDONLY, 0, (verbose ? TAR_VERBOSE : 0) | (use_gnu ? TAR_GNU : 0)) == -1) {
+	if (tar_open(&tar, tarfile, (use_zlib ? &gztype : NULL), O_RDONLY, 0, (verbose ? TAR_VERBOSE : 0) | (use_gnu ? TAR_GNU : 0)) == -1) {
 		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
 		return 1;
 	}
@@ -300,10 +347,8 @@ void package_info(const char *pkgfile) {
 
 	printf(
 		"Version: %u\n"
-		"Use optimization: %s\n"
 		"Use compression: %s\n"
 		, header.version
-		, header.optimization ? "Yes" : "No"
 		, header.compression  ? "Yes" : "No");
 
 	fclose(fp);
@@ -457,8 +502,6 @@ cleanup:
 		unlink("package.json");
 
 	remove_directory("__pycache__");
-
-	// return extract(argv[1], ".");
 
 	Py_Finalize();
 	return return_code;
