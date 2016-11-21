@@ -16,6 +16,7 @@
 #include <errno.h>
 #include <libtar.h>
 #include <zlib.h>
+#include <time.h>
 
 #define PKGVER 0x3
 
@@ -78,6 +79,30 @@ tartype_t gztype = {
 	(writefunc_t)gzwrite
 };
 
+static char *randstring(size_t length) {
+	static const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-";
+	char *randstr = NULL;
+
+	srand(time(NULL));
+
+	if (!length)
+		length = 8;
+
+	randstr = malloc(sizeof(char) * (length + 1));
+	if (!randstr)
+		return NULL;
+
+	unsigned int n;
+	for (n = 0; n < length; ++n) {
+		int key = rand() % (int)(sizeof(charset) - 1);
+		randstr[n] = charset[key];
+	}
+
+	randstr[length] = '\0';
+
+	return randstr;
+}
+
 static int verify_header(struct jobheader *header) {
 	if (memcmp(header->signature, magic, 8)) {
 		fprintf(stderr, "not a mavicona package\n");
@@ -126,7 +151,7 @@ static void append_header(const char *tarfile) {
 	fclose(fp);
 }
 
-static void remove_header(const char *jobfile) {
+static void remove_header(const char *jobfile, const char *tmpfile) {
 	FILE *fp = fopen(jobfile, "rb");
 	if (!fp)
 		return;
@@ -140,14 +165,7 @@ static void remove_header(const char *jobfile) {
 
 	rewind(fp);
 
-	char *str = strdup(jobfile);
-	char *tarfile = strtok(str, ".");
-	if (!tarfile) {
-		free(str);
-		return;
-	}
-
-	FILE *fpo = fopen(tarfile, "wb");
+	FILE *fpo = fopen(tmpfile, "wb");
 	if (!fpo)
 		return;
 
@@ -162,7 +180,6 @@ static void remove_header(const char *jobfile) {
 	fread(buffer, 1, (fsize - sizeof(struct jobheader)), fp);
 	fwrite(buffer, 1, fsize, fpo);
 
-	free(str);
 	free(buffer);
 	fclose(fpo);
 	fclose(fp);
@@ -211,17 +228,19 @@ int package_create(const char *tarfile, char *rootdir, libtar_list_t *list) {
 	return 0;
 }
 
-int package_extract(const char *jobfile) {
+int package_extract(const char *jobfile, char *rootdir) {
 	TAR *tar;
 	char dirname[1024];
+	char *tarfile = randstring(12);
 
-	remove_header(jobfile);
+	remove_header(jobfile, tarfile);
 
-	char *str = strdup(jobfile);
-	char *tarfile = strtok(str, ".");
-
-	strcpy(dirname, "package_");
-	strcat(dirname, tarfile);
+	if (!rootdir) {
+		strcpy(dirname, "package_");
+		strcat(dirname, tarfile);
+	} else {
+		strcpy(dirname, rootdir);
+	}
 
 	mkdir(dirname, 0775);
 
@@ -243,7 +262,6 @@ int package_extract(const char *jobfile) {
 
 	unlink(tarfile);
 
-	free(str);
 	return 0;
 }
 

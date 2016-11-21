@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
-#include <libtar.h>
 #include <Python.h>
 #include "package.h"
 
@@ -130,7 +129,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (!strcmp(argv[1], "--extract") && argc == 3) {
-		return package_extract(argv[2]);
+		return package_extract(argv[2], NULL);
 	}
 
 	wchar_t *program = Py_DecodeLocale(progname, NULL);
