@@ -10,6 +10,13 @@
 #include "ace/chain.h"
 #include "art.h"
 
+#define	CACHEDIR	"cache"
+#define	PKGDIR		CACHEDIR "/package"
+#define	SPOOLDIR	CACHEDIR "/spool"
+#define	WALDIR		CACHEDIR "/wald"
+#define	LOCALDIR	CACHEDIR "/local"
+#define	TMPDIR		CACHEDIR "/tmp"
+
 inline int iter_cb(void *data, const unsigned char *key, uint32_t key_len, void *val) {
 	delete static_cast<std::string *>(val);
 	return 0;
