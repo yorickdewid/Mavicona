@@ -5,6 +5,7 @@
 #include <iostream>
 #include <csignal>
 #include <unistd.h>
+#include <leveldb/db.h>
 
 #include "common/util.h"
 #include "common/module.h"
@@ -74,6 +75,19 @@ int setupGuard() {
 	}
 
 	return pid;
+}
+
+void setupIndex() {
+	leveldb::DB *db = nullptr;
+
+	leveldb::Options options;
+	options.create_if_missing = true;
+	leveldb::Status status = leveldb::DB::Open(options, DBDIR, &db);
+
+	if (!status.ok())
+		std::cerr << status.ToString() << std::endl;
+
+	delete db;
 }
 
 void handleWokerController(zmq::socket_t& socket) {
@@ -197,6 +211,8 @@ void prepareJob(zmq::message_t& message) {
 		std::ofstream file((PKGDIR "/" + exeName).c_str());
 		file.write(job.content().c_str(), job.content().size());
 		file.close();
+	} else {
+		std::cout << "Package in local cache" << std::endl;
 	}
 
 	/* Gather parameters for job */
@@ -230,12 +246,16 @@ void initSlave() {
 	}
 
 	/* Create cache directory */
-	mkdir(CACHEDIR, 0700);
+	mkdir(VARDIR, 0700);
 	mkdir(PKGDIR, 0700);
-	mkdir(SPOOLDIR, 0700);
+	mkdir(OPTDIR, 0700);
 	mkdir(WALDIR, 0700);
 	mkdir(LOCALDIR, 0700);
 	mkdir(TMPDIR, 0700);
+	mkdir(ETCDIR, 0700);
+
+	/* Local database */
+	setupIndex();
 
 #ifdef GUARD
 	/* Guard the process */

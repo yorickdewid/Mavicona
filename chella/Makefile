@@ -1,4 +1,4 @@
-OBJS = chella.o nodemanager.o controlclient.o archive.o wal.o exec.o exec_cache.o exec_sql.o art.o sha1.o ../protoc/processjob.pb.o ../protoc/controlmessage.pb.o ../quid/libquid.a ../packer/libmpkg.a
+OBJS = chella.o nodemanager.o controlclient.o archive.o wal.o exec.o exec_cache.o exec_sql.o sha1.o ../protoc/processjob.pb.o ../protoc/controlmessage.pb.o ../quid/libquid.a ../packer/libmpkg.a
 CC = g++
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq $(shell python3-config --libs) -ltar -lz -lleveldb
