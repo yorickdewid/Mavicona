@@ -50,7 +50,7 @@ void Wal::rollback(const std::string& name, std::function<void(const std::string
 	pageHeader header;
 	short recovery_likeliness = 50;
 
-	FILE *m_pFile = fopen(("cache/wal/" + name).c_str(), "r+");
+	FILE *m_pFile = fopen((WALDIR "/" + name).c_str(), "r+");
 	fread(&header, sizeof(pageHeader), 1, m_pFile);
 
 	if (strcmp((const char *)header.magic, LOG_MAGIC)) {
@@ -68,7 +68,7 @@ void Wal::rollback(const std::string& name, std::function<void(const std::string
 	recovery_likeliness -= (header.failcount * -10);
 
 	/* Is module still in cache */
-	if (!file_exist("cache/module/" + std::string(header.module, 40))) {
+	if (!file_exist(PKGDIR "/" + std::string(header.module, 40))) {
 		std::cerr << "Module missing, unable to recover" << std::endl;
 		recovery_likeliness -= 75;
 	}

@@ -18,7 +18,8 @@ struct Wal {
 
 	const std::string walname(const unsigned int id, const std::string& quid) {
 		std::stringstream ss;
-		ss << "cache/wal/";
+		ss << WALDIR;
+		ss << "/";
 		ss << quid;
 		ss << std::setw(6) << std::setfill('0') << id;
 		ss << ".wlog";
@@ -44,7 +45,7 @@ struct Wal {
 		m_pFile = fopen(walname(param.jobid, param.jobquid).c_str(), "w+");
 
 		assert(module.size() == 40);
-		assert(param.jobquid.size() == 38);
+		assert(param.jobquid.size() == 36);
 
 		writeLog();
 	}

@@ -3,15 +3,16 @@
 #include <fstream>
 #include <zmq.hpp>
 #include <quidpp.h>
+#include <package.h>
+#include <Python.h>
 #include "common/util.h"
 #include "ace/interface.h"
 #include "protoc/processjob.pb.h"
 #include "dirent.h"
 #include "wal.h"
 #include "exec.h"
-
-typedef int (*regclass_t)();
-typedef Ace::Job *(*facade_t)();
+#include "ace/config.h"
+#include "ace/ipc.h"
 
 void Execute::init(ControlClient *control, const std::string& _master) {
 	DIR *dir = nullptr;
@@ -21,7 +22,8 @@ void Execute::init(ControlClient *control, const std::string& _master) {
 	exec.jobcontrol = control;
 	exec.master = _master;
 
-	if ((dir = opendir("cache/wal/")) != NULL) {
+return;
+	if ((dir = opendir(WALDIR)) != NULL) {
 
 		/* print all the files and directories within directory */
 		while ((ent = readdir(dir)) != NULL) {
@@ -47,7 +49,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 
 	Execute& exec = Execute::getInstance();
 
-	std::cout << "Running module " << std::endl;
+	std::cout << "Running package " << name << std::endl;
 
 	/* Move worker in accept mode */
 	exec.jobcontrol->setStateAccepted();
@@ -64,96 +66,164 @@ void Execute::run(const std::string& name, Parameter& param) {
 	exec.jobstate = param.jobstate;
 	exec.jobparent = param.jobparent;
 
+	/* Ensure package exist */
+	if (!file_exist(PKGDIR "/" + name)) {
+		exec.jobcontrol->setStateIdle();
+		std::cerr << "Package does not exist" << std::endl;
+		return;
+	}
+
+	/* Extract package in job directory */
+	if (package_extract((PKGDIR "/" + name).c_str(), ("cache/local/" + name).c_str())) {
+		exec.jobcontrol->setStateIdle();
+		std::cerr << "Cannot open package " << std::endl;
+		return;
+	}
+
+	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::INIT);
 
-	if (!file_exist("cache/module/" + name)) {
-		exec.jobcontrol->setStateIdle();
-		std::cerr << "Cannot access library" << std::endl;
+	wchar_t *program = Py_DecodeLocale("Chella Worker", NULL);
+	if (!program) {
+		std::cerr << "Cannot decode name" << std::endl;
 		return;
 	}
 
-	void *handle = dlopen(("cache/module/" + name).c_str(), RTLD_LAZY);
-	if (!handle) {
-		exec.jobcontrol->setStateIdle();
-		std::cerr << "Cannot open library: " << dlerror() << std::endl;
+	chdir((LOCALDIR "/" + name).c_str());
+	setenv("PYTHONPATH", ".", 1);
+	Py_SetProgramName(program);
+	Py_Initialize();
+
+	PyObject *pModule = PyImport_ImportModule("job_example");
+	if (!pModule) {
+		std::cerr << "Import module failed" << std::endl;
 		return;
 	}
 
-	regclass_t exec_register = (int (*)()) dlsym(handle, "register_class");
-	facade_t exec_facade = (Ace::Job * (*)()) dlsym(handle, "object_facade");
+	/* Initialize Ace modules */
+	PyObject *pMethodConfig = Ace::Config::PyAce_ModuleClass();
+	PyObject *pMethodCallback = Ace::IPC::PyAce_ModuleClass();
+
+	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::LOAD);
 
-	/* Inject job and cluster */
-	assert(exec_register() == ACE_MAGIC);
-	Ace::Job *jobObject = (Ace::Job *)exec_facade();
-	jobObject->Inject(&exec);
+	/* Create Ace config instance */
+	PyObject *pInstanceConfig = PyObject_CallObject(pMethodConfig, NULL);
+	if (!pInstanceConfig) {
+		PyErr_Print();
+		return;
+	}
+
+	/* Locate job init and call routine */
+	PyObject *pFuncJobInit = PyObject_GetAttrString(pModule, "job_init");
+	if (!pFuncJobInit || !PyCallable_Check(pFuncJobInit)) {
+		PyErr_Print();
+		return;
+	}
+
+	PyObject *pArgsJobInit = Py_BuildValue("(O)", pInstanceConfig);
+	PyObject *pInstanceJobInit = PyObject_CallObject(pFuncJobInit, pArgsJobInit);
+	if (!pInstanceJobInit) {
+		PyErr_Print();
+		return;
+	}
+
+	PyObject *pFuncJobInvoke = PyObject_GetAttrString(pInstanceJobInit, "invoke");
+	if (!pFuncJobInvoke || !PyCallable_Check(pFuncJobInvoke)) {
+		PyErr_Print();
+		return;
+	}
+
+	/* Instantiate job class */
+	PyObject *pInstanceJob = PyObject_CallObject(pFuncJobInvoke, NULL);
+	if (!pInstanceJob) {
+		PyErr_Print();
+		return;
+	}
+	
+	PyObject *pResult = NULL;
+	pResult = PyObject_CallMethod(pInstanceJob, "inject", "(Oisssii)", pMethodCallback,
+		exec.jobid,
+		exec.jobname.c_str(),
+		name.c_str(),
+		exec.jobquid.c_str(),
+		exec.jobpartition,
+		exec.jobpartition_count);
+	if (!pResult) {
+		PyErr_Print();
+		return;
+	}
+
+	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::INJECT);
 
-	/* Call this setup once in the cluster */
-	if (exec.jobstate == SPAWN) {
-		try {
-			exec.jobcontrol->setStateSetup();
-			jobObject->SetupOnce();
-			executionLog->setCheckpoint(Wal::Checkpoint::SETUP_ONCE);
-		} catch (const std::exception& ex) {
-			std::cerr << ex.what() << std::endl;
-		}
+	pResult = PyObject_CallMethod(pInstanceJob, "setup_once", NULL);
+	if (!pResult) {
+		PyErr_Print();
+		return;
 	}
 
-	/* Call setup routine */
-	try {
-		exec.jobcontrol->setStateSetup();
-		jobObject->Setup();
-		executionLog->setCheckpoint(Wal::Checkpoint::SETUP);
-	} catch (const std::exception& ex) {
-		std::cerr << ex.what() << std::endl;
+	/* Move WAL forward */
+	executionLog->setCheckpoint(Wal::Checkpoint::SETUP_ONCE);
+
+	pResult = PyObject_CallMethod(pInstanceJob, "setup", NULL);
+	if (!pResult) {
+		PyErr_Print();
+		return;
 	}
 
-	/* Call main routine */
-	try {
-		exec.jobcontrol->setStateRunning();
-		jobObject->Run(param.jobdata);
-		executionLog->setCheckpoint(Wal::Checkpoint::RUN);
-	} catch (const std::exception& ex) {
-		std::cerr << ex.what() << std::endl;
+	/* Move WAL forward */
+	executionLog->setCheckpoint(Wal::Checkpoint::SETUP);
+
+	pResult = PyObject_CallMethod(pInstanceJob, "run", "(y#)", param.jobdata.data(), param.jobdata.size());
+	if (!pResult) {
+		PyErr_Print();
+		return;
 	}
 
-	/* Call teardown routine */
-	try {
-		exec.jobcontrol->setStateTeardown();
-		jobObject->Teardown();
-		executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN);
-	} catch (const std::exception& ex) {
-		std::cerr << ex.what() << std::endl;
+	/* Move WAL forward */
+	executionLog->setCheckpoint(Wal::Checkpoint::RUN);
+
+	pResult = PyObject_CallMethod(pInstanceJob, "teardown", NULL);
+	if (!pResult) {
+		PyErr_Print();
+		return;
 	}
 
-	/* Call this teardown once in the cluster */
-	if (exec.jobstate == FUNNEL) {
-		try {
-			exec.jobcontrol->setStateSetup();
-			jobObject->TeardownOnce();
-			executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN_ONCE);
-		} catch (const std::exception& ex) {
-			std::cerr << ex.what() << std::endl;
-		}
+	/* Move WAL forward */
+	executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN);
+
+	pResult = PyObject_CallMethod(pInstanceJob, "teardown_once", NULL);
+	if (!pResult) {
+		PyErr_Print();
+		return;
 	}
 
-	/* Pull the chain */
-	exec.chain = jobObject->PullChain();
+	/* Move WAL forward */
+	executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN_ONCE);
+
+	PyObject *pMemberChains = PyObject_GetAttrString(pInstanceJob, "chains");	
+	if (!pMemberChains) {
+		PyErr_Print();
+		return;
+	}
+
+	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::PULLCHAIN);
 
-	int r = dlclose(handle);
-	if (r)
-		dlclose(handle);
+	Py_DECREF(pResult);
+	Py_DECREF(pMemberChains);
+	Py_DECREF(pInstanceJob);
 
 	/* Release resources allocated for this job */
+	Py_Finalize();
 	exec.sessionCleanup();
-
-	/* Move worker in idle mode */
-	exec.jobcontrol->setStateIdle();
 
 	/* Mark WAL done */
 	executionLog->markDone();
+
+	/* Move worker in idle mode */
+	exec.jobcontrol->setStateIdle();
 
 	delete executionLog;
 }
@@ -167,14 +237,14 @@ void Execute::prospect(const std::string& name) {
 		return;
 	}
 
-	if (!file_exist("cache/module/" + name)) {
+	if (!file_exist(PKGDIR "/" + name)) {
 		std::cerr << "Cannot access library" << std::endl;
 		return;
 	}
 
-	std::ifstream ifs("cache/module/" + name);
+	std::ifstream ifs(PKGDIR "/" + name);
 	std::string content((std::istreambuf_iterator<char>(ifs)),
-	                    (std::istreambuf_iterator<char>()));
+						(std::istreambuf_iterator<char>()));
 
 	socket.connect(("tcp://" + exec.master).c_str());
 	std::cout << "Connect to master " << exec.master << std::endl;
@@ -215,25 +285,25 @@ void Execute::dispose() {
 	DIR *dir = nullptr;
 	struct dirent *ent = nullptr;
 
-	if ((dir = opendir("cache/module/")) != NULL) {
+	if ((dir = opendir(PKGDIR)) != NULL) {
 
 		/* print all the files and directories within directory */
 		while ((ent = readdir(dir)) != NULL) {
 			if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
 				continue;
-			remove(("cache/module/" + std::string(ent->d_name)).c_str());
+			remove((PKGDIR "/" + std::string(ent->d_name)).c_str());
 		}
 
 		closedir(dir);
 	}
 
-	if ((dir = opendir("cache/wal/")) != NULL) {
+	if ((dir = opendir(WALDIR)) != NULL) {
 
 		/* print all the files and directories within directory */
 		while ((ent = readdir(dir)) != NULL) {
 			if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
 				continue;
-			remove(("cache/wal/" + std::string(ent->d_name)).c_str());
+			remove((WALDIR "/" + std::string(ent->d_name)).c_str());
 		}
 
 		closedir(dir);
