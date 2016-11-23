@@ -47,6 +47,8 @@ return;
 void Execute::run(const std::string& name, Parameter& param) {
 	Wal *executionLog = new Wal(name, param);
 
+	struct timeval t1, t2;
+
 	Execute& exec = Execute::getInstance();
 
 	std::cout << "Running package " << name << std::endl;
@@ -108,6 +110,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::LOAD);
+	gettimeofday(&t1, NULL);
 
 	/* Create Ace config instance */
 	PyObject *pInstanceConfig = PyObject_CallObject(pMethodConfig, NULL);
@@ -212,6 +215,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::PULLCHAIN);
+	gettimeofday(&t2, NULL);
 
 	Py_DECREF(pResult);
 	Py_DECREF(pMemberChains);
@@ -227,7 +231,11 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Mark WAL done */
 	executionLog->markDone();
 
+	double runtime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+	runtime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+
 	std::cout << "Job routine reached end" << std::endl;
+	std::cout << "Total runtime: " << runtime << std::endl;
 
 	/* Move worker in idle mode */
 	exec.jobcontrol->setStateIdle();
