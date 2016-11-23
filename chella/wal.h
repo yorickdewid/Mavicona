@@ -41,6 +41,7 @@ struct Wal {
 		PULLCHAIN,
 	};
 
+	/* Create WAL if not exist, otherwise override */
 	Wal(const std::string& name, Execute::Parameter& param) : module(name), jobparameters(param) {
 		m_pFile = fopen(walname(param.jobid, param.jobquid).c_str(), "w+");
 

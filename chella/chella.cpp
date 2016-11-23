@@ -17,7 +17,7 @@
 #include "sha1.h"
 #include "exec.h"
 
-#define FORK 	1
+// #define GUARD 	1
 
 static std::string masterProvision;
 static std::string masterIPC;
@@ -59,7 +59,6 @@ void setGuard(pid_t id) {
 }
 
 int setupGuard() {
-#ifdef FORK
 	pid_t id = getpid();
 	pid_t pid = fork();
 	if (pid == 0) {
@@ -75,9 +74,6 @@ int setupGuard() {
 	}
 
 	return pid;
-#else
-	return 1;
-#endif
 }
 
 void handleWokerController(zmq::socket_t& socket) {
@@ -197,8 +193,8 @@ void prepareJob(zmq::message_t& message) {
 	/* Store in cache */
 	sha1.update(job.content());
 	std::string exeName = sha1.final();
-	if (!file_exist("cache/module/" + exeName)) {
-		std::ofstream file(("cache/module/" + exeName).c_str());
+	if (!file_exist(PKGDIR "/" + exeName)) {
+		std::ofstream file((PKGDIR "/" + exeName).c_str());
 		file.write(job.content().c_str(), job.content().size());
 		file.close();
 	}
@@ -218,7 +214,7 @@ void prepareJob(zmq::message_t& message) {
 	Execute::run(exeName, parameters);
 
 	/* Setup subjobs if any */
-	Execute::prospect(exeName);
+	// Execute::prospect(exeName);
 }
 
 void initSlave() {
@@ -234,13 +230,18 @@ void initSlave() {
 	}
 
 	/* Create cache directory */
-	mkdir("cache", 0700);
-	mkdir("cache/module", 0700);
-	mkdir("cache/wal", 0700);
+	mkdir(CACHEDIR, 0700);
+	mkdir(PKGDIR, 0700);
+	mkdir(SPOOLDIR, 0700);
+	mkdir(WALDIR, 0700);
+	mkdir(LOCALDIR, 0700);
+	mkdir(TMPDIR, 0700);
 
+#ifdef GUARD
 	/* Guard the process */
 	if (!setupGuard())
 		return;
+#endif
 
 	zmq::context_t context(1);
 	zmq::socket_t receiver(context, ZMQ_REQ);
@@ -259,7 +260,7 @@ void initSlave() {
 
 			if (!reply.size()) {
 				/* Dispose cache when no jobs */
-				Execute::dispose();
+				// Execute::dispose();
 
 				sleep(2);
 			} else {

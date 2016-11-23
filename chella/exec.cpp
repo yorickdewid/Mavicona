@@ -73,6 +73,8 @@ void Execute::run(const std::string& name, Parameter& param) {
 		return;
 	}
 
+	//TODO: check if module directory already exist
+
 	/* Extract package in job directory */
 	if (package_extract((PKGDIR "/" + name).c_str(), ("cache/local/" + name).c_str())) {
 		exec.jobcontrol->setStateIdle();
@@ -94,9 +96,9 @@ void Execute::run(const std::string& name, Parameter& param) {
 	Py_SetProgramName(program);
 	Py_Initialize();
 
-	PyObject *pModule = PyImport_ImportModule("job_example");
-	if (!pModule) {
-		std::cerr << "Import module failed" << std::endl;
+	PyObject *pModuleJob = PyImport_ImportModule("job_example");
+	if (!pModuleJob) {
+		PyErr_Print();
 		return;
 	}
 
@@ -115,7 +117,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	}
 
 	/* Locate job init and call routine */
-	PyObject *pFuncJobInit = PyObject_GetAttrString(pModule, "job_init");
+	PyObject *pFuncJobInit = PyObject_GetAttrString(pModuleJob, "job_init");
 	if (!pFuncJobInit || !PyCallable_Check(pFuncJobInit)) {
 		PyErr_Print();
 		return;
@@ -214,6 +216,9 @@ void Execute::run(const std::string& name, Parameter& param) {
 	Py_DECREF(pResult);
 	Py_DECREF(pMemberChains);
 	Py_DECREF(pInstanceJob);
+	Py_DECREF(pMethodCallback);
+	Py_DECREF(pMethodConfig);
+	Py_DECREF(pModuleJob);
 
 	/* Release resources allocated for this job */
 	Py_Finalize();
@@ -221,6 +226,8 @@ void Execute::run(const std::string& name, Parameter& param) {
 
 	/* Mark WAL done */
 	executionLog->markDone();
+
+	std::cout << "Job routine reached end" << std::endl;
 
 	/* Move worker in idle mode */
 	exec.jobcontrol->setStateIdle();
