@@ -34,7 +34,7 @@ static PyTypeObject module_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"ace.ipc.Callback",										/* tp_name */
 	sizeof(ace_callback_t),									/* tp_basicsize */
-	NULL,													/* tp_itemsize */
+	0,														/* tp_itemsize */
 	NULL,													/* tp_dealloc */
 	NULL,													/* tp_print */
 	NULL,													/* tp_getattr */
@@ -55,7 +55,7 @@ static PyTypeObject module_Type = {
 	NULL,													/* tp_traverse */
 	NULL,													/* tp_clear */
 	NULL,													/* tp_richcompare */
-	NULL,													/* tp_weaklistoffset */
+	0,														/* tp_weaklistoffset */
 	NULL,													/* tp_iter */
 	NULL,													/* tp_iternext */
 	module_methods,											/* tp_methods */
@@ -65,7 +65,7 @@ static PyTypeObject module_Type = {
 	NULL,													/* tp_dict */
 	NULL,													/* tp_descr_get */
 	NULL,													/* tp_descr_set */
-	NULL,													/* tp_dictoffset */
+	0,														/* tp_dictoffset */
 	NULL,													/* tp_init */
 	PyType_GenericAlloc,									/* tp_alloc */
 	PyType_GenericNew,										/* tp_new */

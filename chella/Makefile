@@ -1,9 +1,9 @@
-OBJS = chella.o nodemanager.o controlclient.o archive.o wal.o exec.o exec_cache.o exec_sql.o art.o sha1.o ../protoc/processjob.pb.o ../protoc/controlmessage.pb.o ../quid/libquid.a
+OBJS = chella.o nodemanager.o controlclient.o archive.o wal.o exec.o exec_cache.o exec_sql.o art.o sha1.o ../protoc/processjob.pb.o ../protoc/controlmessage.pb.o ../quid/libquid.a ../packer/libmpkg.a
 CC = g++
 DEBUG = -g -O0
-LIBS = -lprotobuf -lzmq -lpthread -ldl -ltar
-CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -DCACHE -DZMQ_CPP11 -I.. -I../quid -I../third_party/upscaledb/include -I../third_party/soci
-CFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. -I../quid -I../third_party/upscaledb/include
+LIBS = -lprotobuf -lzmq $(shell python3-config --libs) -ltar -lz
+CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -DCACHE -DZMQ_CPP11 -I.. -I../quid -I../packer -I../third_party/upscaledb/include -I../third_party/soci $(shell python3-config --includes) -Wno-write-strings
+CFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. -I../quid -I../packer -I../third_party/upscaledb/include
 LFLAGS = -Wall $(DEBUG) $(LIBS) -L../third_party/soci/build/lib/
 
 all: $(OBJS)
