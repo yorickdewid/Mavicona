@@ -33,6 +33,8 @@ void ControlClient::runTask() {
 		this->_accepted = true;
 		this->_cluster_jobs = msg.cluster_jobs();
 		this->_state = ControlMessage::IDLE;
+
+		setenv("WORKERID", std::to_string(msg.id()).c_str(), 1);
 	}
 
 	while (_active) {
