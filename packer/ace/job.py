@@ -9,6 +9,7 @@
 #
 
 import time;
+import os;
 from enum import Enum
 
 class JobModel(Enum):
@@ -36,7 +37,7 @@ class Chain(object):
 		})
 
 class Worker(object):
-	id = 456
+	id = os.environ.get('WORKERID')
 
 	def name(self):
 		return "worker-" + str(self.id)
@@ -52,16 +53,18 @@ class Cluster(object):
 
 class Env(object):
 	def current_directory(self):
-		return "/"
-
-	def cache_directory(self):
-		return "cache/"
+		return os.getcwd()
 
 	def hostname(self):
-		return "somehost"
+		return os.environ.get('HOSTNAME', 'localhost')
 
 	def login(self):
-		return "eve"
+		user = os.environ.get('USER')
+		if user is None:
+			user = os.environ.get('LOGNAME')
+		if user is None:
+			user = os.environ.get('USERNAME')
+		return user
 
 class JobInterface(object):
 	def setup_once(self):

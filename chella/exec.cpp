@@ -21,7 +21,6 @@ void Execute::init(ControlClient *control, const std::string& _master) {
 	exec.jobcontrol = control;
 	exec.master = _master;
 
-return;
 	if ((dir = opendir(WALDIR)) != NULL) {
 
 		/* print all the files and directories within directory */

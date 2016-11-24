@@ -145,6 +145,8 @@ void handleIncommingJob(zmq::socket_t& socket) {
 
 	jobqueue.push(job);
 
+	std::cout << "Incomming job #" << job.id() << std::endl;
+
 	/* Send reply back to client */
 	request.rebuild(0);
 	socket.send(request);

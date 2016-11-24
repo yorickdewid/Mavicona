@@ -18,6 +18,7 @@
 
 int job_check = 1;
 
+//TODO: from common utils
 int find_in_file(const char *fname, char *str) {
 	FILE *fp;
 	int line_num = 1;

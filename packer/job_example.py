@@ -1,3 +1,4 @@
+import os
 import ace.job
 
 """ Package info """
@@ -7,7 +8,12 @@ def package():
 		'description'	: 'Generate random data',
 		'author' 		: 'Yorick de Wid',
 		'license' 		: 'MIT',
+		'url' 			: 'http://x3.quenza.net/',
 		'keywords' 		: ['random', 'test'],
+		'checksum' 		: 'abaf2abe1e8185f3b17c4d0c34dbeed2b4b9d2ad9232b195378d8ced6c519270',
+		'settings'		: {
+			'no-cache': False
+		}
 	}
 
 class Example(ace.job.Job):
@@ -36,7 +42,6 @@ class Example(ace.job.Job):
 
 		""" Print environment """
 		print("Working dir", self.env.current_directory())
-		print("Cache dir", self.env.cache_directory())
 		print("Hostname", self.env.hostname())
 		print("Login", self.env.login())
 
@@ -44,6 +49,11 @@ class Example(ace.job.Job):
 		print("Worker", self.worker.id)
 		print("Worker", self.worker.name())
 		print("Jobs in cluster", self.cluster.job_count())
+
+		print('')
+
+		for key in os.environ.keys():
+			print("%30s = %s" % (key, os.environ[key]))
 
 		print('')
 
@@ -75,6 +85,5 @@ def job_init(cfg):
 	cfg.invoke = Example
 	cfg.mode = ace.job.JobModel.fan
 	cfg.max_runtime = 60
-	cfg.keep_order = True
 	cfg.retry = 1
 	return cfg

@@ -57,7 +57,10 @@ struct Wal {
 	static void rollback(const std::string& name, std::function<void(const std::string& name, Execute::Parameter& param)> const& callback);
 
 	void setCheckpoint(enum Checkpoint checkpoint);
-	void markDone();
+	
+	inline void markDone() {
+		commit(true);
+	}
 
 	~Wal() {
 		fclose(m_pFile);

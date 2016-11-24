@@ -178,7 +178,7 @@ static void remove_header(const char *jobfile, const char *tmpfile) {
 		return;
 
 	fread(buffer, 1, (fsize - sizeof(struct jobheader)), fp);
-	fwrite(buffer, 1, fsize, fpo);
+	fwrite(buffer, 1, (fsize - sizeof(struct jobheader)), fpo);
 
 	free(buffer);
 	fclose(fpo);
@@ -228,7 +228,7 @@ int package_create(const char *tarfile, char *rootdir, libtar_list_t *list) {
 	return 0;
 }
 
-int package_extract(const char *jobfile, char *rootdir) {
+int package_extract(const char *jobfile, const char *rootdir) {
 	TAR *tar;
 	char dirname[1024];
 	char *tarfile = randstring(12);

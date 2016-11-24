@@ -46,10 +46,6 @@ void Wal::setCheckpoint(enum Wal::Checkpoint _checkpoint) {
 	commit();
 }
 
-void Wal::markDone() {
-	commit(true);
-}
-
 void Wal::rollback(const std::string& name, std::function<void(const std::string& name, Execute::Parameter& param)> const& callback) {
 	pageHeader header;
 	short recovery_likeliness = 50;
