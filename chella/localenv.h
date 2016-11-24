@@ -39,13 +39,13 @@ bool setupEnv(const std::string& homedir) {
 	return true;
 }
 
-bool teardown() {
+bool teardown(const std::string& homedir) {
 	std::ofstream lastrun;
 
 	time_t t = time(NULL);
 	struct tm *now = localtime(&t);
 
-	lastrun.open("lastrun", std::ofstream::out);
+	lastrun.open(homedir + "/lastrun", std::ofstream::out);
 
 	lastrun << (now->tm_year + 1900) << '-' 
 		 << (now->tm_mon + 1) << '-'

@@ -25,9 +25,7 @@ void module_dealloc(PyObject *self) {
 }
 
 PyObject *module_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
-	ace_config_t *self;
-
-	self = (ace_config_t *)type->tp_alloc(type, 0);
+	ace_config_t *self = (ace_config_t *)type->tp_alloc(type, 0);
 	if (self != NULL) {
 		self->max_runtime = 600;
 		self->retry = 3;
@@ -83,7 +81,7 @@ static PyTypeObject module_Type = {
 	NULL,													/* tp_descr_set */
 	0,														/* tp_dictoffset */
 	NULL,													/* tp_init */
-	NULL,													/* tp_alloc */
+	PyType_GenericAlloc,									/* tp_alloc */
 	module_new,												/* tp_new */
 };
 

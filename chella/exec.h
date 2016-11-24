@@ -1,6 +1,9 @@
 #ifndef EXEC_H
 #define EXEC_H
 
+#undef CACHE
+#undef RDBMS
+
 #include <iostream>
 #ifdef RDBMS
 #include <core/soci.h>
@@ -8,14 +11,15 @@
 #include "controlclient.h"
 #include "callback.h"
 #include "ace/chain.h"
-#include "art.h"
 
-#define	CACHEDIR	"cache"
-#define	PKGDIR		CACHEDIR "/package"
-#define	SPOOLDIR	CACHEDIR "/spool"
-#define	WALDIR		CACHEDIR "/wald"
-#define	LOCALDIR	CACHEDIR "/local"
-#define	TMPDIR		CACHEDIR "/tmp"
+#define	VARDIR		"var"
+#define	PKGDIR		VARDIR "/package"
+#define	OPTDIR		VARDIR "/opt"
+#define	WALDIR		VARDIR "/wald"
+#define	LOCALDIR	VARDIR "/local"
+#define	TMPDIR		VARDIR "/tmp"
+#define	ETCDIR		VARDIR "/etc"
+#define	DBDIR		VARDIR "/db"
 
 inline int iter_cb(void *data, const unsigned char *key, uint32_t key_len, void *val) {
 	delete static_cast<std::string *>(val);
@@ -28,10 +32,10 @@ class Execute : public Callback {
 	Ace::Chain *chain = nullptr;
 
 #ifdef CACHE
-	art_tree *cache = nullptr;
+	// art_tree *cache = nullptr;
 #endif
 #ifdef RDBMS
-	soci::session *session = nullptr;
+	// soci::session *session = nullptr;
 #endif
 
 	Execute() {};
@@ -65,43 +69,43 @@ class Execute : public Callback {
 	}
 
 	void sessionCleanup() {
-#ifdef CACHE
-		if (this->cache) {
-			std::string out;
-			art_iter(this->cache, iter_cb, &out);
-			art_tree_destroy(this->cache);
-			free(this->cache);
-			this->cache = nullptr;
-		}
-#endif
+// #ifdef CACHE
+// 		if (this->cache) {
+// 			std::string out;
+// 			art_iter(this->cache, iter_cb, &out);
+// 			art_tree_destroy(this->cache);
+// 			free(this->cache);
+// 			this->cache = nullptr;
+// 		}
+// #endif
 
-#ifdef RDBMS
-		if (session) {
-			delete session;
-			session = nullptr;
-		}
-#endif
+// #ifdef RDBMS
+// 		if (session) {
+// 			delete session;
+// 			session = nullptr;
+// 		}
+// #endif
 	}
 
-#ifdef CACHE
-	void cachePut(const std::string& key, const std::string value);
-	void cacheDelete(const std::string& key);
-	std::string cacheGet(const std::string& key);
-#else
-	void cachePut(const std::string& key, const std::string value) {}
-	void cacheDelete(const std::string& key) {}
-	std::string cacheGet(const std::string& key) { return ""; }
-#endif
+// #ifdef CACHE
+// 	void cachePut(const std::string& key, const std::string value);
+// 	void cacheDelete(const std::string& key);
+// 	std::string cacheGet(const std::string& key);
+// #else
+// 	void cachePut(const std::string& key, const std::string value) {}
+// 	void cacheDelete(const std::string& key) {}
+// 	std::string cacheGet(const std::string& key) { return ""; }
+// #endif
 
-#ifdef RDBMS
-	void sqlConnect(const std::string& rdbms, const std::string& database, const std::string& user, const std::string& password);
-	void sqlQuery(const std::string& query);
-	void sqlDisconnect();
-#else
-	void sqlConnect(const std::string& rdbms, const std::string& database, const std::string& user, const std::string& password) {}
-	void sqlQuery(const std::string& query) {}
-	void sqlDisconnect() {}
-#endif
+// #ifdef RDBMS
+// 	void sqlConnect(const std::string& rdbms, const std::string& database, const std::string& user, const std::string& password);
+// 	void sqlQuery(const std::string& query);
+// 	void sqlDisconnect();
+// #else
+// 	void sqlConnect(const std::string& rdbms, const std::string& database, const std::string& user, const std::string& password) {}
+// 	void sqlQuery(const std::string& query) {}
+// 	void sqlDisconnect() {}
+// #endif
 
 	static void init(ControlClient *control, const std::string& master);
 	static void run(const std::string& name, Parameter& param);

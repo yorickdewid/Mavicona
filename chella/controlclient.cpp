@@ -9,7 +9,7 @@ void ControlClient::runTask() {
 
 	ControlMessage msg;
 	msg.set_id(0);
-	msg.set_quid("7234679823aeb");
+	msg.set_quid("00000000-0000-0000-0000-000000000000");
 	msg.set_action(ControlMessage::SOLICIT);
 
 	std::string serialized;

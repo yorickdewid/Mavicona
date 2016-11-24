@@ -10,9 +10,8 @@
 #include "protoc/processjob.pb.h"
 #include "dirent.h"
 #include "wal.h"
+#include "localenv.h"
 #include "exec.h"
-#include "ace/config.h"
-#include "ace/ipc.h"
 
 void Execute::init(ControlClient *control, const std::string& _master) {
 	DIR *dir = nullptr;
@@ -48,6 +47,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	Wal *executionLog = new Wal(name, param);
 
 	struct timeval t1, t2;
+	char buff[PATH_MAX + 1];
 
 	Execute& exec = Execute::getInstance();
 
@@ -67,7 +67,8 @@ void Execute::run(const std::string& name, Parameter& param) {
 	exec.jobpartition_count = param.jobpartition_count;
 	exec.jobstate = param.jobstate;
 	exec.jobparent = param.jobparent;
-
+	char *cwd = getcwd(buff, PATH_MAX + 1);
+	
 	/* Ensure package exist */
 	if (!file_exist(PKGDIR "/" + name)) {
 		exec.jobcontrol->setStateIdle();
@@ -75,13 +76,22 @@ void Execute::run(const std::string& name, Parameter& param) {
 		return;
 	}
 
-	//TODO: check if module directory already exist
+	if (!file_exist(LOCALDIR "/" + name + "/.jobhome")) {
+		/* Extract package in job directory */
+		if (package_extract((PKGDIR "/" + name).c_str(), (LOCALDIR "/" + name).c_str())) {
+			std::cerr << "Cannot open package " << std::endl;
+			return;
+		}
 
-	/* Extract package in job directory */
-	if (package_extract((PKGDIR "/" + name).c_str(), ("cache/local/" + name).c_str())) {
-		exec.jobcontrol->setStateIdle();
-		std::cerr << "Cannot open package " << std::endl;
-		return;
+		/* Setup job home */
+		if (!LocalEnv::setupHome(LOCALDIR "/" + name))
+			return;
+
+		/* Setup job home */
+		if (!LocalEnv::setupEnv(LOCALDIR "/" + name))
+			return;
+	} else {
+		std::cout << "Job environment already in cluster" << std::endl;
 	}
 
 	/* Move WAL forward */
@@ -93,7 +103,8 @@ void Execute::run(const std::string& name, Parameter& param) {
 		return;
 	}
 
-	chdir((LOCALDIR "/" + name).c_str());
+	/* Move to job home and prepare python */
+	chdir((std::string(cwd) + "/" + LOCALDIR "/" + name).c_str());
 	setenv("PYTHONPATH", ".", 1);
 	Py_SetProgramName(program);
 	Py_Initialize();
@@ -106,7 +117,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 
 	/* Initialize Ace modules */
 	PyObject *pMethodConfig = Ace::Config::PyAce_ModuleClass();
-	PyObject *pMethodCallback = Ace::IPC::PyAce_ModuleClass();
+	PyObject *pMethodCallback = Ace::IPC::PyAce_ModuleClass(exec.jobcontrol);
 
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::LOAD);
@@ -171,6 +182,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::SETUP_ONCE);
 
+	exec.jobcontrol->setStateSetup();
 	pResult = PyObject_CallMethod(pInstanceJob, "setup", NULL);
 	if (!pResult) {
 		PyErr_Print();
@@ -180,6 +192,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::SETUP);
 
+	exec.jobcontrol->setStateRunning();
 	pResult = PyObject_CallMethod(pInstanceJob, "run", "(y#)", param.jobdata.data(), param.jobdata.size());
 	if (!pResult) {
 		PyErr_Print();
@@ -189,6 +202,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::RUN);
 
+	exec.jobcontrol->setStateTeardown();
 	pResult = PyObject_CallMethod(pInstanceJob, "teardown", NULL);
 	if (!pResult) {
 		PyErr_Print();
@@ -213,6 +227,8 @@ void Execute::run(const std::string& name, Parameter& param) {
 		return;
 	}
 
+	//TODO: handle chains
+
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::PULLCHAIN);
 	gettimeofday(&t2, NULL);
@@ -227,6 +243,11 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Release resources allocated for this job */
 	Py_Finalize();
 	exec.sessionCleanup();
+	chdir(cwd);
+
+	/* Setup job home */
+	if (!LocalEnv::teardown(LOCALDIR "/" + name))
+		return;
 
 	/* Mark WAL done */
 	executionLog->markDone();

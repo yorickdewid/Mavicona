@@ -14,7 +14,7 @@ struct Wal {
 	std::string module;
 	Execute::Parameter jobparameters;
 
-	void writeLog(bool isDone = false);
+	void commit(bool isDone = false);
 
 	const std::string walname(const unsigned int id, const std::string& quid) {
 		std::stringstream ss;
@@ -44,11 +44,14 @@ struct Wal {
 	/* Create WAL if not exist, otherwise override */
 	Wal(const std::string& name, Execute::Parameter& param) : module(name), jobparameters(param) {
 		m_pFile = fopen(walname(param.jobid, param.jobquid).c_str(), "w+");
+		if (!m_pFile) {
+			std::cerr << "Cannot create WAL log" << std::endl;
+		}
 
 		assert(module.size() == 40);
 		assert(param.jobquid.size() == 36);
 
-		writeLog();
+		commit();
 	}
 
 	static void rollback(const std::string& name, std::function<void(const std::string& name, Execute::Parameter& param)> const& callback);

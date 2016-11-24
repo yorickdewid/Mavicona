@@ -1,4 +1,5 @@
 #include <cstring>
+#include <ctime>
 #include "wal.h"
 
 #define LOG_MAGIC		"WALU41Q"	/* Magic check */
@@ -15,13 +16,15 @@ struct pageHeader {
 	unsigned int jobpartition_count;
 	int jobstate;
 	int jobname_size;
+	unsigned int timestamp;
 	enum Wal::Checkpoint checkpoint = Wal::Checkpoint::NIL;
 };
 
-void Wal::writeLog(bool isDone) {
-	fseek(m_pFile, 0, SEEK_SET);
+void Wal::commit(bool isDone) {
+	rewind(m_pFile);
 
 	pageHeader header;
+	memset(&header, '\0', sizeof(pageHeader));
 	strcpy(header.magic, LOG_MAGIC);
 	strncpy(header.module, module.c_str(), 40);
 	strncpy(header.quid, jobparameters.jobquid.c_str(), 36);
@@ -33,17 +36,18 @@ void Wal::writeLog(bool isDone) {
 	header.jobpartition_count = jobparameters.jobpartition_count;
 	header.jobstate = static_cast<int>(jobparameters.jobstate);
 	header.jobname_size = jobparameters.jobname.size();
+	header.timestamp = (unsigned int)time(NULL);
 	fwrite((const char *)&header, sizeof(pageHeader), 1, m_pFile);
 	fwrite(jobparameters.jobname.c_str(), sizeof(char), jobparameters.jobname.size(), m_pFile);
 }
 
 void Wal::setCheckpoint(enum Wal::Checkpoint _checkpoint) {
 	this->checkpoint = _checkpoint;
-	writeLog();
+	commit();
 }
 
 void Wal::markDone() {
-	writeLog(true);
+	commit(true);
 }
 
 void Wal::rollback(const std::string& name, std::function<void(const std::string& name, Execute::Parameter& param)> const& callback) {
@@ -51,10 +55,14 @@ void Wal::rollback(const std::string& name, std::function<void(const std::string
 	short recovery_likeliness = 50;
 
 	FILE *m_pFile = fopen((WALDIR "/" + name).c_str(), "r+");
+	if (!m_pFile){
+		std::cerr << "Cannot read WAL log" << std::endl;
+		return;
+	}
 	fread(&header, sizeof(pageHeader), 1, m_pFile);
 
 	if (strcmp((const char *)header.magic, LOG_MAGIC)) {
-		puts("Magic error 1"); // throw error
+		std::cerr << "Magic error" << std::endl;
 		return;
 	}
 
@@ -62,7 +70,7 @@ void Wal::rollback(const std::string& name, std::function<void(const std::string
 
 	/* Check if WAL was marked done */
 	if (header.done)
-		return;
+		return;//TODO: remove WAL
 
 	/* Only try so many times */
 	recovery_likeliness -= (header.failcount * -10);

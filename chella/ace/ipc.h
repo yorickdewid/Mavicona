@@ -3,6 +3,9 @@
 
 #include <Python.h>
 #include <structmember.h>
+#include "../controlclient.h"
+
+static ControlClient *_global_control = NULL;
 
 namespace Ace {
 
@@ -10,25 +13,48 @@ namespace IPC {
 
 typedef struct {
 	PyObject_HEAD
+	ControlClient *control;
 } ace_callback_t;
 
+static PyObject *Callback_worder_id(PyObject *self) {
+	ace_callback_t *_self = (ace_callback_t *)self;
+
+    return PyLong_FromLong(_self->control->workerId());
+}
+
 static PyObject *Callback_job_count(PyObject *self) {
-    return PyLong_FromLong(88);
+	ace_callback_t *_self = (ace_callback_t *)self;
+
+    return PyLong_FromLong(_self->control->clusterJobs());
 }
 
 static PyObject *Callback_update_progress(PyObject *self, PyObject *args) {
+	ace_callback_t *_self = (ace_callback_t *)self;
 	unsigned int progress = 0;
+
 	if (!PyArg_ParseTuple(args, "I:update_progress", &progress))
-        return NULL;
+        Py_RETURN_NONE;
+
+    _self->control->updateStateRunning(progress);
 
     Py_RETURN_NONE;
 }
 
 static PyMethodDef module_methods[] = {
-    {"job_count", (PyCFunction)Callback_job_count, METH_NOARGS, "Return the name, combining the first and last name" },
-    {"update_progress", (PyCFunction)Callback_update_progress, METH_VARARGS, "Return the name, combining the first and last name" },
+    {"worker_id", (PyCFunction)Callback_worder_id, METH_NOARGS, "Get worker id"},
+    {"job_count", (PyCFunction)Callback_job_count, METH_NOARGS, "Request number of jobs in cluster"},
+    {"update_progress", (PyCFunction)Callback_update_progress, METH_VARARGS, "Update job progress"},
     {NULL}  /* Sentinel */
 };
+
+PyObject *module_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
+	ace_callback_t *self = (ace_callback_t *)type->tp_alloc(type, 0);
+	if (self != NULL) {
+		self->control = _global_control;
+	}
+
+	return (PyObject *)self;
+}
 
 static PyTypeObject module_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -68,7 +94,7 @@ static PyTypeObject module_Type = {
 	0,														/* tp_dictoffset */
 	NULL,													/* tp_init */
 	PyType_GenericAlloc,									/* tp_alloc */
-	PyType_GenericNew,										/* tp_new */
+	module_new,												/* tp_new */
 };
 
 static PyModuleDef module = {
@@ -97,7 +123,8 @@ PyObject *PyAce_Init() {
 	return pModule;
 }
 
-PyObject *PyAce_ModuleClass() {
+PyObject *PyAce_ModuleClass(ControlClient *control) {
+	_global_control = control;
 	PyObject *pType = PyObject_GetAttrString(PyAce_Init(), "Callback");
 	if (!pType || !PyCallable_Check(pType)) {
 		PyErr_Print();
