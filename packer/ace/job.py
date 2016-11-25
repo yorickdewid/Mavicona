@@ -8,8 +8,8 @@
 # permission of the author.
 #
 
-import time;
-import os;
+import time
+import os
 from enum import Enum
 
 class JobModel(Enum):
@@ -37,10 +37,11 @@ class Chain(object):
 		})
 
 class Worker(object):
-	id = os.environ.get('WORKERID')
+	def id(self):
+		return os.environ.get('WORKERID')
 
 	def name(self):
-		return "worker-" + str(self.id)
+		return "worker-" + str(os.environ.get('WORKERID'))
 
 class Cluster(object):
 	_ipc = None
@@ -87,7 +88,6 @@ class Job(JobInterface):
 	worker = Worker()
 
 	status = JobStatus.spawn
-	chains = []
 
 	def inject(self, ipc, id, name, module, quid, partition=0, total_partitions=0, parent=None):
 		print("Prepare job at", time.asctime(time.localtime(time.time())))
@@ -103,6 +103,7 @@ class Job(JobInterface):
 		self.parent = parent
 
 		self.cluster = Cluster(self._ipc)
+		self.chains = []
 
 	def update_status(self, status):
 		self.status = JobStatus(status)

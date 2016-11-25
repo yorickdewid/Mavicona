@@ -37,7 +37,7 @@ class Example(ace.job.Job):
 		print("Job module", self.module);
 		print("Job partition", self.partition);
 		print("Job total partitions", self.total_partitions);
-		print("Job status", self.partition);
+		print("Job status", self.status);
 		print("Job parent", self.parent);
 
 		""" Print environment """
@@ -46,14 +46,14 @@ class Example(ace.job.Job):
 		print("Login", self.env.login())
 
 		""" Print cluster info """
-		print("Worker", self.worker.id)
+		print("Worker", self.worker.id())
 		print("Worker", self.worker.name())
 		print("Jobs in cluster", self.cluster.job_count())
 
 		print('')
 
-		for key in os.environ.keys():
-			print("%30s = %s" % (key, os.environ[key]))
+		# for key in os.environ.keys():
+			# print("%30s = %s" % (key, os.environ[key]))
 
 		print('')
 
