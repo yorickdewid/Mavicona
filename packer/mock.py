@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 ##
 # Copyright (C) 2015-2016 Mavicona, Quenza Inc.
 # All Rights Reserved
@@ -16,11 +17,11 @@ import sys
 import random
 import uuid
 import importlib
+import pathlib
 import ace.config
 import ace.job
 import ace.ipc
 import ace.sha1
-job_example = importlib.import_module('job_example')
 
 jobnames = ['Random', 'SuperTest', 'Generator', 'WordCount', 'Coverage', 'Unit']
 jobdata = ('Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo'
@@ -35,6 +36,9 @@ jobdata = ('Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean com
 			'ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla '
 			'ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies '
 			'nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui.')
+
+def usage(name):
+	print(name, '[Python file]')
 
 def jobrunner(name, status=ace.job.JobStatus.spawn, partition=0, partition_count=0, parent=None):
 	quid = uuid.uuid4()
@@ -78,5 +82,20 @@ def jobrunner(name, status=ace.job.JobStatus.spawn, partition=0, partition_count
 			partition += 1
 
 if __name__ == '__main__':
+	if len(sys.argv) < 2:
+		usage(sys.argv[0])
+		exit(0)
+	
 	os.environ["WORKERID"] = str(random.randint(0, 150))
+
+	if sys.argv[1] == '--help' or sys.argv[1] == '-h':
+		usage(sys.argv[0])
+		exit(0)
+
+	file = pathlib.Path(sys.argv[1])
+	if not file.is_file():
+		print('Cannot open python file:',file.name)
+		exit(0)
+
+	job_example = importlib.import_module(file.name[:-3])
 	jobrunner(random.choice(jobnames))
