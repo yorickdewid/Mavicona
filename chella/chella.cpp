@@ -15,6 +15,7 @@
 #include "protoc/processjob.pb.h"
 #include "nodemanager.h"
 #include "controlclient.h"
+#include "indexer.h"
 #include "sha1.h"
 #include "exec.h"
 
@@ -25,9 +26,10 @@ static std::string masterIPC;
 static std::string master;
 static bool interrupted = false;
 static char **init_argv = NULL;
-static unsigned int jobcounter = 0;
 
 std::queue<ProcessJob> jobqueue;
+
+Indexer *db = nullptr;
 
 void signal_handler(int signum) {
 	interrupted = true;
@@ -75,19 +77,6 @@ int setupGuard() {
 	}
 
 	return pid;
-}
-
-void setupIndex() {
-	leveldb::DB *db = nullptr;
-
-	leveldb::Options options;
-	options.create_if_missing = true;
-	leveldb::Status status = leveldb::DB::Open(options, DBDIR, &db);
-
-	if (!status.ok())
-		std::cerr << status.ToString() << std::endl;
-
-	delete db;
 }
 
 void handleWokerController(zmq::socket_t& socket) {
@@ -141,11 +130,14 @@ void handleIncommingJob(zmq::socket_t& socket) {
 
 	ProcessJob job;
 	job.ParseFromArray(request.data(), request.size());
-	job.set_id(jobcounter++);
+	job.set_id(db->jobCounter());
 
 	jobqueue.push(job);
 
 	std::cout << "Incomming job #" << job.id() << std::endl;
+
+	if (!job.id() % 2)
+		db->storeCounter();
 
 	/* Send reply back to client */
 	request.rebuild(0);
@@ -154,6 +146,10 @@ void handleIncommingJob(zmq::socket_t& socket) {
 
 void initMaster() {
 	std::cout << "Starting master" << std::endl;
+
+	/* Create cache directory */
+	mkdir(VARDIR, 0700);
+	db = new Indexer(MSTDIR);
 
 	int opt = 1;
 	zmq::context_t context(1);
@@ -198,6 +194,9 @@ void initMaster() {
 			break;
 		}
 	}
+
+	db->storeCounter();
+	delete db;
 }
 
 void prepareJob(zmq::message_t& message) {
@@ -255,9 +254,7 @@ void initSlave() {
 	mkdir(LOCALDIR, 0700);
 	mkdir(TMPDIR, 0700);
 	mkdir(ETCDIR, 0700);
-
-	/* Local database */
-	setupIndex();
+	db = new Indexer(DBDIR);
 
 #ifdef GUARD
 	/* Guard the process */
@@ -269,7 +266,7 @@ void initSlave() {
 	zmq::socket_t receiver(context, ZMQ_REQ);
 	receiver.connect(("tcp://" + masterProvision).c_str());
 
-	Execute::init(&control, master);
+	Execute::init(&control, master, db);
 
 	while (true) {
 		try {
@@ -293,6 +290,8 @@ void initSlave() {
 			break;
 		}
 	}
+
+	delete db;
 }
 
 int main(int argc, char *argv[]) {
