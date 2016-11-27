@@ -21,6 +21,7 @@ import pathlib
 import ace.config
 import ace.job
 import ace.ipc
+import ace.db
 import ace.sha1
 
 jobnames = ['Random', 'SuperTest', 'Generator', 'WordCount', 'Coverage', 'Unit']
@@ -44,7 +45,9 @@ def jobrunner(name, status=ace.job.JobStatus.spawn, partition=0, partition_count
 	quid = uuid.uuid4()
 	ins = job_example.job_init(ace.config.Config())
 	obj = ins.invoke()
-	obj.inject(ace.ipc.Callback,
+	obj.__ipc__ = ace.ipc.Callback()
+	obj.__db__ = ace.db.DB()
+	obj.inject(
 		random.randint(1, 10000),
 		name,
 		ace.sha1.sha1(bytearray(os.urandom(10))),
