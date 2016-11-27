@@ -23,23 +23,11 @@
 #define	DBDIR		VARDIR "/db"
 #define	MSTDIR		VARDIR "/master"
 
-// inline int iter_cb(void *data, const unsigned char *key, uint32_t key_len, void *val) {
-// 	delete static_cast<std::string *>(val);
-// 	return 0;
-// }
-
 class Execute : public Callback {
 	std::string master;
 	ControlClient *jobcontrol = nullptr;
 	Ace::Chain *chain = nullptr;
 	Indexer *db = nullptr;
-
-#ifdef CACHE
-	// art_tree *cache = nullptr;
-#endif
-#ifdef RDBMS
-	// soci::session *session = nullptr;
-#endif
 
 	Execute() {};
 
@@ -72,43 +60,8 @@ class Execute : public Callback {
 	}
 
 	void sessionCleanup() {
-// #ifdef CACHE
-// 		if (this->cache) {
-// 			std::string out;
-// 			art_iter(this->cache, iter_cb, &out);
-// 			art_tree_destroy(this->cache);
-// 			free(this->cache);
-// 			this->cache = nullptr;
-// 		}
-// #endif
-
-// #ifdef RDBMS
-// 		if (session) {
-// 			delete session;
-// 			session = nullptr;
-// 		}
-// #endif
+		//TODO
 	}
-
-// #ifdef CACHE
-// 	void cachePut(const std::string& key, const std::string value);
-// 	void cacheDelete(const std::string& key);
-// 	std::string cacheGet(const std::string& key);
-// #else
-// 	void cachePut(const std::string& key, const std::string value) {}
-// 	void cacheDelete(const std::string& key) {}
-// 	std::string cacheGet(const std::string& key) { return ""; }
-// #endif
-
-// #ifdef RDBMS
-// 	void sqlConnect(const std::string& rdbms, const std::string& database, const std::string& user, const std::string& password);
-// 	void sqlQuery(const std::string& query);
-// 	void sqlDisconnect();
-// #else
-// 	void sqlConnect(const std::string& rdbms, const std::string& database, const std::string& user, const std::string& password) {}
-// 	void sqlQuery(const std::string& query) {}
-// 	void sqlDisconnect() {}
-// #endif
 
 	static void init(ControlClient *control, const std::string& master, Indexer *_db);
 	static void run(const std::string& name, Parameter& param);
