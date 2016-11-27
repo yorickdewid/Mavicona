@@ -55,8 +55,6 @@ class Example(ace.job.Job):
 		# for key in os.environ.keys():
 			# print("%30s = %s" % (key, os.environ[key]))
 
-		print('')
-
 		if self.is_spawn():
 			print("Spawn child jobs")
 

@@ -93,6 +93,13 @@ int remove_directory(const char *path) {
 	return r;
 }
 
+const char *file_extension(const char *fname) {
+	const char *dot = strrchr(fname, '.');
+	if (!dot || dot == fname)
+		return NULL;
+	return dot + 1;
+}
+
 void usage(const char *prog) {
 	printf("Jobpacker " VERSION " Copyright (C) 2015-2016 Mavicona, Quenza Inc.\n"
 		   "All Rights Reserved\n"
@@ -164,41 +171,51 @@ int main(int argc, char *argv[]) {
 			continue;
 		}
 
-		if (find_in_file(argv[c], "def package") > 0) {
-			char buf[512];
-			char *str = strdup(argv[c]);
-			char *module = strtok(str, ".");
-			if (module) {
-				snprintf(buf, sizeof(buf),
-					"import socket\nimport json\n"
-					"import time\nimport %s\n"
-					"r=%s.package()\n"
-					"with open('package.json', 'w') as fp:\n"
-					"\tr['meta']={}\n"
-					"\tr['meta']['main']='%s'\n"
-					"\tr['meta']['invoke']='job_init'\n"
-					"\tr['meta']['host']=socket.gethostname()\n"
-					"\tr['meta']['timestamp']=time.time()\n"
-					"\tjson.dump(r, fp)\n", module, module, argv[c]);
-				PyRun_SimpleString(buf);
+		if (c == 1)
+			continue;
 
-				if (file_exist("package.json"))
-					libtar_list_add(l, "package.json");
-				has_package = 1;
+		if (!file_exist(argv[c])) {
+			fprintf(stderr, "cannot find file %s, skipping ...\n", argv[c]);
+			continue;
+		}
+
+		const char *ext = file_extension(argv[c]);
+		if (ext && !strcmp(ext, "py")) {
+			if (find_in_file(argv[c], "def package") > 0) {
+				char buf[512];
+				char *str = strdup(argv[c]);
+				char *module = strtok(str, ".");
+				if (module) {
+					snprintf(buf, sizeof(buf),
+						"import socket\nimport json\n"
+						"import time\nimport %s\n"
+						"r=%s.package()\n"
+						"with open('package.json', 'w') as fp:\n"
+						"\tr['meta']={}\n"
+						"\tr['meta']['main']='%s'\n"
+						"\tr['meta']['invoke']='job_init'\n"
+						"\tr['meta']['host']=socket.gethostname()\n"
+						"\tr['meta']['timestamp']=time.time()\n"
+						"\tjson.dump(r, fp)\n", module, module, argv[c]);
+					PyRun_SimpleString(buf);
+
+					if (file_exist("package.json"))
+						libtar_list_add(l, "package.json");
+					has_package = 1;
+				}
+				free(str);
 			}
-			free(str);
+
+			if (find_in_file(argv[c], "def job_init") > 0) {
+				has_job_init = 1;
+			}
+
+			if (find_in_file(argv[c], "ace.job.Job") > 0) {
+				has_ace_job = 1;
+			}
 		}
 
-		if (find_in_file(argv[c], "def job_init") > 0) {
-			has_job_init = 1;
-		}
-
-		if (find_in_file(argv[c], "ace.job.Job") > 0) {
-			has_ace_job = 1;
-		}
-		
-		if (file_exist(argv[c]))
-			libtar_list_add(l, argv[c]);
+		libtar_list_add(l, argv[c]);
 	}
 
 	if (!has_job_init && job_check) {
