@@ -23,6 +23,21 @@ class JobStatus(Enum):
 	partition = 1
 	funnel = 2
 
+class DB(object):
+	__db__ = None
+
+	def __init__(self, db):
+		self.__db__ = db
+
+	def put(self, key, value):
+		self.__db__.put(key, value)
+	
+	def get(self, key):
+		return self.__db__.get(key)
+
+	def delete(self, key):
+		self.__db__.delete(key)
+
 class Chain(object):
 	subjobs = []
 	parent_quid = None
@@ -44,13 +59,13 @@ class Worker(object):
 		return "worker-" + str(os.environ.get('WORKERID'))
 
 class Cluster(object):
-	_ipc = None
+	__ipc__ = None
 
 	def __init__(self, ipc):
-		self._ipc = ipc
+		self.__ipc__ = ipc
 
 	def job_count(self):
-		return self._ipc.job_count()
+		return self.__ipc__.job_count()
 
 class Env(object):
 	def current_directory(self):
@@ -89,10 +104,9 @@ class Job(JobInterface):
 
 	status = JobStatus.spawn
 
-	def inject(self, ipc, id, name, module, quid, partition=0, total_partitions=0, parent=None):
+	def inject(self, id, name, module, quid, partition=0, total_partitions=0, parent=None):
 		print("Prepare job at", time.asctime(time.localtime(time.time())))
 
-		self._ipc = ipc()
 		self.id = id
 		self.name = name
 		self.module = module
@@ -102,7 +116,8 @@ class Job(JobInterface):
 		self.total_partitions = total_partitions
 		self.parent = parent
 
-		self.cluster = Cluster(self._ipc)
+		self.cluster = Cluster(self.__ipc__)
+		self.db = DB(self.__db__)
 		self.chains = []
 
 	def update_status(self, status):
@@ -130,4 +145,4 @@ class Job(JobInterface):
 		if process > 1000:
 			process = 1000
 	
-		self._ipc.update_progress(process)
+		self.__ipc__.update_progress(process)

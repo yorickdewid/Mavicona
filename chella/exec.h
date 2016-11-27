@@ -9,6 +9,7 @@
 #include <core/soci.h>
 #endif
 #include "controlclient.h"
+#include "indexer.h"
 #include "callback.h"
 #include "ace/chain.h"
 
@@ -20,16 +21,18 @@
 #define	TMPDIR		VARDIR "/tmp"
 #define	ETCDIR		VARDIR "/etc"
 #define	DBDIR		VARDIR "/db"
+#define	MSTDIR		VARDIR "/master"
 
-inline int iter_cb(void *data, const unsigned char *key, uint32_t key_len, void *val) {
-	delete static_cast<std::string *>(val);
-	return 0;
-}
+// inline int iter_cb(void *data, const unsigned char *key, uint32_t key_len, void *val) {
+// 	delete static_cast<std::string *>(val);
+// 	return 0;
+// }
 
 class Execute : public Callback {
 	std::string master;
 	ControlClient *jobcontrol = nullptr;
 	Ace::Chain *chain = nullptr;
+	Indexer *db = nullptr;
 
 #ifdef CACHE
 	// art_tree *cache = nullptr;
@@ -107,7 +110,7 @@ class Execute : public Callback {
 // 	void sqlDisconnect() {}
 // #endif
 
-	static void init(ControlClient *control, const std::string& master);
+	static void init(ControlClient *control, const std::string& master, Indexer *_db);
 	static void run(const std::string& name, Parameter& param);
 	static void prospect(const std::string& name);
 	static void dispose();

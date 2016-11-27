@@ -19,13 +19,13 @@ typedef struct {
 static PyObject *Callback_worder_id(PyObject *self) {
 	ace_callback_t *_self = (ace_callback_t *)self;
 
-    return PyLong_FromLong(_self->control->workerId());
+	return PyLong_FromLong(_self->control->workerId());
 }
 
 static PyObject *Callback_job_count(PyObject *self) {
 	ace_callback_t *_self = (ace_callback_t *)self;
 
-    return PyLong_FromLong(_self->control->clusterJobs());
+	return PyLong_FromLong(_self->control->clusterJobs());
 }
 
 static PyObject *Callback_update_progress(PyObject *self, PyObject *args) {
@@ -33,18 +33,18 @@ static PyObject *Callback_update_progress(PyObject *self, PyObject *args) {
 	unsigned int progress = 0;
 
 	if (!PyArg_ParseTuple(args, "I:update_progress", &progress))
-        Py_RETURN_NONE;
+		Py_RETURN_NONE;
 
-    _self->control->updateStateRunning(progress);
+	_self->control->updateStateRunning(progress);
 
-    Py_RETURN_NONE;
+	Py_RETURN_NONE;
 }
 
 static PyMethodDef module_methods[] = {
-    {"worker_id", (PyCFunction)Callback_worder_id, METH_NOARGS, "Get worker id"},
-    {"job_count", (PyCFunction)Callback_job_count, METH_NOARGS, "Request number of jobs in cluster"},
-    {"update_progress", (PyCFunction)Callback_update_progress, METH_VARARGS, "Update job progress"},
-    {NULL}  /* Sentinel */
+	{"worker_id", (PyCFunction)Callback_worder_id, METH_NOARGS, "Get worker id"},
+	{"job_count", (PyCFunction)Callback_job_count, METH_NOARGS, "Request number of jobs in cluster"},
+	{"update_progress", (PyCFunction)Callback_update_progress, METH_VARARGS, "Update job progress"},
+	{NULL}  /* Sentinel */
 };
 
 PyObject *module_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {

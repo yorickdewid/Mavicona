@@ -13,13 +13,14 @@
 #include "localenv.h"
 #include "exec.h"
 
-void Execute::init(ControlClient *control, const std::string& _master) {
+void Execute::init(ControlClient *control, const std::string& master, Indexer *db) {
 	DIR *dir = nullptr;
 	struct dirent *ent = nullptr;
 
 	Execute& exec = Execute::getInstance();
 	exec.jobcontrol = control;
-	exec.master = _master;
+	exec.master = master;
+	exec.db = db;
 
 	if ((dir = opendir(WALDIR)) != NULL) {
 
@@ -67,7 +68,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	exec.jobstate = param.jobstate;
 	exec.jobparent = param.jobparent;
 	char *cwd = getcwd(buff, PATH_MAX + 1);
-	
+
 	/* Ensure package exist */
 	if (!file_exist(PKGDIR "/" + name)) {
 		exec.jobcontrol->setStateIdle();
@@ -105,6 +106,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Move to job home and prepare python */
 	chdir((std::string(cwd) + "/" + LOCALDIR "/" + name).c_str());
 	setenv("PYTHONPATH", ".", 1);
+	
 	Py_SetProgramName(program);
 	Py_Initialize();
 
@@ -114,9 +116,11 @@ void Execute::run(const std::string& name, Parameter& param) {
 		return;
 	}
 
+
 	/* Initialize Ace modules */
 	PyObject *pMethodConfig = Ace::Config::PyAce_ModuleClass();
 	PyObject *pMethodCallback = Ace::IPC::PyAce_ModuleClass(exec.jobcontrol);
+	PyObject *pMethodDB = Ace::DB::PyAce_ModuleClass(exec.db);
 
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::LOAD);
@@ -125,6 +129,20 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Create Ace config instance */
 	PyObject *pInstanceConfig = PyObject_CallObject(pMethodConfig, NULL);
 	if (!pInstanceConfig) {
+		PyErr_Print();
+		return;
+	}
+
+	/* Create Ace callback instance */
+	PyObject *pInstanceCallback = PyObject_CallObject(pMethodCallback, NULL);
+	if (!pInstanceCallback) {
+		PyErr_Print();
+		return;
+	}
+
+	/* Create Ace DB instance */
+	PyObject *pInstanceDB = PyObject_CallObject(pMethodDB, NULL);
+	if (!pInstanceDB) {
 		PyErr_Print();
 		return;
 	}
@@ -156,8 +174,19 @@ void Execute::run(const std::string& name, Parameter& param) {
 		return;
 	}
 	
+	/* Inject module instances into job instance */
+	if (PyObject_SetAttrString(pInstanceJob, "__ipc__", pInstanceCallback) < 0) {
+		PyErr_Print();
+		return;
+	}
+
+	if (PyObject_SetAttrString(pInstanceJob, "__db__", pInstanceDB) < 0) {
+		PyErr_Print();
+		return;	
+	}
+
 	PyObject *pResult = NULL;
-	pResult = PyObject_CallMethod(pInstanceJob, "inject", "(Oisssii)", pMethodCallback,
+	pResult = PyObject_CallMethod(pInstanceJob, "inject", "(isssii)",
 		exec.jobid,
 		exec.jobname.c_str(),
 		name.c_str(),
@@ -235,6 +264,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	Py_DECREF(pResult);
 	Py_DECREF(pMemberChains);
 	Py_DECREF(pInstanceJob);
+	Py_DECREF(pMethodDB);
 	Py_DECREF(pMethodCallback);
 	Py_DECREF(pMethodConfig);
 	Py_DECREF(pModuleJob);
