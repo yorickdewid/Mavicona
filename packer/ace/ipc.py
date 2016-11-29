@@ -18,4 +18,4 @@ class Callback(object):
 		pass
 	
 	def job_count(self):
-		return random.randint(0,10000)
+		return random.randint(0, 10000)

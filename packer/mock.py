@@ -100,5 +100,6 @@ if __name__ == '__main__':
 		print('Cannot open python file:',file.name)
 		exit(0)
 
+	import ace.asys
 	job_example = importlib.import_module(file.name[:-3])
 	jobrunner(random.choice(jobnames))

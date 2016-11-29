@@ -26,6 +26,7 @@ class Example(ace.job.Job):
 	def setup_once(self):
 		""" Do some early initialization once """
 		print("First setup")
+		time.sleep(2)
 
 	def setup(self):
 		""" This routine is run for every node """
@@ -64,11 +65,21 @@ class Example(ace.job.Job):
 
 			self.push_chain(chain)
 
+		time.sleep(2)
+
 	def run(self, data):
 		""" Run the job content """
-		self.update_progress(50)
+		time.sleep(1)
+		self.update_progress(150)
+		time.sleep(1)
+		self.update_progress(450)
+		time.sleep(1)
 		print("Running, data size", len(data), "bytes")
-		self.update_progress(500)
+		time.sleep(1)
+		self.update_progress(750)
+		time.sleep(1)
+		self.update_progress(1000)
+		time.sleep(2)
 
 	def teardown(self):
 		""" This routine is run for every node """
@@ -76,9 +87,13 @@ class Example(ace.job.Job):
 
 		print('Start time was', self.db.get('start_time'))
 
+		time.sleep(2)
+
 	def teardown_once(self):
 		""" Close handles, release resources """
 		print("Teardown last")
+
+		time.sleep(2)
 
 """ Declare job properties """
 def job_init(cfg):
