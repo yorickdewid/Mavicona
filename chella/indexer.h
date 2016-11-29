@@ -2,6 +2,7 @@
 #define INDEXER_H
 
 #include <queue>
+#include <iostream>
 #include <leveldb/db.h>
 
 class Indexer {

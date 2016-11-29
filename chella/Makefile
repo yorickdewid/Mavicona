@@ -1,5 +1,17 @@
-OBJS = chella.o nodemanager.o controlclient.o archive.o wal.o exec.o sha1.o ../protoc/processjob.pb.o ../protoc/controlmessage.pb.o ../quid/libquid.a ../packer/libmpkg.a
+OBJS = chella.o \
+		nodemanager.o \
+		controlclient.o \
+		archive.o \
+		ace/config.o \
+		ace/db.o \
+		ace/ipc.o \
+		wal.o \
+		exec.o \
+		sha1.o \
+		../protoc/processjob.pb.o \
+		../protoc/controlmessage.pb.o
 CC = g++
+OBJS += ../quid/libquid.a ../packer/libmpkg.a
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq $(shell python3-config --libs) -ltar -lz -lleveldb
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -DCACHE -DZMQ_CPP11 -I.. -I../quid -I../packer -I../third_party/upscaledb/include -I../third_party/soci $(shell python3-config --includes) -Wno-write-strings
@@ -10,5 +22,5 @@ all: $(OBJS)
 	$(CC) $(LFLAGS) $(OBJS) -o chella
 
 clean:
-	$(RM) -rf *.o *.so
+	$(RM) -rf *.o ace/*.o
 	$(RM) -rf chella
