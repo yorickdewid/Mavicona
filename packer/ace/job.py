@@ -10,6 +10,7 @@
 
 import time
 import os
+import pickle
 from enum import Enum
 
 class JobModel(Enum):
@@ -30,10 +31,10 @@ class DB(object):
 		self.__db__ = db
 
 	def put(self, key, value):
-		self.__db__.put(key, value)
+		self.__db__.put(key, pickle.dumps(value))
 	
 	def get(self, key):
-		return self.__db__.get(key)
+		return pickle.loads(self.__db__.get(key))
 
 	def delete(self, key):
 		self.__db__.delete(key)

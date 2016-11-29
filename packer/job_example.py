@@ -1,4 +1,5 @@
 import os
+import time
 import ace.job
 
 """ Package info """
@@ -8,7 +9,7 @@ def package():
 		'description'	: 'Generate random data',
 		'author' 		: 'Yorick de Wid',
 		'license' 		: 'MIT',
-		'url' 			: 'http://x3.quenza.net/',
+		'url' 			: 'http://x3.mavicona.net/',
 		'keywords' 		: ['random', 'test'],
 		'checksum' 		: 'abaf2abe1e8185f3b17c4d0c34dbeed2b4b9d2ad9232b195378d8ced6c519270',
 		'settings'		: {
@@ -52,8 +53,7 @@ class Example(ace.job.Job):
 
 		print('')
 
-		# for key in os.environ.keys():
-			# print("%30s = %s" % (key, os.environ[key]))
+		self.db.put('start_time', time.time())
 
 		if self.is_spawn():
 			print("Spawn child jobs")
@@ -73,6 +73,8 @@ class Example(ace.job.Job):
 	def teardown(self):
 		""" This routine is run for every node """
 		print("Teardown")
+
+		print('Start time was', self.db.get('start_time'))
 
 	def teardown_once(self):
 		""" Close handles, release resources """

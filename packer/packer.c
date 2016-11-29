@@ -171,6 +171,7 @@ int main(int argc, char *argv[]) {
 			continue;
 		}
 
+		/* Skip over first argument */
 		if (c == 1)
 			continue;
 
@@ -179,6 +180,7 @@ int main(int argc, char *argv[]) {
 			continue;
 		}
 
+		/* Test python files */
 		const char *ext = file_extension(argv[c]);
 		if (ext && !strcmp(ext, "py")) {
 			if (find_in_file(argv[c], "def package") > 0) {
@@ -215,6 +217,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
+		/* Append to archieve */
 		libtar_list_add(l, argv[c]);
 	}
 

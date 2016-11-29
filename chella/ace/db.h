@@ -28,9 +28,6 @@ static PyObject *DB_put(PyObject *self, PyObject *args) {
 
 	_self->db->putItem(key, key_size, value, value_size);
 
-	printf("key_size %d\n", key_size);
-	printf("value_size %d\n", value_size);
-
 	Py_RETURN_NONE;
 }
 
@@ -45,7 +42,7 @@ static PyObject *DB_get(PyObject *self, PyObject *args) {
 	//TODO: accept only C style here
 	std::string value = _self->db->getItem(key, key_size);
 
-	return Py_BuildValue("s#", value.data(), value.size());
+	return Py_BuildValue("y#", value.data(), value.size());
 }
 
 static PyObject *DB_delete(PyObject *self, PyObject *args) {
