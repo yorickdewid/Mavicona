@@ -23,7 +23,7 @@ struct Callback {
 	JobState jobstate;
 
 	virtual void updateProgress(unsigned short progress) = 0;
-	virtual void sessionCleanup() = 0
+	virtual void sessionCleanup() = 0;
 };
 
 #endif // CALLBACK_H
