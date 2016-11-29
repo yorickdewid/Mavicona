@@ -82,13 +82,13 @@ void protobuf_AddDesc_controlmessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\024controlmessage.proto\"\354\001\n\016ControlMessag"
+    "\n\024controlmessage.proto\"\370\001\n\016ControlMessag"
     "e\022\n\n\002id\030\001 \002(\005\022\014\n\004quid\030\002 \002(\t\022&\n\006action\030\003 "
     "\002(\0162\026.ControlMessage.Action\022\020\n\010progress\030"
-    "\004 \001(\005\022\024\n\014cluster_jobs\030\005 \001(\005\"p\n\006Action\022\013\n"
+    "\004 \001(\005\022\024\n\014cluster_jobs\030\005 \001(\005\"|\n\006Action\022\013\n"
     "\007SOLICIT\020\000\022\010\n\004IDLE\020\001\022\014\n\010ACCEPTED\020\002\022\t\n\005SE"
-    "TUP\020\003\022\013\n\007RUNNING\020\004\022\014\n\010TEARDOWN\020\005\022\014\n\010SHUT"
-    "DOWN\020c\022\r\n\tCONFIRMED\020d", 261);
+    "TUP\020\003\022\013\n\007RUNNING\020\004\022\014\n\010TEARDOWN\020\005\022\n\n\006FAIL"
+    "ED\020\006\022\014\n\010SHUTDOWN\020c\022\r\n\tCONFIRMED\020d", 273);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "controlmessage.proto", &protobuf_RegisterTypes);
   ControlMessage::default_instance_ = new ControlMessage();
@@ -117,6 +117,7 @@ bool ControlMessage_Action_IsValid(int value) {
     case 3:
     case 4:
     case 5:
+    case 6:
     case 99:
     case 100:
       return true;
@@ -132,6 +133,7 @@ const ControlMessage_Action ControlMessage::ACCEPTED;
 const ControlMessage_Action ControlMessage::SETUP;
 const ControlMessage_Action ControlMessage::RUNNING;
 const ControlMessage_Action ControlMessage::TEARDOWN;
+const ControlMessage_Action ControlMessage::FAILED;
 const ControlMessage_Action ControlMessage::SHUTDOWN;
 const ControlMessage_Action ControlMessage::CONFIRMED;
 const ControlMessage_Action ControlMessage::Action_MIN;

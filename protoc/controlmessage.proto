@@ -9,6 +9,7 @@ message ControlMessage {
     SETUP = 3;
     RUNNING = 4;
     TEARDOWN = 5;
+    FAILED = 6;
     SHUTDOWN = 99;
     CONFIRMED = 100;
   }

@@ -119,6 +119,8 @@ void handleWorkerRequest(zmq::socket_t& socket) {
 	memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
 	socket.send(request);
 
+	std::cout << "Provision job #" << nextjob.id() << std::endl;
+
 	jobqueue.pop();
 }
 
@@ -134,7 +136,7 @@ void handleIncommingJob(zmq::socket_t& socket) {
 
 	jobqueue.push(job);
 
-	std::cout << "Incomming job #" << job.id() << std::endl;
+	std::cout << "Incomming job #" << job.id() <<  " -> " << job.quid() << std::endl;
 
 	if (!job.id() % 2)
 		db->storeCounter();

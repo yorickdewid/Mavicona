@@ -69,6 +69,8 @@ void Execute::run(const std::string& name, Parameter& param) {
 	exec.jobparent = param.jobparent;
 	char *cwd = getcwd(buff, PATH_MAX + 1);
 
+	exec.jobcontrol->resetInternalState();
+
 	/* Ensure package exist */
 	if (!file_exist(PKGDIR "/" + name)) {
 		exec.jobcontrol->setStateIdle();
@@ -195,6 +197,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 		exec.jobpartition_count);
 	if (!pResult) {
 		PyErr_Print();
+		exec.jobcontrol->setStateFailed();
 		return;
 	}
 
@@ -204,6 +207,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	pResult = PyObject_CallMethod(pInstanceJob, "setup_once", NULL);
 	if (!pResult) {
 		PyErr_Print();
+		exec.jobcontrol->setStateFailed();
 		return;
 	}
 
@@ -214,6 +218,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	pResult = PyObject_CallMethod(pInstanceJob, "setup", NULL);
 	if (!pResult) {
 		PyErr_Print();
+		exec.jobcontrol->setStateFailed();
 		return;
 	}
 
@@ -224,6 +229,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	pResult = PyObject_CallMethod(pInstanceJob, "run", "(y#)", param.jobdata.data(), param.jobdata.size());
 	if (!pResult) {
 		PyErr_Print();
+		exec.jobcontrol->setStateFailed();
 		return;
 	}
 
@@ -234,6 +240,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	pResult = PyObject_CallMethod(pInstanceJob, "teardown", NULL);
 	if (!pResult) {
 		PyErr_Print();
+		exec.jobcontrol->setStateFailed();
 		return;
 	}
 
@@ -243,6 +250,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	pResult = PyObject_CallMethod(pInstanceJob, "teardown_once", NULL);
 	if (!pResult) {
 		PyErr_Print();
+		exec.jobcontrol->setStateFailed();
 		return;
 	}
 
@@ -252,6 +260,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	PyObject *pMemberChains = PyObject_GetAttrString(pInstanceJob, "chains");	
 	if (!pMemberChains) {
 		PyErr_Print();
+		exec.jobcontrol->setStateFailed();
 		return;
 	}
 

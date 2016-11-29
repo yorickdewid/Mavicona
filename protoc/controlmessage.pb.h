@@ -41,6 +41,7 @@ enum ControlMessage_Action {
   ControlMessage_Action_SETUP = 3,
   ControlMessage_Action_RUNNING = 4,
   ControlMessage_Action_TEARDOWN = 5,
+  ControlMessage_Action_FAILED = 6,
   ControlMessage_Action_SHUTDOWN = 99,
   ControlMessage_Action_CONFIRMED = 100
 };
@@ -119,6 +120,7 @@ class ControlMessage : public ::google::protobuf::Message {
   static const Action SETUP = ControlMessage_Action_SETUP;
   static const Action RUNNING = ControlMessage_Action_RUNNING;
   static const Action TEARDOWN = ControlMessage_Action_TEARDOWN;
+  static const Action FAILED = ControlMessage_Action_FAILED;
   static const Action SHUTDOWN = ControlMessage_Action_SHUTDOWN;
   static const Action CONFIRMED = ControlMessage_Action_CONFIRMED;
   static inline bool Action_IsValid(int value) {

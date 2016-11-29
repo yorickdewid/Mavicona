@@ -27,6 +27,9 @@ void runTask(ControlMessage& message, size_t queuesize) {
 		case ControlMessage::TEARDOWN:
 			printf("worker-%d -> TEARDOWN\n", message.id());
 			break;
+		case ControlMessage::FAILED:
+			printf("worker-%d -> FAILED\n", message.id());
+			break;
 		case ControlMessage::SHUTDOWN:
 			std::cout << "Shutdown: Worker-" << message.id() << " signed off" << std::endl;
 			break;

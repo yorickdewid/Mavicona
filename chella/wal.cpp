@@ -65,8 +65,11 @@ void Wal::rollback(const std::string& name, std::function<void(const std::string
 	std::cout << "Checking log " << std::string(header.quid, 36) << ":" << header.jobid << std::endl;
 
 	/* Check if WAL was marked done */
-	if (header.done)
-		return;//TODO: remove WAL
+	if (header.done) {
+		fclose(m_pFile);
+		unlink((WALDIR "/" + name).c_str());
+		return;
+	}
 
 	/* Only try so many times */
 	recovery_likeliness -= (header.failcount * -10);

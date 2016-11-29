@@ -29,6 +29,7 @@ class ControlClient {
   public:
 	ControlClient() : _timeout(DEFAULT_HEARTBEAT * 1000) {
 		// this->_logger = new FileLogger("controller");
+		this->_state = ControlMessage::SOLICIT;
 	}
 
 	void runTask();
@@ -49,6 +50,10 @@ class ControlClient {
 		_mainRunner.detach();
 		_run = true;
 		_active = true;
+	}
+
+	inline void resetInternalState() {
+		this->updateStateRunning(0);
 	}
 
 	inline void pause() {
@@ -98,6 +103,11 @@ class ControlClient {
 
 	inline void setStateTeardown() {
 		this->_state = ControlMessage::TEARDOWN;
+	}
+
+	inline void setStateFailed() {
+		this->_state = ControlMessage::FAILED;
+		this->_timeout = DEFAULT_HEARTBEAT * 1000;
 	}
 
 	inline void stop() {

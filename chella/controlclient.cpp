@@ -43,7 +43,7 @@ void ControlClient::runTask() {
 		assert(this->_progress >= 0 && this->_progress <= 1000);
 
 		msg.set_id(this->_counter);
-		msg.set_quid("5a04a669-dfd7-4c6b-a86a-d230af26c868");// TODO
+		msg.set_quid("5a04a669-dfd7-4c6b-a86a-d230af26c868");// TODO, should be job QUID
 		msg.set_action(this->_state);
 		msg.set_progress(this->_progress);
 
