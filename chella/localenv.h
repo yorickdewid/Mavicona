@@ -59,13 +59,14 @@ bool setupEnv(const std::string& homedir) {
 	return true;
 }
 
-bool teardown(const std::string& homedir) {
-	std::ofstream lastrun;
+bool teardown(const std::string& homedir, int jobid) {
+	std::ofstream lastrun, lastjobid;
 
 	time_t t = time(NULL);
 	struct tm *now = localtime(&t);
 
 	lastrun.open(homedir + "/lastrun", std::ofstream::out);
+	lastjobid.open(homedir + "/lastjobid", std::ofstream::out);
 
 	lastrun << (now->tm_year + 1900) << '-' 
 		 << (now->tm_mon + 1) << '-'
@@ -75,6 +76,9 @@ bool teardown(const std::string& homedir) {
 		 << now->tm_sec
 		 << std::endl;
 
+	lastjobid << jobid << std::endl;
+
+	lastjobid.close();
 	lastrun.close();
 	return true;
 }

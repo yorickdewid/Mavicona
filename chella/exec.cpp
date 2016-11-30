@@ -290,7 +290,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	chdir(cwd);
 
 	/* Setup job home */
-	if (!LocalEnv::teardown(LOCALDIR "/" + name))
+	if (!LocalEnv::teardown(LOCALDIR "/" + name, exec.jobid))
 		return;
 
 	/* Mark WAL done */
