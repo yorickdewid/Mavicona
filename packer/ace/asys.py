@@ -15,6 +15,7 @@ import sys
 
 out = sys.stdout
 err = sys.stderr
+ins = sys.stderr
 
 class asys(object):
 	def __init__(self, writer):
@@ -31,9 +32,13 @@ class asys(object):
 	def isatty(self):
 		return False
 
+	def readline(self):
+		return '\0'
+
 	def write(self, txt):
 		self.value += txt
 		self.writer.write(txt)
 
 sys.stdout = asys(out)
 sys.stderr = asys(err)
+sys.stdin = asys(ins)

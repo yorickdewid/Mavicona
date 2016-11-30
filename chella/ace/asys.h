@@ -28,10 +28,15 @@ static PyObject *Asys_close() {
 	Py_RETURN_NONE;
 }
 
+static PyObject *Asys_readline() {
+	return Py_BuildValue("s", "000", 3);
+}
+
 static PyMethodDef module_methods[] = {
 	{"write", (PyCFunction)Asys_write, METH_VARARGS, "Write to buffer"},
 	{"flush", (PyCFunction)Asys_flush, METH_NOARGS, "Flush buffer"},
 	{"close", (PyCFunction)Asys_close, METH_NOARGS, "Close stream"},
+	{"readline", (PyCFunction)Asys_readline, METH_NOARGS, "Mock streamreader"},
 	{NULL}  /* Sentinel */
 };
 
@@ -63,6 +68,7 @@ PyObject *PyAce_ModuleClass() {
 		return NULL; 
 	
 	PySys_SetObject("stdout", pModule);
+	PySys_SetObject("stdin", pModule);
 
 	return pModule;
 }
