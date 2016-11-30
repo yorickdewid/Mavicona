@@ -4,6 +4,7 @@
 #include "../callback.h"
 #include "config.h"
 #include "chain.h"
+#include "asys.h"
 #include "ipc.h"
 #include "db.h"
 

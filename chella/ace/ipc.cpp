@@ -103,12 +103,16 @@ static PyModuleDef module = {
 };
 
 PyObject *Ace::IPC::PyAce_Init() {
-	if (PyType_Ready(&module_Type) < 0)
+	if (PyType_Ready(&module_Type) < 0) {
+		PyErr_Print();
 		return NULL;
+	}
 
 	PyObject *pModule = PyModule_Create(&module);
-	if (!pModule)
+	if (!pModule) {
+		PyErr_Print();
 		return NULL;
+	}
 
 	Py_INCREF(&module_Type);
 	PyModule_AddObject(pModule, "Callback", (PyObject *)&module_Type);

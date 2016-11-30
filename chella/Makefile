@@ -14,7 +14,7 @@ CC = g++
 OBJS += ../quid/libquid.a ../packer/libmpkg.a
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq $(shell python3-config --libs) -ltar -lz -lleveldb
-CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -DCACHE -DZMQ_CPP11 -I.. -I../quid -I../packer -I../third_party/upscaledb/include -I../third_party/soci $(shell python3-config --includes) -Wno-write-strings
+CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -DDEBUG -DZMQ_CPP11 -I.. -I../quid -I../packer -I../third_party/upscaledb/include -I../third_party/soci $(shell python3-config --includes) -Wno-write-strings
 CFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. -I../quid -I../packer -I../third_party/upscaledb/include
 LFLAGS = -Wall $(DEBUG) $(LIBS) -L../third_party/soci/build/lib/
 
