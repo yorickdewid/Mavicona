@@ -6,7 +6,7 @@
 
 namespace LocalEnv {
 	
-bool setupHome(const std::string& homedir) {
+bool setupHome(const std::string& homedir, int jobid) {
 	std::ofstream hometest;
 	hometest.open(homedir + "/.jobhome", std::ofstream::out);
 	if (hometest.fail()) {
@@ -29,9 +29,10 @@ bool setupHome(const std::string& homedir) {
 		std::cerr << homedir << " not writable" << std::endl;
 		return false;
 	}
-	lock << "12";//TODO: job id
+	lock << jobid;
 	lock.close();
 
+	//TODO: check if directories already exist
 	mkdir((homedir + "/run").c_str(), 0700);
 	mkdir((homedir + "/tmp").c_str(), 0700);
 	return true;

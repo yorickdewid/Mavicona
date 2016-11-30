@@ -63,6 +63,13 @@ class Example(ace.job.Job):
 
 		print('')
 
+		""" Print environment injected variables """
+		print('Database host', os.environ.get('PG_HOST'))
+		print('Database user', os.environ.get('PG_USER'))
+		print('Database pasword', os.environ.get('PG_PASSWD'))
+
+		print('')
+
 		self.db.put('start_time', time.time())
 
 		if self.is_spawn():

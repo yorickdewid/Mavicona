@@ -115,4 +115,13 @@ if __name__ == '__main__':
 			meta['meta']['host'] = socket.gethostname()
 			meta['meta']['timestamp'] = time.time()
 			json.dump(meta, fp)
+
+	if os.path.isfile('.env'):
+		with open('.env') as envdata:
+			for line in envdata.readlines():
+				kv = line[:-1].split('=', 1)
+				if (len(kv) != 2):
+					continue
+				os.environ[kv[0]] = str(kv[1])
+
 	jobrunner(random.choice(jobnames))

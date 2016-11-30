@@ -86,7 +86,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 		}
 
 		/* Setup job home */
-		if (!LocalEnv::setupHome(LOCALDIR "/" + name))
+		if (!LocalEnv::setupHome(LOCALDIR "/" + name, exec.jobid))
 			return;
 
 		/* Setup job home */
