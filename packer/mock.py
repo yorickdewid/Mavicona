@@ -16,7 +16,10 @@ import os
 import sys
 import random
 import uuid
+import json
+import time
 import importlib
+import socket
 import pathlib
 import ace.config
 import ace.job
@@ -43,8 +46,9 @@ def usage(name):
 
 def jobrunner(name, status=ace.job.JobStatus.spawn, partition=0, partition_count=0, parent=None):
 	quid = uuid.uuid4()
-	ins = job_example.job_init(ace.config.Config())
+	ins = job_mod.job_init(ace.config.Config())
 	obj = ins.invoke()
+	obj.cfg = ins
 	obj.__ipc__ = ace.ipc.Callback()
 	obj.__db__ = ace.db.DB()
 	obj.inject(
@@ -101,5 +105,14 @@ if __name__ == '__main__':
 		exit(0)
 
 	import ace.asys
-	job_example = importlib.import_module(file.name[:-3])
+	job_mod = importlib.import_module(file.name[:-3])
+	if 'package' in dir(job_mod):
+		meta = job_mod.package()
+		with open('package.json', 'w') as fp:
+			meta['meta'] = {}
+			meta['meta']['main'] = file.name
+			meta['meta']['invoke'] = 'job_init'
+			meta['meta']['host'] = socket.gethostname()
+			meta['meta']['timestamp'] = time.time()
+			json.dump(meta, fp)
 	jobrunner(random.choice(jobnames))

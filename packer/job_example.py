@@ -1,5 +1,6 @@
 import os
 import time
+import pprint
 import ace.job
 
 """ Package info """
@@ -13,7 +14,8 @@ def package():
 		'keywords' 		: ['random', 'test'],
 		'checksum' 		: 'abaf2abe1e8185f3b17c4d0c34dbeed2b4b9d2ad9232b195378d8ced6c519270',
 		'settings'		: {
-			'no-cache': False
+			'no-cache'	: False,
+			'sticky'	: True,
 		}
 	}
 
@@ -27,6 +29,13 @@ class Example(ace.job.Job):
 		""" Do some early initialization once """
 		print("First setup")
 		time.sleep(2)
+
+		if ace.job.PackageHelper().has_meta():
+			pprint.pprint(ace.job.PackageHelper().meta)
+
+		print('Operation mode', self.cfg.mode)
+		print('Max job runtime', self.cfg.max_runtime)
+		print('Retry count', self.cfg.retry)
 
 	def setup(self):
 		""" This routine is run for every node """

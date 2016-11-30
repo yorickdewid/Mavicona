@@ -13,8 +13,27 @@ bool setupHome(const std::string& homedir) {
 		std::cerr << homedir << " not writable" << std::endl;
 		return false;
 	}
-
 	hometest.close();
+
+	std::ofstream tab;
+	tab.open(homedir + "/.inittab");
+	if (tab.fail()) {
+		std::cerr << homedir << " not writable" << std::endl;
+		return false;
+	}
+	tab.close();
+
+	std::ofstream lock;
+	lock.open(homedir + "/MXLOCK");
+	if (lock.fail()) {
+		std::cerr << homedir << " not writable" << std::endl;
+		return false;
+	}
+	lock << "12";//TODO: job id
+	lock.close();
+
+	mkdir((homedir + "/run").c_str(), 0700);
+	mkdir((homedir + "/tmp").c_str(), 0700);
 	return true;
 }
 

@@ -10,6 +10,7 @@
 
 import time
 import os
+import json
 import pickle
 from enum import Enum
 
@@ -38,6 +39,17 @@ class DB(object):
 
 	def delete(self, key):
 		self.__db__.delete(key)
+
+class PackageHelper(object):
+	def __init__(self):
+		if os.path.isfile('package.json'):
+			with open('package.json') as metadata:
+				self.meta = json.load(metadata)
+
+	def has_meta(self):
+		if hasattr(self, 'meta'):
+			return True
+		return False
 
 class Chain(object):
 	subjobs = []

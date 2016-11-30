@@ -112,16 +112,16 @@ void Execute::run(const std::string& name, Parameter& param) {
 	Py_SetProgramName(program);
 	Py_Initialize();
 
-	PyObject *pModuleJob = PyImport_ImportModule("job_example");
+	PyObject *pModuleJob = PyImport_ImportModule("job_example");//TODO: parse json
 	if (!pModuleJob) {
 		PyErr_Print();
 		return;
 	}
 
-
 	/* Initialize Ace modules */
 	PyObject *pMethodConfig = Ace::Config::PyAce_ModuleClass();
 	PyObject *pMethodCallback = Ace::IPC::PyAce_ModuleClass(exec.jobcontrol);
+	PyObject *pMethodAsys = Ace::Asys::PyAce_ModuleClass();
 	PyObject *pMethodDB = Ace::DB::PyAce_ModuleClass(exec.db);
 
 	/* Move WAL forward */
@@ -177,6 +177,11 @@ void Execute::run(const std::string& name, Parameter& param) {
 	}
 	
 	/* Inject module instances into job instance */
+	if (PyObject_SetAttrString(pInstanceJob, "cfg", pInstanceConfig) < 0) {
+		PyErr_Print();
+		return;
+	}
+
 	if (PyObject_SetAttrString(pInstanceJob, "__ipc__", pInstanceCallback) < 0) {
 		PyErr_Print();
 		return;
@@ -274,6 +279,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	Py_DECREF(pMemberChains);
 	Py_DECREF(pInstanceJob);
 	Py_DECREF(pMethodDB);
+	Py_DECREF(pMethodAsys);
 	Py_DECREF(pMethodCallback);
 	Py_DECREF(pMethodConfig);
 	Py_DECREF(pModuleJob);
@@ -293,6 +299,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	double runtime = (t2.tv_sec - t1.tv_sec) * 1000.0;
 	runtime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
+	// Write to disk
 	std::cout << "Job routine reached end" << std::endl;
 	std::cout << "Total runtime: " << runtime << std::endl;
 
