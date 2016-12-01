@@ -2,6 +2,7 @@
 #define ACE_ASYS_H
 
 #include <Python.h>
+#include "common/logger.h"
 
 namespace Ace {
 
@@ -12,6 +13,12 @@ static PyObject *Asys_write(PyObject *self, PyObject *args) {
 
 	if (!PyArg_ParseTuple(args, "s", &str))
 		Py_RETURN_NONE;
+
+	PyObject *pCapsule = PyObject_GetAttrString(self, "_stream");
+	if (pCapsule) {
+		FileLogger *stream = (FileLogger *)PyCapsule_GetPointer(pCapsule, NULL);
+		(*stream) << str;
+	}
 
 #ifdef DEBUG
 	printf("%s", str);
@@ -62,14 +69,19 @@ PyObject *PyAce_Init() {
 	return pModule;
 }
 
-PyObject *PyAce_ModuleClass() {
+PyObject *PyAce_ModuleClass(FileLogger *stream) {
 	PyObject *pModule = PyAce_Init();
 	if (!pModule)
 		return NULL; 
-	
-	PySys_SetObject("stdout", pModule);
-	PySys_SetObject("stdin", pModule);
 
+	/* Create a Capsule containing the API pointer array's address */
+	PyObject *pCapsule = PyCapsule_New((void *)stream, NULL, NULL);
+	if (!pCapsule) {
+		PyErr_Print();
+		return NULL;
+	}
+
+	PyModule_AddObject(pModule, "_stream", pCapsule);
 	return pModule;
 }
 

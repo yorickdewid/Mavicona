@@ -78,7 +78,9 @@ void Execute::run(const std::string& name, Parameter& param) {
 		return;
 	}
 
-	if (!file_exist(LOCALDIR "/" + name + "/.jobhome")) {
+	LocalEnv jobenv(LOCALDIR "/" + name, exec.jobid);
+
+	if (!file_exist(LOCALDIR "/" + name + "/.jobhome")) {//TODO: move to localEnv
 		/* Extract package in job directory */
 		if (package_extract((PKGDIR "/" + name).c_str(), (LOCALDIR "/" + name).c_str())) {
 			std::cerr << "Cannot open package " << std::endl;
@@ -86,11 +88,11 @@ void Execute::run(const std::string& name, Parameter& param) {
 		}
 
 		/* Setup job home */
-		if (!LocalEnv::setupHome(LOCALDIR "/" + name, exec.jobid))
+		if (!jobenv.setupHome())
 			return;
 
 		/* Setup job home */
-		if (!LocalEnv::setupEnv(LOCALDIR "/" + name))
+		if (!jobenv.setupEnv())
 			return;
 	} else {
 		std::cout << "Job environment already in cluster" << std::endl;
@@ -106,6 +108,8 @@ void Execute::run(const std::string& name, Parameter& param) {
 	}
 
 	/* Move to job home and prepare python */
+	auto streamStdOut = jobenv.openStream(LocalEnv::STDOUT);
+	auto streamStdErr = jobenv.openStream(LocalEnv::STDERR);
 	chdir((std::string(cwd) + "/" + LOCALDIR "/" + name).c_str());
 	setenv("PYTHONPATH", ".", 1);
 	
@@ -121,12 +125,20 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Initialize Ace modules */
 	PyObject *pMethodConfig = Ace::Config::PyAce_ModuleClass();
 	PyObject *pMethodCallback = Ace::IPC::PyAce_ModuleClass(exec.jobcontrol);
-	PyObject *pMethodAsys = Ace::Asys::PyAce_ModuleClass();
+	
+	PyObject *pModuleAsysStream1 = Ace::Asys::PyAce_ModuleClass(streamStdOut);
+	PyObject *pModuleAsysStream2 = Ace::Asys::PyAce_ModuleClass(streamStdErr);
+	
 	PyObject *pMethodDB = Ace::DB::PyAce_ModuleClass(exec.db);
 
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::LOAD);
 	gettimeofday(&t1, NULL);
+
+	/* Set system settings */
+	PySys_SetObject("stdout", pModuleAsysStream1);
+	PySys_SetObject("stderr", pModuleAsysStream2);
+	PySys_SetObject("stdin", pModuleAsysStream2);
 
 	/* Create Ace config instance */
 	PyObject *pInstanceConfig = PyObject_CallObject(pMethodConfig, NULL);
@@ -192,6 +204,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 		return;	
 	}
 
+	PyObject *pMemberChains = NULL;
 	PyObject *pResult = NULL;
 	pResult = PyObject_CallMethod(pInstanceJob, "inject", "(isssii)",
 		exec.jobid,
@@ -203,7 +216,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	if (!pResult) {
 		PyErr_Print();
 		exec.jobcontrol->setStateFailed();
-		return;
+		goto py_failed;
 	}
 
 	/* Move WAL forward */
@@ -213,7 +226,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	if (!pResult) {
 		PyErr_Print();
 		exec.jobcontrol->setStateFailed();
-		return;
+		goto py_failed;
 	}
 
 	/* Move WAL forward */
@@ -224,7 +237,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	if (!pResult) {
 		PyErr_Print();
 		exec.jobcontrol->setStateFailed();
-		return;
+		goto py_failed;
 	}
 
 	/* Move WAL forward */
@@ -235,7 +248,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	if (!pResult) {
 		PyErr_Print();
 		exec.jobcontrol->setStateFailed();
-		return;
+		goto py_failed;
 	}
 
 	/* Move WAL forward */
@@ -246,7 +259,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	if (!pResult) {
 		PyErr_Print();
 		exec.jobcontrol->setStateFailed();
-		return;
+		goto py_failed;
 	}
 
 	/* Move WAL forward */
@@ -256,30 +269,34 @@ void Execute::run(const std::string& name, Parameter& param) {
 	if (!pResult) {
 		PyErr_Print();
 		exec.jobcontrol->setStateFailed();
-		return;
+		goto py_failed;
 	}
 
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN_ONCE);
 
-	PyObject *pMemberChains = PyObject_GetAttrString(pInstanceJob, "chains");	
+	pMemberChains = PyObject_GetAttrString(pInstanceJob, "chains");	
 	if (!pMemberChains) {
 		PyErr_Print();
 		exec.jobcontrol->setStateFailed();
-		return;
+		goto py_failed;
 	}
 
 	//TODO: handle chains
 
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::PULLCHAIN);
+py_failed:
 	gettimeofday(&t2, NULL);
 
-	Py_DECREF(pResult);
-	Py_DECREF(pMemberChains);
+	if (pResult)
+		Py_DECREF(pResult);
+	if (pMemberChains)
+		Py_DECREF(pMemberChains);
 	Py_DECREF(pInstanceJob);
 	Py_DECREF(pMethodDB);
-	Py_DECREF(pMethodAsys);
+	Py_DECREF(pModuleAsysStream2);
+	Py_DECREF(pModuleAsysStream1);
 	Py_DECREF(pMethodCallback);
 	Py_DECREF(pMethodConfig);
 	Py_DECREF(pModuleJob);
@@ -290,8 +307,14 @@ void Execute::run(const std::string& name, Parameter& param) {
 	chdir(cwd);
 
 	/* Setup job home */
-	if (!LocalEnv::teardown(LOCALDIR "/" + name, exec.jobid))
+	if (!jobenv.teardown())
 		return;
+
+	/* Close output streams */
+	streamStdOut->close();
+	streamStdErr->close();
+	delete streamStdOut;
+	delete streamStdErr;
 
 	/* Mark WAL done */
 	executionLog->markDone();

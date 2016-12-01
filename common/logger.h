@@ -1,3 +1,13 @@
+/**
+ * Copyright (C) 2015-2016 Mavicona, Quenza Inc.
+ * All Rights Reserved
+ *
+ * This file is part of the Mavicona project.
+ *
+ * Content can not be copied and/or distributed without the express
+ * permission of the author.
+ */
+
 #ifndef LOGGER_H
 #define LOGGER_H
 
@@ -18,6 +28,9 @@ class FileLogger {
 	std::ofstream logFile;
 	std::stringstream buffer;
 	logType type = logType::LOG_INFO;
+
+	bool do_echo = true;
+	bool do_timestamp = true;
 
 	static std::string getTimesamp() {
 		time_t rawtime;
@@ -63,27 +76,28 @@ class FileLogger {
 	struct error {};
 	struct endl {};
 
-	explicit FileLogger(const std::string & module) : FileLogger(module.c_str()) {}
+	explicit FileLogger(const std::string& module, bool appendMod = true) : FileLogger(module.c_str(), appendMod) {}
 
-	explicit FileLogger(const char *module) {
+	explicit FileLogger(const char *module, bool appendMod = true) {
 		char filename[128];
 		strncpy(filename, module, 128);
-		strncat(filename, "_module.log", 128);
+		
+		if (appendMod)
+			strncat(filename, "_module.log", 128);
 
 		logFile.open(filename, std::ios::out | std::ios::app);
-
-		if (logFile.is_open()) {
-			//logFile << getTimesamp() << getType() << "Module started" << std::endl;
-		} else {
+		if (logFile.fail())
 			std::cerr << "Cannot start logger" << std::endl;
-		}
 	}
 
 	void flush() {
 		std::string line;
 
 		while (std::getline(buffer, line, '\n')) {
-			logFile << getTimesamp() << getType() << line << std::endl;
+			if (do_timestamp)
+				logFile << getTimesamp() << getType() << line << std::endl;
+			else
+				logFile << line << std::endl;
 		}
 
 		logFile.flush();
@@ -94,7 +108,6 @@ class FileLogger {
 
 	void close() {
 		flush();
-		//logFile << getTimesamp() << getType() << "Module stopped" << std::endl;
 		logFile.close();
 	}
 
@@ -102,11 +115,27 @@ class FileLogger {
 		return logFile.is_open();
 	}
 
-	/*FileLogger &write(const char *s, size_t n) {
-		this->buffer << s;
-		std::cout << s;
-		return *this;
-	}*/
+	inline bool enableEcho() {
+		return do_echo = true;
+	}
+
+	inline bool disableEcho() {
+		return do_echo = false;
+	}
+
+	inline bool enableTimestamp() {
+		return do_timestamp = true;
+	}
+
+	inline bool disableTimestamp() {
+		return do_timestamp = false;
+	}
+
+	void write(const char *s, size_t n) {
+		this->buffer.write(s, n);
+		if (do_echo)
+			std::cout << std::string(s, n);
+	}
 
 	~FileLogger() {
 		close();
@@ -115,7 +144,8 @@ class FileLogger {
 	template<typename T>
 	FileLogger &operator <<(const T &t) {
 		this->buffer << t;
-		std::cout << t;
+		if (do_echo)
+			std::cout << t;
 		return *this;
 	}
 
@@ -139,7 +169,8 @@ class FileLogger {
 
 	FileLogger &operator <<(const endl e) {
 		this->buffer << std::endl;
-		std::cout << std::endl;
+		if (do_echo)
+			std::cout << std::endl;
 		flush();
 		return *this;
 	}
