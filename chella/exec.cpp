@@ -286,18 +286,6 @@ void Execute::run(const std::string& name, Parameter& param) {
 py_failed:
 	gettimeofday(&t2, NULL);
 
-	if (pResult)
-		Py_DECREF(pResult);
-	if (pMemberChains)
-		Py_DECREF(pMemberChains);
-	Py_DECREF(pInstanceJob);
-	Py_DECREF(pMethodDB);
-	Py_DECREF(pModuleAsysStream2);
-	Py_DECREF(pModuleAsysStream1);
-	Py_DECREF(pMethodCallback);
-	Py_DECREF(pMethodConfig);
-	Py_DECREF(pModuleJob);
-
 	/* Release resources allocated for this job */
 	Py_Finalize();
 	exec.sessionCleanup();

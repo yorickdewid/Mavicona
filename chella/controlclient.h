@@ -114,7 +114,6 @@ class ControlClient {
 		if (!_run)
 			return;
 
-		_mainRunner.join();
 		_run = false;
 		_active = false;
 	}

@@ -15,6 +15,9 @@ void ControlClient::runTask() {
 	std::string serialized;
 	msg.SerializeToString(&serialized);
 
+	int opt = 3000;
+	socket.setsockopt(ZMQ_SNDTIMEO, &opt, sizeof(int));
+	socket.setsockopt(ZMQ_RCVTIMEO, &opt, sizeof(int));
 	socket.connect(("tcp://" + _masterNode).c_str());
 	std::cout << "Connect to master " << _masterNode << std::endl;
 
@@ -52,13 +55,19 @@ void ControlClient::runTask() {
 
 		zmq::message_t request(serialized.size());
 		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		socket.send(request);
+		if (!socket.send(request)) {
+			continue;
+		}
 
 		/* Get the reply */
 		zmq::message_t reply;
-		socket.recv(&reply);
+		if (!socket.recv(&reply)){
+			continue;
+		}
 
 		msg.ParseFromArray(reply.data(), reply.size());
 		this->_cluster_jobs = msg.cluster_jobs();
 	}
+
+	socket.close();
 }

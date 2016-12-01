@@ -293,6 +293,8 @@ void initSlave() {
 		}
 	}
 
+	receiver.close();
+	control.stop();
 	delete db;
 }
 
@@ -367,8 +369,6 @@ int main(int argc, char *argv[]) {
 		initSlave();
 
 	google::protobuf::ShutdownProtobufLibrary();
-
-	puts("DONE");
 
 	return 0;
 }
