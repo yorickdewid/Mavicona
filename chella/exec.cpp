@@ -79,8 +79,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	}
 
 	LocalEnv jobenv(LOCALDIR "/" + name, exec.jobid);
-
-	if (!file_exist(LOCALDIR "/" + name + "/.jobhome")) {//TODO: move to localEnv
+	if (!jobenv.hasHome()) {
 		/* Extract package in job directory */
 		if (package_extract((PKGDIR "/" + name).c_str(), (LOCALDIR "/" + name).c_str())) {
 			std::cerr << "Cannot open package " << std::endl;
@@ -125,10 +124,8 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Initialize Ace modules */
 	PyObject *pMethodConfig = Ace::Config::PyAce_ModuleClass();
 	PyObject *pMethodCallback = Ace::IPC::PyAce_ModuleClass(exec.jobcontrol);
-	
 	PyObject *pModuleAsysStream1 = Ace::Asys::PyAce_ModuleClass(streamStdOut);
 	PyObject *pModuleAsysStream2 = Ace::Asys::PyAce_ModuleClass(streamStdErr);
-	
 	PyObject *pMethodDB = Ace::DB::PyAce_ModuleClass(exec.db);
 
 	/* Move WAL forward */
@@ -307,8 +304,7 @@ py_failed:
 	chdir(cwd);
 
 	/* Setup job home */
-	if (!jobenv.teardown())
-		return;
+	jobenv.teardown();
 
 	/* Close output streams */
 	streamStdOut->close();

@@ -178,7 +178,7 @@ void initMaster() {
 		{static_cast<void *>(master), 0, ZMQ_POLLIN, 0},
 	};
 
-	while (true) {
+	while (!interrupted) {
 		try {
 			zmq::poll(items, -1);
 
@@ -270,7 +270,7 @@ void initSlave() {
 
 	Execute::init(&control, master, db);
 
-	while (true) {
+	while (!interrupted) {
 		try {
 			zmq::message_t request(0);
 			receiver.send(request);

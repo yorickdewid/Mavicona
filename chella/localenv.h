@@ -73,6 +73,10 @@ class LocalEnv {
 		return true;
 	}
 
+	inline bool hasHome() {
+		return file_exist(m_homedir + "/.jobhome");
+	}
+
 	FileLogger *openStream(enum StreamType type) {
 		std::string logfile = m_homedir + "/run/" + std::to_string(m_jobid) + "_outstd" + std::to_string(type);
 		auto log = new FileLogger(logfile, false);
