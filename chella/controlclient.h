@@ -5,17 +5,17 @@
 #include <thread>
 #include <chrono>
 #include <unistd.h>
+#include <zmq.hpp>
 
 #include "common/logger.h"
 #include "protoc/controlmessage.pb.h"
 
 #define DEFAULT_HEARTBEAT	5 /* 5sec */
 
-// TODO implement thread iface
+//TODO: implement thread iface
 
 class ControlClient {
 	std::thread _mainRunner;
-	bool _run = false;
 	bool _active = false;
 	bool _accepted = false;
 	unsigned int _counter = 0;
@@ -23,16 +23,15 @@ class ControlClient {
 	unsigned int _timeout;
 	unsigned int _progress = 0;
 	std::string _masterNode;
-	// FileLogger *_logger = nullptr;
 	ControlMessage::Action _state;
 
+	void runTask();
+	void shutdownWorker(zmq::socket_t& socket);
+  
   public:
 	ControlClient() : _timeout(DEFAULT_HEARTBEAT * 1000) {
-		// this->_logger = new FileLogger("controller");
 		this->_state = ControlMessage::SOLICIT;
 	}
-
-	void runTask();
 
 	inline void setMaster(const std::string masterNode) {
 		this->_masterNode = masterNode;
@@ -43,25 +42,15 @@ class ControlClient {
 	}
 
 	inline void start() {
-		if (_run)
+		if (_active)
 			return;
 
 		_mainRunner = std::thread(&ControlClient::runTask, this);
-		_mainRunner.detach();
-		_run = true;
 		_active = true;
 	}
 
 	inline void resetInternalState() {
 		this->updateStateRunning(0);
-	}
-
-	inline void pause() {
-		_active = false;
-	}
-
-	inline void resume() {
-		_active = true;
 	}
 
 	inline unsigned int workerId() {
@@ -74,6 +63,10 @@ class ControlClient {
 
 	inline bool isAccepted() {
 		return _accepted;
+	}
+
+	inline bool isActive() {
+		return _active;
 	}
 
 	inline void setStateIdle() {
@@ -111,11 +104,12 @@ class ControlClient {
 	}
 
 	inline void stop() {
-		if (!_run)
+		if (!_active)
 			return;
 
-		_run = false;
+		std::cout << "Shutdown worker ..." << std::endl;
 		_active = false;
+		_mainRunner.join();
 	}
 };
 

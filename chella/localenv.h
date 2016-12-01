@@ -85,14 +85,15 @@ class LocalEnv {
 		return log;
 	}
 
-	bool teardown() {
-		std::ofstream lastrun, lastjobid;
+	bool teardown(double runtime) {
+		std::ofstream lastrun, lastjobid, lastruntime;
 
 		time_t t = time(NULL);
 		struct tm *now = localtime(&t);
 
 		lastrun.open(m_homedir + "/lastrun", std::ofstream::out);
 		lastjobid.open(m_homedir + "/lastjobid", std::ofstream::out);
+		lastruntime.open(m_homedir + "/lastruntime", std::ofstream::out);
 
 		lastrun << (now->tm_year + 1900) << '-' 
 			 << (now->tm_mon + 1) << '-'
@@ -104,6 +105,9 @@ class LocalEnv {
 
 		lastjobid << m_jobid << std::endl;
 
+		lastruntime << runtime << std::endl;
+
+		lastruntime.close();
 		lastjobid.close();
 		lastrun.close();
 		return true;

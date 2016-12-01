@@ -291,9 +291,6 @@ py_failed:
 	exec.sessionCleanup();
 	chdir(cwd);
 
-	/* Setup job home */
-	jobenv.teardown();
-
 	/* Close output streams */
 	streamStdOut->close();
 	streamStdErr->close();
@@ -306,9 +303,12 @@ py_failed:
 	double runtime = (t2.tv_sec - t1.tv_sec) * 1000.0;
 	runtime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-	// Write to disk
+	/* Write to disk */
 	std::cout << "Job routine reached end" << std::endl;
-	std::cout << "Total runtime: " << runtime << std::endl;
+	std::cout << "Total runtime: " << runtime << "ms" << std::endl;
+
+	/* Teardown */
+	jobenv.teardown(runtime);
 
 	/* Move worker in idle mode */
 	exec.jobcontrol->setStateIdle();

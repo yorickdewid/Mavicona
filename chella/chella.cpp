@@ -270,7 +270,7 @@ void initSlave() {
 
 	Execute::init(&control, master, db);
 
-	while (!interrupted) {
+	while (!interrupted && control.isActive()) {
 		try {
 			zmq::message_t request(0);
 			receiver.send(request);
