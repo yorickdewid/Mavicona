@@ -270,6 +270,7 @@ void initSlave() {
 
 	Execute::init(&control, master, db);
 
+	unsigned int cache_counter = 0;
 	while (!interrupted && control.isActive()) {
 		try {
 			zmq::message_t request(0);
@@ -280,11 +281,15 @@ void initSlave() {
 			receiver.recv(&reply);
 
 			if (!reply.size()) {
-				/* Dispose cache when no jobs */
-				// Execute::dispose();
+				/* Dispose cache every once in a while */
+				if (cache_counter == 100) {
+					Execute::dispose();
+					cache_counter = 0;
+				}
 
 				sleep(2);
 			} else {
+				cache_counter++;
 				prepareJob(reply);
 			}
 		} catch (zmq::error_t& e) {

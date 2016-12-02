@@ -44,6 +44,10 @@ void Execute::init(ControlClient *control, const std::string& master, Indexer *d
 }
 
 void Execute::run(const std::string& name, Parameter& param) {
+	// pid_t pid = fork();
+	// if (pid > 0)
+	// 	return;
+
 	Wal *executionLog = new Wal(name, param);
 
 	struct timeval t1, t2;
@@ -89,13 +93,13 @@ void Execute::run(const std::string& name, Parameter& param) {
 		/* Setup job home */
 		if (!jobenv.setupHome())
 			return;
-
-		/* Setup job home */
-		if (!jobenv.setupEnv())
-			return;
 	} else {
 		std::cout << "Job environment already in cluster" << std::endl;
 	}
+
+	/* Setup job home */
+	if (!jobenv.setupEnv())
+		return;
 
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::INIT);
@@ -143,6 +147,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 		PyErr_Print();
 		return;
 	}
+	Py_DECREF(pMethodConfig);
 
 	/* Create Ace callback instance */
 	PyObject *pInstanceCallback = PyObject_CallObject(pMethodCallback, NULL);
@@ -150,6 +155,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 		PyErr_Print();
 		return;
 	}
+	Py_DECREF(pMethodCallback);
 
 	/* Create Ace DB instance */
 	PyObject *pInstanceDB = PyObject_CallObject(pMethodDB, NULL);
@@ -157,6 +163,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 		PyErr_Print();
 		return;
 	}
+	Py_DECREF(pMethodDB);
 
 	/* Locate job init and call routine */
 	PyObject *pFuncJobInit = PyObject_GetAttrString(pModuleJob, "job_init");
@@ -164,6 +171,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 		PyErr_Print();
 		return;
 	}
+	Py_DECREF(pModuleJob);
 
 	PyObject *pArgsJobInit = Py_BuildValue("(O)", pInstanceConfig);
 	PyObject *pInstanceJobInit = PyObject_CallObject(pFuncJobInit, pArgsJobInit);
@@ -171,12 +179,15 @@ void Execute::run(const std::string& name, Parameter& param) {
 		PyErr_Print();
 		return;
 	}
+	Py_DECREF(pFuncJobInit);
+	Py_DECREF(pArgsJobInit);
 
 	PyObject *pFuncJobInvoke = PyObject_GetAttrString(pInstanceJobInit, "invoke");
 	if (!pFuncJobInvoke || !PyCallable_Check(pFuncJobInvoke)) {
 		PyErr_Print();
 		return;
 	}
+	Py_DECREF(pInstanceJobInit);
 
 	/* Instantiate job class */
 	PyObject *pInstanceJob = PyObject_CallObject(pFuncJobInvoke, NULL);
@@ -184,7 +195,8 @@ void Execute::run(const std::string& name, Parameter& param) {
 		PyErr_Print();
 		return;
 	}
-	
+	Py_DECREF(pFuncJobInvoke);
+
 	/* Inject module instances into job instance */
 	if (PyObject_SetAttrString(pInstanceJob, "cfg", pInstanceConfig) < 0) {
 		PyErr_Print();
@@ -200,6 +212,10 @@ void Execute::run(const std::string& name, Parameter& param) {
 		PyErr_Print();
 		return;	
 	}
+
+	Py_DECREF(pInstanceConfig);
+	Py_DECREF(pInstanceCallback);
+	Py_DECREF(pInstanceDB);
 
 	PyObject *pMemberChains = NULL;
 	PyObject *pResult = NULL;
@@ -373,6 +389,8 @@ void Execute::dispose() {
 	DIR *dir = nullptr;
 	struct dirent *ent = nullptr;
 
+	std::cout << "Clear caches" << std::endl;
+
 	if ((dir = opendir(PKGDIR)) != NULL) {
 
 		/* print all the files and directories within directory */
@@ -380,18 +398,6 @@ void Execute::dispose() {
 			if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
 				continue;
 			remove((PKGDIR "/" + std::string(ent->d_name)).c_str());
-		}
-
-		closedir(dir);
-	}
-
-	if ((dir = opendir(WALDIR)) != NULL) {
-
-		/* print all the files and directories within directory */
-		while ((ent = readdir(dir)) != NULL) {
-			if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
-				continue;
-			remove((WALDIR "/" + std::string(ent->d_name)).c_str());
 		}
 
 		closedir(dir);
