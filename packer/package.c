@@ -141,7 +141,7 @@ static void append_header(const char *tarfile) {
 	struct jobheader header;
 	strncpy((char *)header.signature, (const char *)magic, 8);
 	header.version = PKGVER;
-	header.compression = 0;
+	header.compression = use_zlib;
 
 	fwrite(&header, 1, sizeof(struct jobheader), fpo);
 	fwrite(buffer, 1, fsize, fpo);

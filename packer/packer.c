@@ -14,7 +14,7 @@
 #include <Python.h>
 #include "package.h"
 
-#define VERSION "1.0"
+#define VERSION "1.1"
 
 int job_check = 1;
 
@@ -100,6 +100,17 @@ const char *file_extension(const char *fname) {
 	return dot + 1;
 }
 
+void create_license() {
+	FILE *pf = fopen("LICENSE", "w");
+	if (!pf)
+		return;
+
+	fputs("Copyright (C) 2015-2016 Mavicona, Quenza Inc.\nAll Rights Reserved\n\n", pf);
+	fputs("Content can not be copied and/or distributed without \n", pf);
+	fputs("the express permission of the author.\n", pf);
+	fclose(pf);
+}
+
 void usage(const char *prog) {
 	printf("Jobpacker " VERSION " Copyright (C) 2015-2016 Mavicona, Quenza Inc.\n"
 		   "All Rights Reserved\n"
@@ -107,10 +118,11 @@ void usage(const char *prog) {
 		   "  --info <job>      Show job info\n"
 		   "  --export <job>    Export package info\n"
 		   "  --skip-check      Ignore job and framework checks\n"
-		   "  --no-compression  SKip compression\n"
+		   "  --no-compression  Skip compression\n"
 		   "  --extract <job>   Unpack job\n"
 		   "  --verify <job>    Verify job is runnable\n"
 		   "  --verbose         Verbose output message\n"
+		   "  --version         Show version and exit\n"
 		   "  --help            This help message\n", prog);
 }
 
@@ -124,6 +136,11 @@ int main(int argc, char *argv[]) {
 
 	if (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h")) {
 		usage(progname);
+		return 1;
+	}
+
+	if (!strcmp(argv[1], "--version") || !strcmp(argv[1], "-v") || !strcmp(argv[1], "-V")) {
+		printf("Jobpacker " VERSION "\n");
 		return 1;
 	}
 
@@ -151,7 +168,7 @@ int main(int argc, char *argv[]) {
 	Py_Initialize();
 
 	int c, has_job_init = 0, has_ace_job = 0, has_package = 0;
-	libtar_list_t *l = libtar_list_new(LIST_QUEUE, NULL);
+	libtar_list_t *list = libtar_list_new(LIST_QUEUE, NULL);
 	for (c = 1; c < argc; ++c) {
 		if (!strcmp(argv[c], "--verbose")) {
 			package_set_verbose(1);
@@ -202,7 +219,7 @@ int main(int argc, char *argv[]) {
 					PyRun_SimpleString(buf);
 
 					if (file_exist("package.json"))
-						libtar_list_add(l, "package.json");
+						libtar_list_add(list, "package.json");
 					has_package = 1;
 				}
 				free(str);
@@ -218,17 +235,17 @@ int main(int argc, char *argv[]) {
 		}
 
 		/* Append to archieve */
-		libtar_list_add(l, argv[c]);
+		libtar_list_add(list, argv[c]);
 	}
 
 	if (!has_job_init && job_check) {
-		libtar_list_free(l, NULL);
+		libtar_list_free(list, NULL);
 		fprintf(stderr, "missing job_init()\n");
 		goto cleanup;
 	}
 
 	if (!has_ace_job && job_check) {
-		libtar_list_free(l, NULL);
+		libtar_list_free(list, NULL);
 		fprintf(stderr, "class must inherit ace.job.Job\n");
 		goto cleanup;
 	}
@@ -237,22 +254,17 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "no package data provided\nthis is not required, but recommended\n");
 	}
 
-	FILE *pf = fopen("LICENSE", "w");
-	if (pf) {
-		fputs("Copyright (C) 2015-2016 Mavicona, Quenza Inc.\n", pf);
-		fclose(pf);
-		libtar_list_add(l, "LICENSE");
-	}
+	if (!file_exist("LICENSE"))
+		create_license();
+	libtar_list_add(list, "LICENSE");
 
 	if (file_exist("ace/job.py"))
-		libtar_list_add(l, "ace/job.py");
+		libtar_list_add(list, "ace/job.py");
 
-	int return_code = package_create(argv[jobname_idx], ".", l);
-	libtar_list_free(l, NULL);
+	int return_code = package_create(argv[jobname_idx], ".", list);
+	libtar_list_free(list, NULL);
 
 cleanup:
-	if (file_exist("LICENSE"))
-		unlink("LICENSE");
 	if (file_exist("package.json"))
 		unlink("package.json");
 
