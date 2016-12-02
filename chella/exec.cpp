@@ -101,6 +101,11 @@ void Execute::run(const std::string& name, Parameter& param) {
 	if (!jobenv.setupEnv())
 		return;
 
+	auto packageMain = jobenv.packageMain();
+	auto packageInvoke = jobenv.packageInvoke();
+	if (packageMain.empty() || packageInvoke.empty())
+		return;
+
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::INIT);
 
@@ -119,7 +124,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	Py_SetProgramName(program);
 	Py_Initialize();
 
-	PyObject *pModuleJob = PyImport_ImportModule("job_example");//TODO: parse json
+	PyObject *pModuleJob = PyImport_ImportModule(packageMain.c_str());
 	if (!pModuleJob) {
 		PyErr_Print();
 		return;
@@ -166,7 +171,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	Py_DECREF(pMethodDB);
 
 	/* Locate job init and call routine */
-	PyObject *pFuncJobInit = PyObject_GetAttrString(pModuleJob, "job_init");
+	PyObject *pFuncJobInit = PyObject_GetAttrString(pModuleJob, packageInvoke.c_str());
 	if (!pFuncJobInit || !PyCallable_Check(pFuncJobInit)) {
 		PyErr_Print();
 		return;

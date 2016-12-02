@@ -5,6 +5,7 @@ OBJS = chella.o \
 		ace/config.o \
 		ace/db.o \
 		ace/ipc.o \
+		localenv.o \
 		wal.o \
 		exec.o \
 		sha1.o \

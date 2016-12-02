@@ -211,7 +211,7 @@ int main(int argc, char *argv[]) {
 						"r=%s.package()\n"
 						"with open('package.json', 'w') as fp:\n"
 						"\tr['meta']={}\n"
-						"\tr['meta']['main']='%s'\n"
+						"\tr['meta']['main']='%s'[:-3]\n"
 						"\tr['meta']['invoke']='job_init'\n"
 						"\tr['meta']['host']=socket.gethostname()\n"
 						"\tr['meta']['timestamp']=time.time()\n"
