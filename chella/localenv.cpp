@@ -1,6 +1,7 @@
 #include <ctime>
 #include <iostream>
 #include <vector>
+#include <unistd.h>
 #include "../common/util.h"
 #include "../common/json.h"
 #include "localenv.h"
@@ -113,6 +114,8 @@ bool LocalEnv::teardown(double runtime) {
 	lastjobid << m_jobid << std::endl;
 
 	lastruntime << runtime << std::endl;
+
+	unlink((m_homedir + "/MXLOCK").c_str());
 
 	lastruntime.close();
 	lastjobid.close();
