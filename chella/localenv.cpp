@@ -23,19 +23,21 @@ bool LocalEnv::setupHome() {
 	}
 	tab.close();
 
-	std::ofstream lock;
-	lock.open(m_homedir + "/MXLOCK");
-	if (lock.fail()) {
-		std::cerr << m_homedir << " not writable" << std::endl;
-		return false;
-	}
-	lock << m_jobid;
-	lock.close();
-
 	//TODO: check if directories already exist
 	mkdir((m_homedir + "/run").c_str(), 0700);
 	mkdir((m_homedir + "/tmp").c_str(), 0700);
 	return true;
+}
+
+void LocalEnv::setLock() {
+	std::ofstream lock;
+	lock.open(m_homedir + "/MXLOCK");
+	if (lock.fail()) {
+		std::cerr << m_homedir << " not writable" << std::endl;
+		return;
+	}
+	lock << m_jobid;
+	lock.close();
 }
 
 bool LocalEnv::setupEnv() {
@@ -99,6 +101,7 @@ bool LocalEnv::teardown(double runtime) {
 	time_t t = time(NULL);
 	struct tm *now = localtime(&t);
 
+	/* Last job */
 	lastrun.open(m_homedir + "/lastrun", std::ofstream::out);
 	lastjobid.open(m_homedir + "/lastjobid", std::ofstream::out);
 	lastruntime.open(m_homedir + "/lastruntime", std::ofstream::out);
@@ -115,10 +118,29 @@ bool LocalEnv::teardown(double runtime) {
 
 	lastruntime << runtime << std::endl;
 
-	unlink((m_homedir + "/MXLOCK").c_str());
-
 	lastruntime.close();
 	lastjobid.close();
 	lastrun.close();
+
+	/* Per job results */
+	std::ofstream jobrun, jobruntime;
+
+	jobrun.open(m_homedir + "/run/" + std::to_string(m_jobid) + "_runat", std::ofstream::out);
+	jobruntime.open(m_homedir + "/run/" + std::to_string(m_jobid) + "_runtime", std::ofstream::out);
+
+	jobrun << (now->tm_year + 1900) << '-' 
+		 << (now->tm_mon + 1) << '-'
+		 << now->tm_mday << ' '
+		 << now->tm_hour << '-'
+		 << now->tm_min << '-'
+		 << now->tm_sec
+		 << std::endl;
+
+	jobruntime << runtime << std::endl;
+
+	jobruntime.close();
+	jobrun.close();
+
+	unlink((m_homedir + "/MXLOCK").c_str());
 	return true;
 }

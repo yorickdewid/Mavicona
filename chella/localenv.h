@@ -20,9 +20,14 @@ class LocalEnv {
 	bool setupEnv();
 	std::string packageMain();
 	std::string packageInvoke();
+	void setLock();
 
 	inline bool hasHome() {
 		return file_exist(m_homedir + "/.jobhome");
+	}
+
+	inline bool isLocked() {
+		return file_exist(m_homedir + "/MXLOCK");
 	}
 
 	FileLogger *openStream(enum StreamType type) {

@@ -83,6 +83,12 @@ void Execute::run(const std::string& name, Parameter& param) {
 	}
 
 	LocalEnv jobenv(LOCALDIR "/" + name, exec.jobid);
+
+	while (jobenv.isLocked()) {
+		std::cerr << "Directory busy, spin lock" << std::endl;
+		sleep(1);
+	}
+
 	if (!jobenv.hasHome()) {
 		/* Extract package in job directory */
 		if (package_extract((PKGDIR "/" + name).c_str(), (LOCALDIR "/" + name).c_str())) {
@@ -98,6 +104,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	}
 
 	/* Setup job home */
+	jobenv.setLock();
 	if (!jobenv.setupEnv())
 		return;
 
