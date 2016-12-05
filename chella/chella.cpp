@@ -311,6 +311,7 @@ void initSlave() {
 			} else {
 				cache_counter++;
 				prepareJob(reply);
+				sleep(20);
 			}
 		} catch (zmq::error_t& e) {
 			std::cout << "Exit gracefully " << std::endl;
