@@ -1,20 +1,19 @@
 message ControlMessage {
   required int32 id = 1;
-  required string quid = 2;
+  required int32 jobid = 2;
+  required string quid = 3;
 
   enum Action {
-    SOLICIT = 0;
     IDLE = 1;
-    ACCEPTED = 2;
-    SETUP = 3;
-    RUNNING = 4;
-    TEARDOWN = 5;
-    FAILED = 6;
-    SHUTDOWN = 99;
-    CONFIRMED = 100;
+    AWAITING = 2;
+    ACCEPTED = 3;
+    SETUP = 4;
+    RUNNING = 5;
+    TEARDOWN = 6;
+    FAILED = 7;
   }
 
-  required Action action = 3;
-  optional int32 progress = 4;
-  optional int32 cluster_jobs = 5;
+  required Action action = 4;
+  optional int32 progress = 5;
+  optional int32 cluster_jobs = 6;
 }

@@ -18,23 +18,33 @@ class ControlClient {
 	std::thread _mainRunner;
 	bool _active = false;
 	bool _accepted = false;
-	unsigned int _counter = 0;
+	int _jobid;
+	unsigned int _workerid = 0;
 	unsigned int _cluster_jobs = 0;
 	unsigned int _timeout;
 	unsigned int _progress = 0;
 	std::string _masterNode;
+	std::string _quid;
 	ControlMessage::Action _state;
 
 	void runTask();
-	void shutdownWorker(zmq::socket_t& socket);
   
   public:
 	ControlClient() : _timeout(DEFAULT_HEARTBEAT * 1000) {
-		this->_state = ControlMessage::SOLICIT;
+		this->_state = ControlMessage::IDLE;
 	}
 
-	inline void setMaster(const std::string masterNode) {
+	inline void setMaster(const std::string& masterNode) {
 		this->_masterNode = masterNode;
+	}
+
+	inline void setWorker(int workerid) {
+		this->_workerid = workerid;
+	}
+
+	inline void setJob(const std::string& quid, int jobid) {
+		this->_quid = quid;
+		this->_jobid = jobid;
 	}
 
 	inline void setTimeout(unsigned short sec) {
@@ -53,10 +63,6 @@ class ControlClient {
 		this->updateStateRunning(0);
 	}
 
-	inline unsigned int workerId() {
-		return _counter;
-	}
-
 	inline unsigned int clusterJobs() {
 		return _cluster_jobs;
 	}
@@ -72,6 +78,10 @@ class ControlClient {
 	inline void setStateIdle() {
 		this->_state = ControlMessage::IDLE;
 		this->_timeout = DEFAULT_HEARTBEAT * 1000;
+	}
+
+	inline void setStateAwaiting() {
+		this->_state = ControlMessage::AWAITING;
 	}
 
 	inline void setStateAccepted() {

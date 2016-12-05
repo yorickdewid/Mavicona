@@ -57,6 +57,8 @@ bool LocalEnv::setupEnv() {
 		setenv(key.c_str(), value.c_str(), 1);
 	}
 
+	setenv("WORKERID", std::to_string(m_workerid).c_str(), 1);
+
 	environ.close();
 	return true;
 }

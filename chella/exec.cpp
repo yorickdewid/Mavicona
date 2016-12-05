@@ -1,4 +1,5 @@
 #include <dlfcn.h>
+#include <signal.h>
 #include <cassert>
 #include <fstream>
 #include <zmq.hpp>
@@ -13,13 +14,14 @@
 #include "localenv.h"
 #include "exec.h"
 
-void Execute::init(ControlClient *control, const std::string& master, Indexer *db) {
+void Execute::init(int workerid, const std::string& masterIPC, const std::string& masterProvision, Indexer *db) {
 	DIR *dir = nullptr;
 	struct dirent *ent = nullptr;
 
 	Execute& exec = Execute::getInstance();
-	exec.jobcontrol = control;
-	exec.master = master;
+	exec.workerid = workerid;
+	exec.masterIPC = masterIPC;
+	exec.masterProvision = masterProvision;
 	exec.db = db;
 
 	if ((dir = opendir(WALDIR)) != NULL) {
@@ -43,10 +45,11 @@ void Execute::init(ControlClient *control, const std::string& master, Indexer *d
 	}
 }
 
-void Execute::run(const std::string& name, Parameter& param) {
-	// pid_t pid = fork();
-	// if (pid > 0)
-	// 	return;
+bool Execute::run(const std::string& name, Parameter& param) {
+	signal(SIGCHLD, SIG_IGN);
+	pid_t pid = fork();
+	if (pid > 0)
+		return false;
 
 	Wal *executionLog = new Wal(name, param);
 
@@ -55,13 +58,19 @@ void Execute::run(const std::string& name, Parameter& param) {
 
 	Execute& exec = Execute::getInstance();
 
+	ControlClient control;
+	control.setMaster(exec.masterIPC);
+	control.setWorker(exec.workerid);
+	control.setJob(param.jobquid, param.jobid);
+	control.start();
+	exec.jobcontrol = &control;
+
 	std::cout << "Running package " << name << std::endl;
 
 	/* Move worker in accept mode */
 	exec.jobcontrol->setStateAccepted();
 
 	/* Set members of shared object via callback */
-	exec.workerid = exec.jobcontrol->workerId();
 	exec.clusterjobs = exec.jobcontrol->clusterJobs();
 	exec.module = name;
 	exec.jobid = param.jobid;
@@ -79,26 +88,26 @@ void Execute::run(const std::string& name, Parameter& param) {
 	if (!file_exist(PKGDIR "/" + name)) {
 		exec.jobcontrol->setStateIdle();
 		std::cerr << "Package does not exist" << std::endl;
-		return;
+		return true;
 	}
 
-	LocalEnv jobenv(LOCALDIR "/" + name, exec.jobid);
-
+	LocalEnv jobenv(LOCALDIR "/" + name, exec.jobid, exec.workerid);
 	while (jobenv.isLocked()) {
-		std::cerr << "Directory busy, spin lock" << std::endl;
-		sleep(1);
+		std::cerr << "Directory busy, waiting on mutex" << std::endl;
+		exec.jobcontrol->setStateAwaiting();
+		sleep(5);
 	}
 
 	if (!jobenv.hasHome()) {
 		/* Extract package in job directory */
 		if (package_extract((PKGDIR "/" + name).c_str(), (LOCALDIR "/" + name).c_str())) {
 			std::cerr << "Cannot open package " << std::endl;
-			return;
+			return true;
 		}
 
 		/* Setup job home */
 		if (!jobenv.setupHome())
-			return;
+			return true;
 	} else {
 		std::cout << "Job environment already in cluster" << std::endl;
 	}
@@ -106,12 +115,12 @@ void Execute::run(const std::string& name, Parameter& param) {
 	/* Setup job home */
 	jobenv.setLock();
 	if (!jobenv.setupEnv())
-		return;
+		return true;
 
 	auto packageMain = jobenv.packageMain();
 	auto packageInvoke = jobenv.packageInvoke();
 	if (packageMain.empty() || packageInvoke.empty())
-		return;
+		return true;
 
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::INIT);
@@ -119,7 +128,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	wchar_t *program = Py_DecodeLocale("Chella Worker", NULL);
 	if (!program) {
 		std::cerr << "Cannot decode name" << std::endl;
-		return;
+		return true;
 	}
 
 	/* Move to job home and prepare python */
@@ -134,7 +143,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	PyObject *pModuleJob = PyImport_ImportModule(packageMain.c_str());
 	if (!pModuleJob) {
 		PyErr_Print();
-		return;
+		return true;
 	}
 
 	/* Initialize Ace modules */
@@ -157,7 +166,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	PyObject *pInstanceConfig = PyObject_CallObject(pMethodConfig, NULL);
 	if (!pInstanceConfig) {
 		PyErr_Print();
-		return;
+		return true;
 	}
 	Py_DECREF(pMethodConfig);
 
@@ -165,7 +174,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	PyObject *pInstanceCallback = PyObject_CallObject(pMethodCallback, NULL);
 	if (!pInstanceCallback) {
 		PyErr_Print();
-		return;
+		return true;
 	}
 	Py_DECREF(pMethodCallback);
 
@@ -173,7 +182,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	PyObject *pInstanceDB = PyObject_CallObject(pMethodDB, NULL);
 	if (!pInstanceDB) {
 		PyErr_Print();
-		return;
+		return true;
 	}
 	Py_DECREF(pMethodDB);
 
@@ -181,7 +190,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	PyObject *pFuncJobInit = PyObject_GetAttrString(pModuleJob, packageInvoke.c_str());
 	if (!pFuncJobInit || !PyCallable_Check(pFuncJobInit)) {
 		PyErr_Print();
-		return;
+		return true;
 	}
 	Py_DECREF(pModuleJob);
 
@@ -189,7 +198,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	PyObject *pInstanceJobInit = PyObject_CallObject(pFuncJobInit, pArgsJobInit);
 	if (!pInstanceJobInit) {
 		PyErr_Print();
-		return;
+		return true;
 	}
 	Py_DECREF(pFuncJobInit);
 	Py_DECREF(pArgsJobInit);
@@ -197,7 +206,7 @@ void Execute::run(const std::string& name, Parameter& param) {
 	PyObject *pFuncJobInvoke = PyObject_GetAttrString(pInstanceJobInit, "invoke");
 	if (!pFuncJobInvoke || !PyCallable_Check(pFuncJobInvoke)) {
 		PyErr_Print();
-		return;
+		return true;
 	}
 	Py_DECREF(pInstanceJobInit);
 
@@ -205,24 +214,24 @@ void Execute::run(const std::string& name, Parameter& param) {
 	PyObject *pInstanceJob = PyObject_CallObject(pFuncJobInvoke, NULL);
 	if (!pInstanceJob) {
 		PyErr_Print();
-		return;
+		return true;
 	}
 	Py_DECREF(pFuncJobInvoke);
 
 	/* Inject module instances into job instance */
 	if (PyObject_SetAttrString(pInstanceJob, "cfg", pInstanceConfig) < 0) {
 		PyErr_Print();
-		return;
+		return true;
 	}
 
 	if (PyObject_SetAttrString(pInstanceJob, "__ipc__", pInstanceCallback) < 0) {
 		PyErr_Print();
-		return;
+		return true;
 	}
 
 	if (PyObject_SetAttrString(pInstanceJob, "__db__", pInstanceDB) < 0) {
 		PyErr_Print();
-		return;	
+		return true;	
 	}
 
 	Py_DECREF(pInstanceConfig);
@@ -341,7 +350,12 @@ py_failed:
 	/* Move worker in idle mode */
 	exec.jobcontrol->setStateIdle();
 
+	control.stop();
+
 	delete executionLog;
+	std::cout << "Exit clean" << std::endl;
+
+	return true;
 }
 
 void Execute::prospect(const std::string& name) {
@@ -362,8 +376,8 @@ void Execute::prospect(const std::string& name) {
 	std::string content((std::istreambuf_iterator<char>(ifs)),
 						(std::istreambuf_iterator<char>()));
 
-	socket.connect(("tcp://" + exec.master).c_str());
-	std::cout << "Connect to master " << exec.master << std::endl;
+	socket.connect(("tcp://" + exec.masterProvision).c_str());
+	std::cout << "Connect to master " << exec.masterProvision << std::endl;
 
 	for (unsigned int i = 0; i < exec.chain->size(); ++i) {
 		auto subjob = exec.chain->at(i);

@@ -9,12 +9,6 @@ typedef struct {
 	ControlClient *control;
 } ace_callback_t;
 
-static PyObject *Callback_worder_id(PyObject *self) {
-	ace_callback_t *_self = (ace_callback_t *)self;
-
-	return PyLong_FromLong(_self->control->workerId());
-}
-
 static PyObject *Callback_job_count(PyObject *self) {
 	ace_callback_t *_self = (ace_callback_t *)self;
 
@@ -34,7 +28,6 @@ static PyObject *Callback_update_progress(PyObject *self, PyObject *args) {
 }
 
 static PyMethodDef module_methods[] = {
-	{"worker_id", (PyCFunction)Callback_worder_id, METH_NOARGS, "Get worker id"},
 	{"job_count", (PyCFunction)Callback_job_count, METH_NOARGS, "Request number of jobs in cluster"},
 	{"update_progress", (PyCFunction)Callback_update_progress, METH_VARARGS, "Update job progress"},
 	{NULL}  /* Sentinel */

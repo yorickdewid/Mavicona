@@ -26,6 +26,7 @@ static std::string masterIPC;
 static std::string master;
 static bool interrupted = false;
 static char **init_argv = NULL;
+static unsigned int worker_counter = 0;
 
 std::queue<ProcessJob> jobqueue;
 
@@ -103,6 +104,23 @@ void handleWorkerRequest(zmq::socket_t& socket) {
 	zmq::message_t request;
 
 	socket.recv(&request);
+
+	/* Accept worker */
+	if (request.size() > 0) {
+		if (!strncmp((const char *)request.data(), "SOLICIT", request.size())) {
+			ProcessJob workerInfo;
+			workerInfo.set_name("worker");
+			workerInfo.set_id(worker_counter++);
+			workerInfo.set_quid("00000000-0000-0000-0000-000000000000");
+			workerInfo.set_state(ProcessJob::SPAWN);
+			workerInfo.SerializeToString(&serialized);
+			request.rebuild(serialized.size());
+			memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+			socket.send(request);
+			std::cout << "Accept: Solicit from worker, assigned worker-" << (worker_counter - 1) << std::endl;
+			return;
+		}
+	}
 
 	/* Send empty response when no jobs in queue */
 	if (jobqueue.empty()) {
@@ -230,24 +248,13 @@ void prepareJob(zmq::message_t& message) {
 	parameters.jobdata = job.data();
 
 	/* Run procedure */
-	Execute::run(exeName, parameters);
-
+	if (Execute::run(exeName, parameters))
+		exit(0);
 	/* Setup subjobs if any */
 	// Execute::prospect(exeName);
 }
 
 void initSlave() {
-	std::cout << "Running worker" << std::endl;
-
-	ControlClient control;
-	control.setMaster(masterIPC);
-	control.start();
-
-	/* Continue when accepted */
-	while (!control.isAccepted()) {
-		sleep(1);
-	}
-
 	/* Create cache directory */
 	mkdir(VARDIR, 0700);
 	mkdir(PKGDIR, 0700);
@@ -268,10 +275,23 @@ void initSlave() {
 	zmq::socket_t receiver(context, ZMQ_REQ);
 	receiver.connect(("tcp://" + masterProvision).c_str());
 
-	Execute::init(&control, master, db);
+	/* Request worker ID */
+	zmq::message_t request("SOLICIT", 7);
+	receiver.send(request);
+
+	zmq::message_t reply;
+	receiver.recv(&reply);
+
+	ProcessJob job;
+	job.ParseFromArray(reply.data(), reply.size());
+
+	std::cout << "Solicit accepted, assigned worker-" << job.id() << std::endl;
+
+	/* Initialize global job env */
+	Execute::init(job.id(), masterIPC, master, db);
 
 	unsigned int cache_counter = 0;
-	while (!interrupted && control.isActive()) {
+	while (!interrupted) {
 		try {
 			zmq::message_t request(0);
 			receiver.send(request);
@@ -293,13 +313,12 @@ void initSlave() {
 				prepareJob(reply);
 			}
 		} catch (zmq::error_t& e) {
-			std::cout << "Exit gracefully" << std::endl;
+			std::cout << "Exit gracefully " << std::endl;
 			break;
 		}
 	}
 
 	receiver.close();
-	control.stop();
 	delete db;
 }
 

@@ -24,7 +24,9 @@
 #define	MSTDIR		VARDIR "/master"
 
 class Execute : public Callback {
-	std::string master;
+	std::string masterIPC;
+	std::string masterProvision;
+	int workerid;
 	ControlClient *jobcontrol = nullptr;
 	Ace::Chain *chain = nullptr;
 	Indexer *db = nullptr;
@@ -63,8 +65,8 @@ class Execute : public Callback {
 		//TODO
 	}
 
-	static void init(ControlClient *control, const std::string& master, Indexer *_db);
-	static void run(const std::string& name, Parameter& param);
+	static void init(int workerid, const std::string& masterIPC, const std::string& masterProvision, Indexer *db);
+	static bool run(const std::string& name, Parameter& param);
 	static void prospect(const std::string& name);
 	static void dispose();
 };

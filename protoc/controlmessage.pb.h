@@ -35,19 +35,17 @@ void protobuf_ShutdownFile_controlmessage_2eproto();
 class ControlMessage;
 
 enum ControlMessage_Action {
-  ControlMessage_Action_SOLICIT = 0,
   ControlMessage_Action_IDLE = 1,
-  ControlMessage_Action_ACCEPTED = 2,
-  ControlMessage_Action_SETUP = 3,
-  ControlMessage_Action_RUNNING = 4,
-  ControlMessage_Action_TEARDOWN = 5,
-  ControlMessage_Action_FAILED = 6,
-  ControlMessage_Action_SHUTDOWN = 99,
-  ControlMessage_Action_CONFIRMED = 100
+  ControlMessage_Action_AWAITING = 2,
+  ControlMessage_Action_ACCEPTED = 3,
+  ControlMessage_Action_SETUP = 4,
+  ControlMessage_Action_RUNNING = 5,
+  ControlMessage_Action_TEARDOWN = 6,
+  ControlMessage_Action_FAILED = 7
 };
 bool ControlMessage_Action_IsValid(int value);
-const ControlMessage_Action ControlMessage_Action_Action_MIN = ControlMessage_Action_SOLICIT;
-const ControlMessage_Action ControlMessage_Action_Action_MAX = ControlMessage_Action_CONFIRMED;
+const ControlMessage_Action ControlMessage_Action_Action_MIN = ControlMessage_Action_IDLE;
+const ControlMessage_Action ControlMessage_Action_Action_MAX = ControlMessage_Action_FAILED;
 const int ControlMessage_Action_Action_ARRAYSIZE = ControlMessage_Action_Action_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* ControlMessage_Action_descriptor();
@@ -114,15 +112,13 @@ class ControlMessage : public ::google::protobuf::Message {
   // nested types ----------------------------------------------------
 
   typedef ControlMessage_Action Action;
-  static const Action SOLICIT = ControlMessage_Action_SOLICIT;
   static const Action IDLE = ControlMessage_Action_IDLE;
+  static const Action AWAITING = ControlMessage_Action_AWAITING;
   static const Action ACCEPTED = ControlMessage_Action_ACCEPTED;
   static const Action SETUP = ControlMessage_Action_SETUP;
   static const Action RUNNING = ControlMessage_Action_RUNNING;
   static const Action TEARDOWN = ControlMessage_Action_TEARDOWN;
   static const Action FAILED = ControlMessage_Action_FAILED;
-  static const Action SHUTDOWN = ControlMessage_Action_SHUTDOWN;
-  static const Action CONFIRMED = ControlMessage_Action_CONFIRMED;
   static inline bool Action_IsValid(int value) {
     return ControlMessage_Action_IsValid(value);
   }
@@ -153,10 +149,17 @@ class ControlMessage : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 id() const;
   inline void set_id(::google::protobuf::int32 value);
 
-  // required string quid = 2;
+  // required int32 jobid = 2;
+  inline bool has_jobid() const;
+  inline void clear_jobid();
+  static const int kJobidFieldNumber = 2;
+  inline ::google::protobuf::int32 jobid() const;
+  inline void set_jobid(::google::protobuf::int32 value);
+
+  // required string quid = 3;
   inline bool has_quid() const;
   inline void clear_quid();
-  static const int kQuidFieldNumber = 2;
+  static const int kQuidFieldNumber = 3;
   inline const ::std::string& quid() const;
   inline void set_quid(const ::std::string& value);
   inline void set_quid(const char* value);
@@ -165,24 +168,24 @@ class ControlMessage : public ::google::protobuf::Message {
   inline ::std::string* release_quid();
   inline void set_allocated_quid(::std::string* quid);
 
-  // required .ControlMessage.Action action = 3;
+  // required .ControlMessage.Action action = 4;
   inline bool has_action() const;
   inline void clear_action();
-  static const int kActionFieldNumber = 3;
+  static const int kActionFieldNumber = 4;
   inline ::ControlMessage_Action action() const;
   inline void set_action(::ControlMessage_Action value);
 
-  // optional int32 progress = 4;
+  // optional int32 progress = 5;
   inline bool has_progress() const;
   inline void clear_progress();
-  static const int kProgressFieldNumber = 4;
+  static const int kProgressFieldNumber = 5;
   inline ::google::protobuf::int32 progress() const;
   inline void set_progress(::google::protobuf::int32 value);
 
-  // optional int32 cluster_jobs = 5;
+  // optional int32 cluster_jobs = 6;
   inline bool has_cluster_jobs() const;
   inline void clear_cluster_jobs();
-  static const int kClusterJobsFieldNumber = 5;
+  static const int kClusterJobsFieldNumber = 6;
   inline ::google::protobuf::int32 cluster_jobs() const;
   inline void set_cluster_jobs(::google::protobuf::int32 value);
 
@@ -190,6 +193,8 @@ class ControlMessage : public ::google::protobuf::Message {
  private:
   inline void set_has_id();
   inline void clear_has_id();
+  inline void set_has_jobid();
+  inline void clear_has_jobid();
   inline void set_has_quid();
   inline void clear_has_quid();
   inline void set_has_action();
@@ -203,8 +208,9 @@ class ControlMessage : public ::google::protobuf::Message {
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
-  ::std::string* quid_;
   ::google::protobuf::int32 id_;
+  ::google::protobuf::int32 jobid_;
+  ::std::string* quid_;
   int action_;
   ::google::protobuf::int32 progress_;
   ::google::protobuf::int32 cluster_jobs_;
@@ -246,15 +252,39 @@ inline void ControlMessage::set_id(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:ControlMessage.id)
 }
 
-// required string quid = 2;
-inline bool ControlMessage::has_quid() const {
+// required int32 jobid = 2;
+inline bool ControlMessage::has_jobid() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void ControlMessage::set_has_quid() {
+inline void ControlMessage::set_has_jobid() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void ControlMessage::clear_has_quid() {
+inline void ControlMessage::clear_has_jobid() {
   _has_bits_[0] &= ~0x00000002u;
+}
+inline void ControlMessage::clear_jobid() {
+  jobid_ = 0;
+  clear_has_jobid();
+}
+inline ::google::protobuf::int32 ControlMessage::jobid() const {
+  // @@protoc_insertion_point(field_get:ControlMessage.jobid)
+  return jobid_;
+}
+inline void ControlMessage::set_jobid(::google::protobuf::int32 value) {
+  set_has_jobid();
+  jobid_ = value;
+  // @@protoc_insertion_point(field_set:ControlMessage.jobid)
+}
+
+// required string quid = 3;
+inline bool ControlMessage::has_quid() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void ControlMessage::set_has_quid() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void ControlMessage::clear_has_quid() {
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline void ControlMessage::clear_quid() {
   if (quid_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -322,18 +352,18 @@ inline void ControlMessage::set_allocated_quid(::std::string* quid) {
   // @@protoc_insertion_point(field_set_allocated:ControlMessage.quid)
 }
 
-// required .ControlMessage.Action action = 3;
+// required .ControlMessage.Action action = 4;
 inline bool ControlMessage::has_action() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+  return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void ControlMessage::set_has_action() {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000008u;
 }
 inline void ControlMessage::clear_has_action() {
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline void ControlMessage::clear_action() {
-  action_ = 0;
+  action_ = 1;
   clear_has_action();
 }
 inline ::ControlMessage_Action ControlMessage::action() const {
@@ -347,15 +377,15 @@ inline void ControlMessage::set_action(::ControlMessage_Action value) {
   // @@protoc_insertion_point(field_set:ControlMessage.action)
 }
 
-// optional int32 progress = 4;
+// optional int32 progress = 5;
 inline bool ControlMessage::has_progress() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+  return (_has_bits_[0] & 0x00000010u) != 0;
 }
 inline void ControlMessage::set_has_progress() {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000010u;
 }
 inline void ControlMessage::clear_has_progress() {
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000010u;
 }
 inline void ControlMessage::clear_progress() {
   progress_ = 0;
@@ -371,15 +401,15 @@ inline void ControlMessage::set_progress(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:ControlMessage.progress)
 }
 
-// optional int32 cluster_jobs = 5;
+// optional int32 cluster_jobs = 6;
 inline bool ControlMessage::has_cluster_jobs() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
+  return (_has_bits_[0] & 0x00000020u) != 0;
 }
 inline void ControlMessage::set_has_cluster_jobs() {
-  _has_bits_[0] |= 0x00000010u;
+  _has_bits_[0] |= 0x00000020u;
 }
 inline void ControlMessage::clear_has_cluster_jobs() {
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000020u;
 }
 inline void ControlMessage::clear_cluster_jobs() {
   cluster_jobs_ = 0;

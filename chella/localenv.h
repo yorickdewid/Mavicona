@@ -7,9 +7,13 @@
 class LocalEnv {
 	std::string m_homedir;
 	int m_jobid;
+	int m_workerid;
 
   public:
-	LocalEnv(const std::string& homedir, int jobid) : m_homedir(homedir), m_jobid(jobid) {}
+	LocalEnv(const std::string& homedir, int jobid, int workerid)
+	 : m_homedir(homedir)
+	 , m_jobid(jobid)
+	 , m_workerid(workerid) {}
 
 	enum StreamType {
 		STDOUT = 1,
