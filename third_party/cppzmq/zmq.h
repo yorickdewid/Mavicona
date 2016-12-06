@@ -2,6 +2,7 @@
 	Copyright (c) 2009-2011 250bpm s.r.o.
 	Copyright (c) 2011 Botond Ballo
 	Copyright (c) 2007-2009 iMatix Corporation
+	Copyright (c) 2015-2016 Mavicona, Quenza Inc.
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to
@@ -26,11 +27,15 @@
 #define __ZMQ_HPP_INCLUDED__
 
 #if (__cplusplus >= 201103L)
+   #ifndef ZMQ_CPP11
    #define ZMQ_CPP11
+   #endif
    #define ZMQ_NOTHROW noexcept
    #define ZMQ_EXPLICIT explicit
 #elif  (defined(_MSC_VER) && (_MSC_VER >= 1900))
+   #ifndef ZMQ_CPP11
    #define ZMQ_CPP11
+   #endif
    #define ZMQ_NOTHROW noexcept
    #define ZMQ_EXPLICIT explicit
 #else
