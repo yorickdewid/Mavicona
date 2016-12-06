@@ -19,7 +19,7 @@ module: libmpkg.a
 libmpkg.a: $(OBJECTS)
 	$(AR) rcs $@ $^
 
-jobpacker: libmpkg.a
+jobpacker: module
 	$(CC) $(CFLAGS) $(CLIENT_SOURCES) libmpkg.a -o $(EXECUTABLECLIENT) $(shell python3-config --libs) -ltar -lz
 
 clean:

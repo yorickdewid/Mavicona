@@ -1,6 +1,6 @@
 AR = ar
 UTILDIR = util
-WFLAGS = -pedantic-errors -std=c1x -Wall -Werror -Wextra -Winit-self -Wswitch-default -Wshadow
+WFLAGS = -pedantic-errors -std=c99 -Wall -Werror -Wextra -Winit-self -Wswitch-default -Wshadow
 CFLAGS = $(WFLAGS) -DX64 -DTN12
 SOURCES = $(wildcard *.c)
 CLIENT_SOURCES = $(UTILDIR)/qcli.c
