@@ -66,7 +66,7 @@ class Execute : public Callback {
 	}
 
 	static void init(int workerid, const std::string& masterIPC, const std::string& masterProvision, Indexer *db);
-	static bool run(const std::string& name, Parameter& param);
+	static bool run(const std::string& name, Parameter& param, bool canfork);
 	static void prospect(const std::string& name);
 	static void dispose();
 };

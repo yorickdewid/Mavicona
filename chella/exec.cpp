@@ -34,7 +34,7 @@ void Execute::init(int workerid, const std::string& masterIPC, const std::string
 			Wal::rollback(ent->d_name, [](const std::string & name, Execute::Parameter & param) {
 
 				/* Run procedure */
-				Execute::run(name, param);
+				Execute::run(name, param, false);
 
 				/* Setup subjobs if any */
 				Execute::prospect(name);
@@ -45,11 +45,13 @@ void Execute::init(int workerid, const std::string& masterIPC, const std::string
 	}
 }
 
-bool Execute::run(const std::string& name, Parameter& param) {
-	signal(SIGCHLD, SIG_IGN);
-	pid_t pid = fork();
-	if (pid > 0)
-		return false;
+bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
+	if (canfork) {
+		signal(SIGCHLD, SIG_IGN);
+		pid_t pid = fork();
+		if (pid > 0)
+			return false;
+	}
 
 	Wal *executionLog = new Wal(name, param);
 

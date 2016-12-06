@@ -25,6 +25,7 @@ static std::string masterProvision;
 static std::string masterIPC;
 static std::string master;
 static bool interrupted = false;
+static bool jobfork = true;
 static char **init_argv = NULL;
 static unsigned int worker_counter = 0;
 
@@ -248,7 +249,7 @@ void prepareJob(zmq::message_t& message) {
 	parameters.jobdata = job.data();
 
 	/* Run procedure */
-	if (Execute::run(exeName, parameters))
+	if (Execute::run(exeName, parameters, jobfork) && jobfork)
 		exit(0);
 	/* Setup subjobs if any */
 	// Execute::prospect(exeName);
@@ -311,7 +312,8 @@ void initSlave() {
 			} else {
 				cache_counter++;
 				prepareJob(reply);
-				sleep(20);
+				if (jobfork)
+					sleep(20);
 			}
 		} catch (zmq::error_t& e) {
 			std::cout << "Exit gracefully " << std::endl;
@@ -334,6 +336,7 @@ int main(int argc, char *argv[]) {
 	("s,hbs", "Host based service config", cxxopts::value<std::string>(), "FILE")
 	("m,master", "Promote node to master")
 	("v,version", "Framework version")
+	("n,nofork", "Do not run in parallel")
 	("h,help", "Print this help");
 
 	try {
@@ -351,6 +354,10 @@ int main(int argc, char *argv[]) {
 	if (options.count("help")) {
 		std::cerr << options.help({"Help"}) << std::endl;
 		return 0;
+	}
+
+	if (options.count("nofork")) {
+		jobfork = false;
 	}
 
 	/* Make sure we have an pitcher and chella host even if the ruleset ignores this action */
