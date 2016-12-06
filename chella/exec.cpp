@@ -2,7 +2,7 @@
 #include <signal.h>
 #include <cassert>
 #include <fstream>
-#include <zmq.hpp>
+#include <cppzmq/zmq.h>
 #include <quidpp.h>
 #include <package.h>
 #include <Python.h>

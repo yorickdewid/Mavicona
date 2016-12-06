@@ -11,7 +11,8 @@ OBJS = chella.o \
 		sha1.o \
 		../protoc/processjob.pb.o \
 		../protoc/controlmessage.pb.o
-CC = g++
+CC = gcc
+CXX = g++
 OBJS += ../quid/libquid.a ../packer/libmpkg.a
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq $(shell python3-config --libs) -ltar -lz -lleveldb

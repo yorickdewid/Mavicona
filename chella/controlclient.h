@@ -5,7 +5,7 @@
 #include <thread>
 #include <chrono>
 #include <unistd.h>
-#include <zmq.hpp>
+#include <cppzmq/zmq.h>
 
 #include "common/logger.h"
 #include "protoc/controlmessage.pb.h"

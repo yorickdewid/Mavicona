@@ -1,4 +1,4 @@
-#include <zmq.hpp>
+#include <cppzmq/zmq.h>
 #include "nodemanager.h"
 
 namespace NodeManager {
