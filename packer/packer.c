@@ -238,6 +238,7 @@ int main(int argc, char *argv[]) {
 		libtar_list_add(list, argv[c]);
 	}
 
+	int return_code = 0;
 	if (!has_job_init && job_check) {
 		libtar_list_free(list, NULL);
 		fprintf(stderr, "missing job_init()\n");
@@ -261,7 +262,7 @@ int main(int argc, char *argv[]) {
 	if (file_exist("ace/job.py"))
 		libtar_list_add(list, "ace/job.py");
 
-	int return_code = package_create(argv[jobname_idx], ".", list);
+	return_code = package_create(argv[jobname_idx], ".", list);
 	libtar_list_free(list, NULL);
 
 cleanup:
