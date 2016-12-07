@@ -6,9 +6,9 @@ SOURCES = package.c
 CLIENT_SOURCES = packer.c
 OBJECTS = $(SOURCES:.c=.o)
 CLIENTOBJECTS = $(SOURCES:.c=.o) $(CLIENT_SOURCES:.c=.o)
-EXECUTABLECLIENT = jobpacker
+EXECUTABLECLIENT = packer
 
-all: module jobpacker
+all: module packer
 
 module: CFLAGS += -g -O0 -DDEBUG
 module: libmpkg.a
@@ -19,9 +19,9 @@ module: libmpkg.a
 libmpkg.a: $(OBJECTS)
 	$(AR) rcs $@ $^
 
-jobpacker: module
+packer: module
 	$(CC) $(CFLAGS) $(CLIENT_SOURCES) libmpkg.a -o $(EXECUTABLECLIENT) $(shell python3-config --libs) -ltar -lz
 
 clean:
 	$(RM) -rf libmpkg.a *.o
-	$(RM) -rf jobpacker
+	$(RM) -rf packer

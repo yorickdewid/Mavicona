@@ -1,7 +1,6 @@
 OBJS = chella.o \
 		nodemanager.o \
 		controlclient.o \
-		archive.o \
 		ace/config.o \
 		ace/db.o \
 		ace/ipc.o \

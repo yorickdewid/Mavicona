@@ -14,7 +14,7 @@
 #include <Python.h>
 #include "package.h"
 
-#define VERSION "1.1"
+#define VERSION "1.2"
 
 int job_check = 1;
 
@@ -112,7 +112,7 @@ void create_license() {
 }
 
 void usage(const char *prog) {
-	printf("Jobpacker " VERSION " Copyright (C) 2015-2016 Mavicona, Quenza Inc.\n"
+	printf("Packer " VERSION " Copyright (C) 2015-2016 Mavicona, Quenza Inc.\n"
 		   "All Rights Reserved\n"
 		   "usage: %s [OPTION] <job> [source...]\n\n"
 		   "  --info <job>      Show job info\n"

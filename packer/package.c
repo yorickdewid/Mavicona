@@ -265,6 +265,7 @@ int package_extract(const char *jobfile, const char *rootdir) {
 	}
 
 	unlink(tarfile);
+	free(tarfile);
 
 	return 0;
 }
