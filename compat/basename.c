@@ -27,10 +27,6 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef lint
-static char rcsid[] = "$OpenBSD: basename.c,v 1.4 1999/05/30 17:10:30 espie Exp $";
-#endif /* not lint */
-
 #include <errno.h>
 #include <string.h>
 #include <sys/param.h>
@@ -64,7 +60,7 @@ openbsd_basename(path)
 	while (startp > path && *(startp - 1) != '/')
 		startp--;
 
-	if (endp - startp + 1 > sizeof(bname)) {
+	if (endp - startp + 1 > (ssize_t)sizeof(bname)) {
 		errno = ENAMETOOLONG;
 		return(NULL);
 	}

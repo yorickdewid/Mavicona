@@ -43,8 +43,6 @@
  *
  **************************************************************/
 
-#include <config.h>
-
 #if !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF)
 
 #include <string.h>

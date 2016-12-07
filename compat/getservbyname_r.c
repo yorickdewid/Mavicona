@@ -10,8 +10,6 @@
 **  University of Illinois at Urbana-Champaign
 */
 
-#include <config.h>
-
 #include <stdio.h>
 #include <sys/types.h>
 #include <netdb.h>
@@ -36,6 +34,7 @@ compat_getservbyname_r(const char *name, const char *proto,
 	*spp = sp;
 	return 0;
 #endif /* GETSERVBYNAME_R_NUM_ARGS == 5 */
+	return 0;
 }
 
 

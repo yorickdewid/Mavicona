@@ -36,33 +36,15 @@
  * SUCH DAMAGE.
  */
 
-#if defined(LIBC_SCCS) && !defined(lint)
-#if 0
-static char sccsid[] = "@(#)fnmatch.c	8.2 (Berkeley) 4/16/94";
-#else
-static char rcsid[] = "$OpenBSD: fnmatch.c,v 1.6 1998/03/19 00:29:59 millert Exp $";
-#endif
-#endif /* LIBC_SCCS and not lint */
-
 /*
  * Function fnmatch() as specified in POSIX 1003.2-1992, section B.6.
  * Compares a filename or pathname to a pattern.
  */
 
-#include <config.h>
-
 #include <stdio.h>
-
-#ifdef STDC_HEADERS
-# include <string.h>
-#endif
-
-#ifdef HAVE_CTYPE_H
-# include <ctype.h>
-#endif
-
+#include <string.h>
+#include <ctype.h>
 #include <compat.h>
-
 
 #define	EOS	'\0'
 
