@@ -264,7 +264,8 @@ void initSlave() {
 	mkdir(LOCALDIR, 0700);
 	mkdir(TMPDIR, 0700);
 	mkdir(ETCDIR, 0700);
-	db = new Indexer(DBDIR);
+	
+	Indexer db(DBDIR);
 
 #ifdef GUARD
 	/* Guard the process */
@@ -289,7 +290,7 @@ void initSlave() {
 	std::cout << "Solicit accepted, assigned worker-" << job.id() << std::endl;
 
 	/* Initialize global job env */
-	Execute::init(job.id(), masterIPC, master, db);
+	Execute::init(job.id(), masterIPC, master, &db);
 
 	unsigned int cache_counter = 0;
 	while (!interrupted) {
@@ -322,11 +323,9 @@ void initSlave() {
 	}
 
 	receiver.close();
-	delete db;
 }
 
 int main(int argc, char *argv[]) {
-
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	cxxopts::Options options(argv[0], "");

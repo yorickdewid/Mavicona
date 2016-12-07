@@ -55,6 +55,7 @@ void Wal::rollback(const std::string& name, std::function<void(const std::string
 		std::cerr << "Cannot read WAL log" << std::endl;
 		return;
 	}
+	memset(&header, '\0', sizeof(pageHeader));
 	fread(&header, sizeof(pageHeader), 1, m_pFile);
 
 	if (strcmp((const char *)header.magic, LOG_MAGIC)) {

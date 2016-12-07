@@ -124,6 +124,7 @@ static void append_header(const char *tarfile) {
 		return;
 
 	char jobfile[1024];
+	memset(jobfile, '\0', 1024);
 	snprintf(jobfile, sizeof(jobfile), "%s.job", tarfile);
 	FILE *fpo = fopen(jobfile, "wb");
 	if (!fpo)
@@ -191,6 +192,7 @@ int package_create(const char *tarfile, char *rootdir, libtar_list_t *list) {
 	char buf[1024];
 	libtar_listptr_t listpointer;
 
+	memset(buf, '\0', 1024);
 	if (tar_open(&tar, tarfile, (use_zlib ? &gztype : NULL), O_WRONLY | O_CREAT, 0644, (verbose ? TAR_VERBOSE : 0) | (use_gnu ? TAR_GNU : 0)) == -1) {
 		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
 		return 1;
@@ -234,13 +236,14 @@ int package_extract(const char *jobfile, const char *rootdir) {
 	char dirname[1024];
 	char *tarfile = randstring(12);
 
+	memset(dirname, '\0', 1024);
 	remove_header(jobfile, tarfile);
 
 	if (!rootdir) {
-		strcpy(dirname, "package_");
-		strcat(dirname, tarfile);
+		strncpy(dirname, "package_", 1024);
+		strncat(dirname, tarfile, 1024);
 	} else {
-		strcpy(dirname, rootdir);
+		strncpy(dirname, rootdir, 1024);
 	}
 
 	mkdir(dirname, 0775);
