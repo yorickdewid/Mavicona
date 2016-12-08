@@ -153,7 +153,7 @@ static void append_header(const char *tarfile) {
 	fclose(fp);
 }
 
-static void remove_header(const char *jobfile, const char *tmpfile) {
+static void remove_header(const char *jobfile, const char *tmp) {
 	FILE *fp = fopen(jobfile, "rb");
 	if (!fp)
 		return;
@@ -167,7 +167,7 @@ static void remove_header(const char *jobfile, const char *tmpfile) {
 
 	rewind(fp);
 
-	FILE *fpo = fopen(tmpfile, "wb");
+	FILE *fpo = fopen(tmp, "wb");
 	if (!fpo)
 		return;
 
