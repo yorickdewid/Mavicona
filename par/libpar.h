@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdint.h>
+#include <quid.h>
 #include <zlib.h>
 
 #include "libtar_listhash.h"
@@ -33,7 +34,7 @@ extern "C"
 #define PACKAGE_VERSION_MINOR 2
 
 /* Package magic. */
-#define PACKAGE_MAGIC "$MAVJOB}"
+#define PACKAGE_MAGIC "$MAVJO}"
 
 /* par header info */
 #define TVERSION	"MY"
@@ -58,13 +59,19 @@ extern "C"
 #define DIRTYPE		0x4
 #define LNKTYPE		0x8
 
+/* package meta */
+typedef struct par_meta {
+	char name[64];
+} par_meta_t;
+
 /* our version of the tar header structure */
 struct archive_header {
 	char magic[8];
 	uint8_t version_major;
 	uint8_t version_minor;
 	uint8_t options;
-	char quid[36];
+	quid_t quid;
+	par_meta_t meta;
 };
 
 /* our version of the par header structure */
@@ -119,6 +126,9 @@ int par_block_write(PAR *t, char *buf);
 
 /**/
 int par_write_header(PAR *t);
+
+/**/
+int par_read_header(PAR *t);
 
 /* open a new tarfile handle */
 int par_open(PAR **t, const char *pathname, int compress,

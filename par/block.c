@@ -61,8 +61,7 @@ int th_read_internal(PAR *t) {
 
 		/* verify magic and version */
 		if (BIT_ISSET(t->options, PAR_CHECK_MAGIC)
-		    && strncmp(t->th_buf.magic, TMAGIC, TMAGLEN - 1) != 0)
-		{
+		    && strncmp(t->th_buf.magic, TMAGIC, TMAGLEN - 1) != 0) {
 #ifdef DEBUG
 			puts("!!! unknown magic value in tar header");
 #endif
@@ -70,8 +69,7 @@ int th_read_internal(PAR *t) {
 		}
 
 		if (BIT_ISSET(t->options, PAR_CHECK_VERSION)
-		    && strncmp(t->th_buf.version, TVERSION, TVERSLEN) != 0)
-		{
+		    && strncmp(t->th_buf.version, TVERSION, TVERSLEN) != 0) {
 #ifdef DEBUG
 			puts("!!! unknown version value in tar header");
 #endif
@@ -80,8 +78,7 @@ int th_read_internal(PAR *t) {
 
 		/* check chksum */
 		if (!BIT_ISSET(t->options, PAR_IGNORE_CRC)
-		    && !th_crc_ok(t))
-		{
+		    && !th_crc_ok(t)) {
 #ifdef DEBUG
 			puts("!!! tar header checksum error");
 #endif

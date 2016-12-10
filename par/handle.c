@@ -21,14 +21,14 @@
 #include <stdlib.h>
 #include <memory.h>
 
-int par_block_read(PAR *t, char *buf) {
+inline int par_block_read(PAR *t, char *buf) {
 	if (t->use_gz)
 		return gzread(t->gzfd, buf, T_BLOCKSIZE);
 
 	return read(t->fd, buf, T_BLOCKSIZE);
 }
 
-int par_block_write(PAR *t, char *buf) {
+inline int par_block_write(PAR *t, char *buf) {
 	if (t->use_gz)
 		return gzwrite(t->gzfd, buf, T_BLOCKSIZE);
 
@@ -72,10 +72,32 @@ int par_write_header(PAR *t) {
 	strlcpy(header.magic, PACKAGE_MAGIC, sizeof(header.magic));
 	header.version_major = PACKAGE_VERSION_MAJOR;
 	header.version_minor = PACKAGE_VERSION_MINOR;
-	memset(header.quid, '\0', sizeof(header.quid));
+	quid_create(&header.quid);
 
-	if (par_block_write(t, (char *)&header) == -1)
+	if (write(t->fd, (char *)&header, sizeof(header)) == -1)
 		return -1;
+
+	return 0;
+}
+
+int par_read_header(PAR *t) {
+	struct archive_header header;
+
+	if (read(t->fd, (char *)&header, sizeof(header)) == -1)
+		return -1;
+
+	if (strncmp(header.magic, PACKAGE_MAGIC, sizeof(header.magic)) != 0)
+		return -2;
+
+#ifdef DEBUG
+	printf("Package version: %d.%d\n", header.version_major, header.version_minor);
+
+	char squid[QUID_LENGTH + 1];
+	quidtostr(squid, &header.quid);
+	squid[QUID_LENGTH] = '\0';
+
+	printf("Package QUID: %s\n", squid);
+#endif
 
 	return 0;
 }
@@ -93,7 +115,6 @@ static int par_init(PAR **t, const char *pathname, int compress,
 
 	(*t)->pathname = pathname;
 	(*t)->options = options;
-	// (*t)->type = (type ? type : &default_type);
 	(*t)->oflags = oflags;
 	(*t)->use_gz = compress;
 
@@ -126,7 +147,6 @@ int par_open(PAR **t, const char *pathname, int compress,
 	if ((*t)->use_gz)
 		(*t)->gzfd = gzopen_init(pathname, oflags, mode, (*t)->fd);
 
-	// (*t)->fd = (*((*t)->type->openfunc))(pathname, oflags, mode);
 	if ((*t)->gzfd == NULL) {
 		libtar_hash_free((*t)->h, NULL);
 		free(*t);
@@ -139,8 +159,6 @@ int par_open(PAR **t, const char *pathname, int compress,
 /* close tarfile handle */
 int par_close(PAR *t) {
 	int i;
-
-	// i = (*(t->type->closefunc))(t->fd);
 
 	if (t->use_gz)
 		i = gzclose(t->gzfd);

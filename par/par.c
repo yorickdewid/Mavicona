@@ -27,53 +27,6 @@ int verbose = 0;
 int use_gnu = 0;
 int use_zlib = 0;
 
-// int gzopen_frontend(char *pathname, int oflags, int mode) {
-// 	char *gzoflags;
-// 	gzFile gzf;
-// 	int fd;
-
-// 	switch (oflags & O_ACCMODE) {
-// 		case O_WRONLY:
-// 			gzoflags = "wb";
-// 			break;
-// 		case O_RDONLY:
-// 			gzoflags = "rb";
-// 			break;
-// 		default:
-// 		case O_RDWR:
-// 			errno = EINVAL;
-// 		return -1;
-// 	}
-
-// 	fd = open(pathname, oflags, mode);
-// 	if (fd == -1)
-// 		return -1;
-
-// 	if ((oflags & O_CREAT) && fchmod(fd, mode)) {
-// 		close(fd);
-// 		return -1;
-// 	}
-
-// 	gzf = gzdopen(fd, gzoflags);
-// 	if (!gzf) {
-// 		errno = ENOMEM;
-// 		return -1;
-// 	}
-
-// 	/* This is a bad thing to do on big-endian lp64 systems, where the
-// 	   size and placement of integers is different than pointers.
-// 	   However, to fix the problem 4 wrapper functions would be needed and
-// 	   an extra bit of data associating GZF with the wrapper functions.  */
-// 	return (int)gzf;
-// }
-
-// partype_t gztype = {
-// 	(openfunc_t)gzopen_frontend,
-// 	(closefunc_t)gzclose,
-// 	(readfunc_t)gzread,
-// 	(writefunc_t)gzwrite
-// };
-
 int create(char *tarfile, char *rootdir, libtar_list_t *l) {
 	PAR *t;
 	char *pathname;
@@ -87,11 +40,11 @@ int create(char *tarfile, char *rootdir, libtar_list_t *l) {
 		return -1;
 	}
 
-	// if (par_write_header(t) == -1) {
-	// 	fprintf(stderr, "par_write_header(): %s\n", strerror(errno));
-	// 	par_close(t);
-	// 	return -1;
-	// }
+	if (par_write_header(t) == -1) {
+		fprintf(stderr, "par_write_header(): %s\n", strerror(errno));
+		par_close(t);
+		return -1;
+	}
 
 	libtar_listptr_reset(&lp);
 	while (libtar_list_next(l, &lp) != 0) {
@@ -134,6 +87,12 @@ int list(char *tarfile) {
 		return -1;
 	}
 
+	if (par_read_header(t) != 0) {
+		fprintf(stderr, "par_read_header(): %s\n", strerror(errno));
+		par_close(t);
+		return -1;
+	}
+
 	while ((i = th_read(t)) == 0) {
 		th_print_long_ls(t);
 #ifdef DEBUG
@@ -167,6 +126,12 @@ int extract(char *tarfile, char *rootdir) {
 		     (verbose ? PAR_VERBOSE : 0)
 		     | (use_gnu ? PAR_GNU : 0)) == -1) {
 		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
+		return -1;
+	}
+
+	if (par_read_header(t) != 0) {
+		fprintf(stderr, "par_read_header(): %s\n", strerror(errno));
+		par_close(t);
 		return -1;
 	}
 

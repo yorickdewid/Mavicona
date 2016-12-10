@@ -42,7 +42,9 @@ typedef struct quid_short quid_short_t;
 void quid_create(quid_t *);
 void quid_short_create(quid_short_t *uid);
 
-// marshall_t *quid_decode(quid_t *uid);
+#ifdef MARSHALL
+marshall_t *quid_decode(quid_t *uid);
+#endif
 
 void quid_shorttostr(char *s, quid_short_t *u);
 
