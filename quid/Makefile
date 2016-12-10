@@ -53,6 +53,9 @@ module: libquid.a
 libquid.a: $(OBJECTS)
 	$(AR) rcs $@ $^
 
+libquid.so: $(OBJECTS)
+	$(CC) -shared -o $@ $^
+
 util: fixeof genquid genlookup3 qcli
 
 fixeof:
@@ -73,7 +76,7 @@ genquid:
 cleanall: clean cleanutil
 
 clean:
-	@$(RM) -rf *.o
+	@$(RM) -rf *.o *.so *.a
 
 cleanutil:
 	@$(RM) -rf $(UTILDIR)/*.o
