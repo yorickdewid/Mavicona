@@ -21,59 +21,58 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <zlib.h>
 #include <compat.h>
 
 int verbose = 0;
 int use_gnu = 0;
-int use_zlib = 1;
+int use_zlib = 0;
 
-int gzopen_frontend(char *pathname, int oflags, int mode) {
-	char *gzoflags;
-	gzFile gzf;
-	int fd;
+// int gzopen_frontend(char *pathname, int oflags, int mode) {
+// 	char *gzoflags;
+// 	gzFile gzf;
+// 	int fd;
 
-	switch (oflags & O_ACCMODE) {
-		case O_WRONLY:
-			gzoflags = "wb";
-			break;
-		case O_RDONLY:
-			gzoflags = "rb";
-			break;
-		default:
-		case O_RDWR:
-			errno = EINVAL;
-		return -1;
-	}
+// 	switch (oflags & O_ACCMODE) {
+// 		case O_WRONLY:
+// 			gzoflags = "wb";
+// 			break;
+// 		case O_RDONLY:
+// 			gzoflags = "rb";
+// 			break;
+// 		default:
+// 		case O_RDWR:
+// 			errno = EINVAL;
+// 		return -1;
+// 	}
 
-	fd = open(pathname, oflags, mode);
-	if (fd == -1)
-		return -1;
+// 	fd = open(pathname, oflags, mode);
+// 	if (fd == -1)
+// 		return -1;
 
-	if ((oflags & O_CREAT) && fchmod(fd, mode)) {
-		close(fd);
-		return -1;
-	}
+// 	if ((oflags & O_CREAT) && fchmod(fd, mode)) {
+// 		close(fd);
+// 		return -1;
+// 	}
 
-	gzf = gzdopen(fd, gzoflags);
-	if (!gzf) {
-		errno = ENOMEM;
-		return -1;
-	}
+// 	gzf = gzdopen(fd, gzoflags);
+// 	if (!gzf) {
+// 		errno = ENOMEM;
+// 		return -1;
+// 	}
 
-	/* This is a bad thing to do on big-endian lp64 systems, where the
-	   size and placement of integers is different than pointers.
-	   However, to fix the problem 4 wrapper functions would be needed and
-	   an extra bit of data associating GZF with the wrapper functions.  */
-	return (int)gzf;
-}
+// 	/* This is a bad thing to do on big-endian lp64 systems, where the
+// 	   size and placement of integers is different than pointers.
+// 	   However, to fix the problem 4 wrapper functions would be needed and
+// 	   an extra bit of data associating GZF with the wrapper functions.  */
+// 	return (int)gzf;
+// }
 
-partype_t gztype = {
-	(openfunc_t)gzopen_frontend,
-	(closefunc_t)gzclose,
-	(readfunc_t)gzread,
-	(writefunc_t)gzwrite
-};
+// partype_t gztype = {
+// 	(openfunc_t)gzopen_frontend,
+// 	(closefunc_t)gzclose,
+// 	(readfunc_t)gzread,
+// 	(writefunc_t)gzwrite
+// };
 
 int create(char *tarfile, char *rootdir, libtar_list_t *l) {
 	PAR *t;
@@ -81,14 +80,18 @@ int create(char *tarfile, char *rootdir, libtar_list_t *l) {
 	char buf[MAXPATHLEN];
 	libtar_listptr_t lp;
 
-	if (par_open(&t, tarfile,
-		     (use_zlib ? &gztype : NULL),
-		     O_WRONLY | O_CREAT, 0644,
+	if (par_open(&t, tarfile, 1, O_WRONLY | O_CREAT, 0644,
 		     (verbose ? PAR_VERBOSE : 0)
 		     | (use_gnu ? PAR_GNU : 0)) == -1) {
 		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
 		return -1;
 	}
+
+	// if (par_write_header(t) == -1) {
+	// 	fprintf(stderr, "par_write_header(): %s\n", strerror(errno));
+	// 	par_close(t);
+	// 	return -1;
+	// }
 
 	libtar_listptr_reset(&lp);
 	while (libtar_list_next(l, &lp) != 0) {
@@ -124,9 +127,7 @@ int list(char *tarfile) {
 	PAR *t;
 	int i;
 
-	if (par_open(&t, tarfile,
-		     (use_zlib ? &gztype : NULL),
-		     O_RDONLY, 0,
+	if (par_open(&t, tarfile, 1, O_RDONLY, 0,
 		     (verbose ? PAR_VERBOSE : 0)
 		     | (use_gnu ? PAR_GNU : 0)) == -1) {
 		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
@@ -162,9 +163,7 @@ int list(char *tarfile) {
 int extract(char *tarfile, char *rootdir) {
 	PAR *t;
 
-	if (par_open(&t, tarfile,
-		     (use_zlib ? &gztype : NULL),
-		     O_RDONLY, 0,
+	if (par_open(&t, tarfile, 1, O_RDONLY, 0,
 		     (verbose ? PAR_VERBOSE : 0)
 		     | (use_gnu ? PAR_GNU : 0)) == -1) {
 		fprintf(stderr, "tar_open(): %s\n", strerror(errno));

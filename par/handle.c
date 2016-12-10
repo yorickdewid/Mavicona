@@ -21,7 +21,50 @@
 #include <stdlib.h>
 #include <memory.h>
 
-static partype_t default_type = {open, close, read, write};
+int par_block_read(PAR *t, char *buf) {
+	if (t->use_gz)
+		return gzread(t->gzfd, buf, T_BLOCKSIZE);
+
+	return read(t->fd, buf, T_BLOCKSIZE);
+}
+
+int par_block_write(PAR *t, char *buf) {
+	if (t->use_gz)
+		return gzwrite(t->gzfd, buf, T_BLOCKSIZE);
+
+	return write(t->fd, buf, T_BLOCKSIZE);
+}
+
+static gzFile gzopen_init(const char *pathname, int oflags, int mode, int fd) {
+	char *gzoflags;
+	gzFile gzfd;
+
+	switch (oflags & O_ACCMODE) {
+		case O_WRONLY:
+			gzoflags = "wb";
+			break;
+		case O_RDONLY:
+			gzoflags = "rb";
+			break;
+		default:
+		case O_RDWR:
+			errno = EINVAL;
+		return NULL;
+	}
+
+	if ((oflags & O_CREAT) && fchmod(fd, mode)) {
+		close(fd);
+		return NULL;
+	}
+
+	gzfd = gzdopen(fd, gzoflags);
+	if (!gzfd) {
+		errno = ENOMEM;
+		return NULL;
+	}
+
+	return gzfd;
+}
 
 int par_write_header(PAR *t) {
 	struct archive_header header;
@@ -31,11 +74,13 @@ int par_write_header(PAR *t) {
 	header.version_minor = PACKAGE_VERSION_MINOR;
 	memset(header.quid, '\0', sizeof(header.quid));
 
-	write(t->fd, (const void *)(&header), sizeof(struct archive_header));
+	if (par_block_write(t, (char *)&header) == -1)
+		return -1;
+
 	return 0;
 }
 
-static int par_init(PAR **t, const char *pathname, partype_t *type, 
+static int par_init(PAR **t, const char *pathname, int compress, 
 	int oflags, int options) {
 	if ((oflags & O_ACCMODE) == O_RDWR) {
 		errno = EINVAL;
@@ -48,8 +93,9 @@ static int par_init(PAR **t, const char *pathname, partype_t *type,
 
 	(*t)->pathname = pathname;
 	(*t)->options = options;
-	(*t)->type = (type ? type : &default_type);
+	// (*t)->type = (type ? type : &default_type);
 	(*t)->oflags = oflags;
+	(*t)->use_gz = compress;
 
 	if ((oflags & O_ACCMODE) == O_RDONLY)
 		(*t)->h = libtar_hash_new(256, (libtar_hashfunc_t)path_hashfunc);
@@ -65,16 +111,23 @@ static int par_init(PAR **t, const char *pathname, partype_t *type,
 }
 
 /* open a new tarfile handle */
-int par_open(PAR **t, const char *pathname, partype_t *type,
+int par_open(PAR **t, const char *pathname, int compress,
 	 int oflags, int mode, int options) {
-	if (par_init(t, pathname, type, oflags, options) == -1)
+	if (par_init(t, pathname, compress, oflags, options) == -1)
 		return -1;
 
 	if ((options & PAR_NOOVERWRITE) && (oflags & O_CREAT))
 		oflags |= O_EXCL;
 
-	(*t)->fd = (*((*t)->type->openfunc))(pathname, oflags, mode);
-	if ((*t)->fd == -1) {
+	(*t)->fd = open(pathname, oflags, mode);
+	if ((*t)->fd == -1)
+		return -1;
+
+	if ((*t)->use_gz)
+		(*t)->gzfd = gzopen_init(pathname, oflags, mode, (*t)->fd);
+
+	// (*t)->fd = (*((*t)->type->openfunc))(pathname, oflags, mode);
+	if ((*t)->gzfd == NULL) {
 		libtar_hash_free((*t)->h, NULL);
 		free(*t);
 		return -1;
@@ -87,7 +140,12 @@ int par_open(PAR **t, const char *pathname, partype_t *type,
 int par_close(PAR *t) {
 	int i;
 
-	i = (*(t->type->closefunc))(t->fd);
+	// i = (*(t->type->closefunc))(t->fd);
+
+	if (t->use_gz)
+		i = gzclose(t->gzfd);
+	else
+		i = close(t->fd);
 
 	if (t->h != NULL)
 		libtar_hash_free(t->h, ((t->oflags & O_ACCMODE) == O_RDONLY

@@ -40,15 +40,13 @@ static int par_set_file_perms(PAR *t, char *realname) {
 	/* change owner/group */
 	if (geteuid() == 0)
 #ifdef HAVE_LCHOWN
-		if (lchown(filename, uid, gid) == -1)
-		{
+		if (lchown(filename, uid, gid) == -1) {
 # ifdef DEBUG
 			fprintf(stderr, "lchown(\"%s\", %d, %d): %s\n",
 				filename, uid, gid, strerror(errno));
 # endif
 #else /* ! HAVE_LCHOWN */
-		if (!TH_ISSYM(t) && chown(filename, uid, gid) == -1)
-		{
+		if (!TH_ISSYM(t) && chown(filename, uid, gid) == -1) {
 # ifdef DEBUG
 			fprintf(stderr, "chown(\"%s\", %d, %d): %s\n",
 				filename, uid, gid, strerror(errno));
@@ -58,8 +56,7 @@ static int par_set_file_perms(PAR *t, char *realname) {
 		}
 
 	/* change access/modification time */
-	if (!TH_ISSYM(t) && utime(filename, &ut) == -1)
-	{
+	if (!TH_ISSYM(t) && utime(filename, &ut) == -1) {
 #ifdef DEBUG
 		perror("utime()");
 #endif
@@ -67,8 +64,7 @@ static int par_set_file_perms(PAR *t, char *realname) {
 	}
 
 	/* change permissions */
-	if (!TH_ISSYM(t) && chmod(filename, mode) == -1)
-	{
+	if (!TH_ISSYM(t) && chmod(filename, mode) == -1) {
 #ifdef DEBUG
 		perror("chmod()");
 #endif
@@ -103,12 +99,6 @@ int par_extract_file(PAR *t, char *realname) {
 		i = par_extract_hardlink(t, realname);
 	else if (TH_ISSYM(t))
 		i = par_extract_symlink(t, realname);
-	// else if (TH_ISCHR(t))
-		// i = par_extract_chardev(t, realname);
-	// else if (TH_ISBLK(t))
-		// i = par_extract_blockdev(t, realname);
-	// else if (TH_ISFIFO(t))
-		// i = par_extract_fifo(t, realname);
 	else /* if (TH_ISREG(t)) */
 		i = par_extract_regfile(t, realname);
 
@@ -175,8 +165,7 @@ int par_extract_regfile(PAR *t, char *realname) {
 		     | O_BINARY
 #endif
 		    , 0666);
-	if (fdout == -1)
-	{
+	if (fdout == -1) {
 #ifdef DEBUG
 		perror("open()");
 #endif
@@ -304,76 +293,6 @@ int par_extract_symlink(PAR *t, char *realname) {
 	return 0;
 }
 
-/* character device */
-// int par_extract_chardev(PAR *t, char *realname) {
-// 	mode_t mode;
-// 	unsigned long devmaj, devmin;
-// 	char *filename;
-
-// 	if (!TH_ISCHR(t)) {
-// 		errno = EINVAL;
-// 		return -1;
-// 	}
-
-// 	filename = (realname ? realname : th_get_pathname(t));
-// 	mode = th_get_mode(t);
-// 	devmaj = th_get_devmajor(t);
-// 	devmin = th_get_devminor(t);
-
-// 	if (mkdirhier(dirname(filename)) == -1)
-// 		return -1;
-
-// #ifdef DEBUG
-// 	printf("  ==> extracting: %s (character device %ld,%ld)\n",
-// 	       filename, devmaj, devmin);
-// #endif
-// 	if (mknod(filename, mode | S_IFCHR,
-// 		  compat_makedev(devmaj, devmin)) == -1)
-// 	{
-// #ifdef DEBUG
-// 		perror("mknod()");
-// #endif
-// 		return -1;
-// 	}
-
-// 	return 0;
-// }
-
-/* block device */
-// int par_extract_blockdev(PAR *t, char *realname) {
-// 	mode_t mode;
-// 	unsigned long devmaj, devmin;
-// 	char *filename;
-
-// 	if (!TH_ISBLK(t)) {
-// 		errno = EINVAL;
-// 		return -1;
-// 	}
-
-// 	filename = (realname ? realname : th_get_pathname(t));
-// 	mode = th_get_mode(t);
-// 	devmaj = th_get_devmajor(t);
-// 	devmin = th_get_devminor(t);
-
-// 	if (mkdirhier(dirname(filename)) == -1)
-// 		return -1;
-
-// #ifdef DEBUG
-// 	printf("  ==> extracting: %s (block device %ld,%ld)\n",
-// 	       filename, devmaj, devmin);
-// #endif
-// 	if (mknod(filename, mode | S_IFBLK,
-// 		  compat_makedev(devmaj, devmin)) == -1)
-// 	{
-// #ifdef DEBUG
-// 		perror("mknod()");
-// #endif
-// 		return -1;
-// 	}
-
-// 	return 0;
-// }
-
 /* directory */
 int par_extract_dir(PAR *t, char *realname) {
 	mode_t mode;
@@ -417,32 +336,3 @@ int par_extract_dir(PAR *t, char *realname) {
 
 	return 0;
 }
-
-/* FIFO */
-// int par_extract_fifo(PAR *t, char *realname) {
-// 	mode_t mode;
-// 	char *filename;
-
-// 	if (!TH_ISFIFO(t)) {
-// 		errno = EINVAL;
-// 		return -1;
-// 	}
-
-// 	filename = (realname ? realname : th_get_pathname(t));
-// 	mode = th_get_mode(t);
-
-// 	if (mkdirhier(dirname(filename)) == -1)
-// 		return -1;
-
-// #ifdef DEBUG
-// 	printf("  ==> extracting: %s (fifo)\n", filename);
-// #endif
-// 	if (mkfifo(filename, mode) == -1) {
-// #ifdef DEBUG
-// 		perror("mkfifo()");
-// #endif
-// 		return -1;
-// 	}
-
-// 	return 0;
-// }

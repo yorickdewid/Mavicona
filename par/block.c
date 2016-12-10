@@ -20,6 +20,13 @@
 
 #define BIT_ISSET(bitmask, bit) ((bitmask) & (bit))
 
+/* magic, version, and checksum */
+static void th_finish(PAR *t) {
+	strncpy(t->th_buf.version, TVERSION, TVERSLEN);
+	strncpy(t->th_buf.magic, TMAGIC, TMAGLEN);
+
+	int_to_oct(th_crc_calc(t), t->th_buf.chksum, 8);
+}
 
 /* read a header block */
 /* FIXME: the return value of this function should match the return value
@@ -33,9 +40,7 @@
 	  fixed for security reasons.
 	  Thanks to Chris Palmer for the critique.
 */
-int
-th_read_internal(PAR *t)
-{
+int th_read_internal(PAR *t) {
 	int i;
 	int num_zero_blocks = 0;
 
@@ -43,7 +48,7 @@ th_read_internal(PAR *t)
 	printf("==> th_read_internal(PAR=\"%s\")\n", t->pathname);
 #endif
 
-	while ((i = par_block_read(t, &(t->th_buf))) == T_BLOCKSIZE) {
+	while ((i = par_block_read(t, (char *)&(t->th_buf))) == T_BLOCKSIZE) {
 		/* two all-zero blocks mark EOF */
 		if (t->th_buf.name[0] == '\0') {
 			num_zero_blocks++;
@@ -112,20 +117,17 @@ int th_read(PAR *t) {
 	i = th_read_internal(t);
 	if (i == 0)
 		return 1;
-	else if (i != T_BLOCKSIZE)
-	{
+	else if (i != T_BLOCKSIZE) {
 		if (i != -1)
 			errno = EINVAL;
 		return -1;
 	}
 
 	/* check for GNU long link extention */
-	if (TH_ISLONGLINK(t))
-	{
+	if (TH_ISLONGLINK(t)) {
 		sz = th_get_size(t);
 		blocks = (sz / T_BLOCKSIZE) + (sz % T_BLOCKSIZE ? 1 : 0);
-		if (blocks > ((size_t)-1 / T_BLOCKSIZE))
-		{
+		if (blocks > ((size_t)-1 / T_BLOCKSIZE)) {
 			errno = E2BIG;
 			return -1;
 		}
@@ -138,15 +140,13 @@ int th_read(PAR *t) {
 			return -1;
 
 		for (j = 0, ptr = t->th_buf.gnu_longlink; j < blocks;
-		     j++, ptr += T_BLOCKSIZE)
-		{
+		     j++, ptr += T_BLOCKSIZE) {
 #ifdef DEBUG
 			printf("    th_read(): reading long linkname "
 			       "(%d blocks left, ptr == %ld)\n", blocks-j, ptr);
 #endif
 			i = par_block_read(t, ptr);
-			if (i != T_BLOCKSIZE)
-			{
+			if (i != T_BLOCKSIZE) {
 				if (i != -1)
 					errno = EINVAL;
 				return -1;
@@ -161,8 +161,7 @@ int th_read(PAR *t) {
 #endif
 
 		i = th_read_internal(t);
-		if (i != T_BLOCKSIZE)
-		{
+		if (i != T_BLOCKSIZE) {
 			if (i != -1)
 				errno = EINVAL;
 			return -1;
@@ -170,12 +169,10 @@ int th_read(PAR *t) {
 	}
 
 	/* check for GNU long name extention */
-	if (TH_ISLONGNAME(t))
-	{
+	if (TH_ISLONGNAME(t)) {
 		sz = th_get_size(t);
 		blocks = (sz / T_BLOCKSIZE) + (sz % T_BLOCKSIZE ? 1 : 0);
-		if (blocks > ((size_t)-1 / T_BLOCKSIZE))
-		{
+		if (blocks > ((size_t)-1 / T_BLOCKSIZE)) {
 			errno = E2BIG;
 			return -1;
 		}
@@ -188,8 +185,7 @@ int th_read(PAR *t) {
 			return -1;
 
 		for (j = 0, ptr = t->th_buf.gnu_longname; j < blocks;
-		     j++, ptr += T_BLOCKSIZE)
-		{
+		     j++, ptr += T_BLOCKSIZE) {
 #ifdef DEBUG
 			printf("    th_read(): reading long filename "
 			       "(%d blocks left, ptr == %ld)\n", blocks-j, ptr);
@@ -211,8 +207,7 @@ int th_read(PAR *t) {
 #endif
 
 		i = th_read_internal(t);
-		if (i != T_BLOCKSIZE)
-		{
+		if (i != T_BLOCKSIZE) {
 			if (i != -1)
 				errno = EINVAL;
 			return -1;
@@ -232,7 +227,6 @@ int th_write(PAR *t) {
 
 #ifdef DEBUG
 	printf("==> th_write(PAR=\"%s\")\n", t->pathname);
-	th_print(t);
 #endif
 
 	if ((t->options & PAR_GNU) && t->th_buf.gnu_longlink != NULL) {
@@ -249,7 +243,7 @@ int th_write(PAR *t) {
 		sz = strlen(t->th_buf.gnu_longlink);
 		th_set_size(t, sz);
 		th_finish(t);
-		i = par_block_write(t, &(t->th_buf));
+		i = par_block_write(t, (char *)&(t->th_buf));
 		if (i != T_BLOCKSIZE) {
 			if (i != -1)
 				errno = EINVAL;
@@ -269,7 +263,7 @@ int th_write(PAR *t) {
 		}
 		memset(buf, 0, T_BLOCKSIZE);
 		strncpy(buf, ptr, T_BLOCKSIZE);
-		i = par_block_write(t, &buf);
+		i = par_block_write(t, (char *)&buf);
 		if (i != T_BLOCKSIZE) {
 			if (i != -1)
 				errno = EINVAL;
@@ -295,9 +289,8 @@ int th_write(PAR *t) {
 		sz = strlen(t->th_buf.gnu_longname);
 		th_set_size(t, sz);
 		th_finish(t);
-		i = par_block_write(t, &(t->th_buf));
-		if (i != T_BLOCKSIZE)
-		{
+		i = par_block_write(t, (char *)&(t->th_buf));
+		if (i != T_BLOCKSIZE) {
 			if (i != -1)
 				errno = EINVAL;
 			return -1;
@@ -306,11 +299,9 @@ int th_write(PAR *t) {
 		/* write out extra blocks containing long name */
 		for (j = (sz / T_BLOCKSIZE) + (sz % T_BLOCKSIZE ? 1 : 0),
 		     ptr = t->th_buf.gnu_longname; j > 1;
-		     j--, ptr += T_BLOCKSIZE)
-		{
+		     j--, ptr += T_BLOCKSIZE) {
 			i = par_block_write(t, ptr);
-			if (i != T_BLOCKSIZE)
-			{
+			if (i != T_BLOCKSIZE) {
 				if (i != -1)
 					errno = EINVAL;
 				return -1;
@@ -318,9 +309,8 @@ int th_write(PAR *t) {
 		}
 		memset(buf, 0, T_BLOCKSIZE);
 		strncpy(buf, ptr, T_BLOCKSIZE);
-		i = par_block_write(t, &buf);
-		if (i != T_BLOCKSIZE)
-		{
+		i = par_block_write(t, (char *)&buf);
+		if (i != T_BLOCKSIZE) {
 			if (i != -1)
 				errno = EINVAL;
 			return -1;
@@ -338,7 +328,7 @@ int th_write(PAR *t) {
 	th_print(t);
 #endif
 
-	i = par_block_write(t, &(t->th_buf));
+	i = par_block_write(t, (char *)&(t->th_buf));
 	if (i != T_BLOCKSIZE) {
 		if (i != -1)
 			errno = EINVAL;

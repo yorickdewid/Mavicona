@@ -18,7 +18,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdint.h>
-// #include <tar.h>
+#include <zlib.h>
 
 #include "libtar_listhash.h"
 
@@ -57,7 +57,6 @@ extern "C"
 #define REGTYPE		0x2
 #define DIRTYPE		0x4
 #define LNKTYPE		0x8
-// #define AREGTYPE	0x10
 
 /* our version of the tar header structure */
 struct archive_header {
@@ -83,8 +82,6 @@ struct tar_header {
 	char version[2];
 	char uname[32];
 	char gname[32];
-	char devmajor[8];
-	char devminor[8];
 	char prefix[155];
 	char padding[12];
 	char *gnu_longname;
@@ -93,24 +90,13 @@ struct tar_header {
 
 /***** handle.c ************************************************************/
 
-typedef int (*openfunc_t)(const char *, int, ...);
-typedef int (*closefunc_t)(int);
-typedef ssize_t (*readfunc_t)(int, void *, size_t);
-typedef ssize_t (*writefunc_t)(int, const void *, size_t);
-
 typedef struct {
-	openfunc_t openfunc;
-	closefunc_t closefunc;
-	readfunc_t readfunc;
-	writefunc_t writefunc;
-} partype_t;
-
-typedef struct {
-	partype_t *type;
 	const char *pathname;
-	long fd;
+	int fd;
+	gzFile gzfd;
 	int oflags;
 	int options;
+	int use_gz;
 	struct tar_header th_buf;
 	libtar_hash_t *h;
 	char *th_pathname;
@@ -125,8 +111,17 @@ typedef struct {
 #define PAR_CHECK_VERSION	32	/* check version in file header */
 #define PAR_IGNORE_CRC		64	/* ignore CRC in file header */
 
+/**/
+int par_block_read(PAR *t, char *buf);
+
+/**/
+int par_block_write(PAR *t, char *buf);
+
+/**/
+int par_write_header(PAR *t);
+
 /* open a new tarfile handle */
-int par_open(PAR **t, const char *pathname, partype_t *type,
+int par_open(PAR **t, const char *pathname, int compress,
 	     int oflags, int mode, int options);
 
 /* close tarfile handle */
@@ -158,47 +153,21 @@ int par_append_regfile(PAR *t, const char *realname);
 
 /***** block.c *************************************************************/
 
-/* macros for reading/writing tarchive blocks */
-#define par_block_read(t, buf) \
-	(*((t)->type->readfunc))((t)->fd, (char *)(buf), T_BLOCKSIZE)
-#define par_block_write(t, buf) \
-	(*((t)->type->writefunc))((t)->fd, (char *)(buf), T_BLOCKSIZE)
-
 /* read/write a header block */
 int th_read(PAR *t);
 int th_write(PAR *t);
 
-
 /***** decode.c ************************************************************/
 
 /* determine file type */
-// #define TH_ISREG(t)	((t)->th_buf.typeflag == REGTYPE \
-// 			 || (t)->th_buf.typeflag == AREGTYPE \
-// 			 || (t)->th_buf.typeflag == CONTTYPE \
-// 			 || (S_ISREG((mode_t)oct_to_int((t)->th_buf.mode)) \
-// 			     && (t)->th_buf.typeflag != LNKTYPE))
 #define TH_ISREG(t)	((t)->th_buf.typeflag == REGTYPE \
 			 || (S_ISREG((mode_t)oct_to_int((t)->th_buf.mode)) \
 			     && (t)->th_buf.typeflag != LNKTYPE))
-
 #define TH_ISLNK(t)	((t)->th_buf.typeflag == LNKTYPE)
 #define TH_ISSYM(t)	((t)->th_buf.typeflag == SYMTYPE \
 			 || S_ISLNK((mode_t)oct_to_int((t)->th_buf.mode)))
-// #define TH_ISCHR(t)	((t)->th_buf.typeflag == CHRTYPE \
-// 			 || S_ISCHR((mode_t)oct_to_int((t)->th_buf.mode)))
-// #define TH_ISBLK(t)	((t)->th_buf.typeflag == BLKTYPE \
-// 			 || S_ISBLK((mode_t)oct_to_int((t)->th_buf.mode)))
-// #define TH_ISDIR(t)	((t)->th_buf.typeflag == DIRTYPE \
-// 			 || S_ISDIR((mode_t)oct_to_int((t)->th_buf.mode)) \
-// 			 || ((t)->th_buf.typeflag == AREGTYPE \
-// 			     && strlen((t)->th_buf.name) \
-// 			     && ((t)->th_buf.name[strlen((t)->th_buf.name) - 1] == '/')))
-
 #define TH_ISDIR(t)	((t)->th_buf.typeflag == DIRTYPE \
 			 || S_ISDIR((mode_t)oct_to_int((t)->th_buf.mode)))
-
-// #define TH_ISFIFO(t)	((t)->th_buf.typeflag == FIFOTYPE \
-// 			 || S_ISFIFO((mode_t)oct_to_int((t)->th_buf.mode)))
 #define TH_ISLONGNAME(t)	((t)->th_buf.typeflag == GNU_LONGNAME_TYPE)
 #define TH_ISLONGLINK(t)	((t)->th_buf.typeflag == GNU_LONGLINK_TYPE)
 
@@ -206,8 +175,6 @@ int th_write(PAR *t);
 #define th_get_crc(t) oct_to_int((t)->th_buf.chksum)
 #define th_get_size(t) oct_to_size((t)->th_buf.size)
 #define th_get_mtime(t) oct_to_int((t)->th_buf.mtime)
-#define th_get_devmajor(t) oct_to_int((t)->th_buf.devmajor)
-#define th_get_devminor(t) oct_to_int((t)->th_buf.devminor)
 #define th_get_linkname(t) ((t)->th_buf.gnu_longlink \
                             ? (t)->th_buf.gnu_longlink \
                             : (t)->th_buf.linkname)
@@ -215,7 +182,6 @@ char *th_get_pathname(PAR *t);
 mode_t th_get_mode(PAR *t);
 uid_t th_get_uid(PAR *t);
 gid_t th_get_gid(PAR *t);
-
 
 /***** encode.c ************************************************************/
 
@@ -235,10 +201,6 @@ void th_set_mode(PAR *t, mode_t fmode);
 /* encode everything at once (except the pathname and linkname) */
 int th_set_from_stat(PAR *t, struct stat *s);
 
-/* encode magic, version, and crc - must be done after everything else is set */
-void th_finish(PAR *t);
-
-
 /***** extract.c ***********************************************************/
 
 /* sequentially extract next file from t */
@@ -248,14 +210,10 @@ int par_extract_file(PAR *t, char *realname);
 int par_extract_dir(PAR *t, char *realname);
 int par_extract_hardlink(PAR *t, char *realname);
 int par_extract_symlink(PAR *t, char *realname);
-// int par_extract_chardev(PAR *t, char *realname);
-// int par_extract_blockdev(PAR *t, char *realname);
-// int par_extract_fifo(PAR *t, char *realname);
 
 /* for regfiles, we need to extract the content blocks as well */
 int par_extract_regfile(PAR *t, char *realname);
 int par_skip_regfile(PAR *t);
-
 
 /***** output.c ************************************************************/
 
@@ -264,7 +222,6 @@ void th_print(PAR *t);
 
 /* print "ls -l"-like output for the file described by th */
 void th_print_long_ls(PAR *t);
-
 
 /***** util.c *************************************************************/
 
@@ -305,7 +262,6 @@ size_t oct_to_size(char *oct);
 
 /* integer to string-octal conversion, no NULL */
 void int_to_oct_nonull(int num, char *oct, size_t octlen);
-
 
 /***** wrapper.c **********************************************************/
 

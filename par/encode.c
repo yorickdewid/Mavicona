@@ -19,24 +19,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* magic, version, and checksum */
-void th_finish(PAR *t) {
-	// if (t->options & PAR_GNU) {
-		/* we're aiming for this result, but must do it in
-		 * two calls to avoid FORTIFY segfaults on some Linux
-		 * systems:
-		 *      strncpy(t->th_buf.magic, "ustar  ", 8);
-		 */
-		// strncpy(t->th_buf.magic, "ustar ", 6);
-		// strncpy(t->th_buf.version, " ", 2);
-	// } else {
-		strncpy(t->th_buf.version, TVERSION, TVERSLEN);
-		strncpy(t->th_buf.magic, TMAGIC, TMAGLEN);
-	// }
-
-	int_to_oct(th_crc_calc(t), t->th_buf.chksum, 8);
-}
-
 /* map a file mode to a typeflag */
 void th_set_type(PAR *t, mode_t mode) {
 	if (S_ISLNK(mode))
@@ -45,14 +27,7 @@ void th_set_type(PAR *t, mode_t mode) {
 		t->th_buf.typeflag = REGTYPE;
 	if (S_ISDIR(mode))
 		t->th_buf.typeflag = DIRTYPE;
-	// if (S_ISCHR(mode))
-		// t->th_buf.typeflag = CHRTYPE;
-	// if (S_ISBLK(mode))
-		// t->th_buf.typeflag = BLKTYPE;
-	// if (S_ISFIFO(mode) || S_ISSOCK(mode))
-		// t->th_buf.typeflag = FIFOTYPE;
 }
-
 
 /* encode file path */
 void th_set_path(PAR *t, const char *pathname) {
@@ -70,18 +45,14 @@ void th_set_path(PAR *t, const char *pathname) {
 	if (pathname[strlen(pathname) - 1] != '/' && TH_ISDIR(t))
 		strcpy(suffix, "/");
 
-	if (strlen(pathname) > T_NAMELEN-1 && (t->options & PAR_GNU))
-	{
+	if (strlen(pathname) > T_NAMELEN-1 && (t->options & PAR_GNU)) {
 		/* GNU-style long name */
 		t->th_buf.gnu_longname = strdup(pathname);
 		strncpy(t->th_buf.name, t->th_buf.gnu_longname, T_NAMELEN);
-	}
-	else if (strlen(pathname) > T_NAMELEN)
-	{
+	} else if (strlen(pathname) > T_NAMELEN) {
 		/* POSIX-style prefix field */
 		tmp = strchr(&(pathname[strlen(pathname) - T_NAMELEN - 1]), '/');
-		if (tmp == NULL)
-		{
+		if (tmp == NULL) {
 			printf("!!! '/' not found in \"%s\"\n", pathname);
 			return;
 		}
@@ -89,10 +60,10 @@ void th_set_path(PAR *t, const char *pathname) {
 		snprintf(t->th_buf.prefix,
 			 ((tmp - pathname + 1) <
 			  155 ? (tmp - pathname + 1) : 155), "%s", pathname);
-	}
-	else
+	} else {
 		/* classic tar format */
 		snprintf(t->th_buf.name, 100, "%s%s", pathname, suffix);
+	}
 
 #ifdef DEBUG
 	puts("returning from th_set_path()...");
@@ -106,36 +77,18 @@ void th_set_link(PAR *t, const char *linkname) {
 	printf("==> th_set_link(th, linkname=\"%s\")\n", linkname);
 #endif
 
-	if (strlen(linkname) > T_NAMELEN-1 && (t->options & PAR_GNU))
-	{
+	if (strlen(linkname) > T_NAMELEN-1 && (t->options & PAR_GNU)) {
 		/* GNU longlink format */
 		t->th_buf.gnu_longlink = strdup(linkname);
 		strcpy(t->th_buf.linkname, "././@LongLink");
-	}
-	else
-	{
+	} else {
 		/* classic tar format */
-		strlcpy(t->th_buf.linkname, linkname,
-			sizeof(t->th_buf.linkname));
+		strlcpy(t->th_buf.linkname, linkname, sizeof(t->th_buf.linkname));
 		if (t->th_buf.gnu_longlink != NULL)
 			free(t->th_buf.gnu_longlink);
 		t->th_buf.gnu_longlink = NULL;
 	}
 }
-
-
-/* encode device info */
-// void
-// th_set_device(PAR *t, dev_t device)
-// {
-// #ifdef DEBUG
-	// printf("th_set_device(): major = %d, minor = %d\n",
-	       // major(device), minor(device));
-// #endif
-	// int_to_oct(major(device), t->th_buf.devmajor, 8);
-	// int_to_oct(minor(device), t->th_buf.devminor, 8);
-// }
-
 
 /* encode user info */
 void th_set_user(PAR *t, uid_t uid) {
@@ -161,11 +114,6 @@ void th_set_group(PAR *t, gid_t gid) {
 
 /* encode file mode */
 void th_set_mode(PAR *t, mode_t fmode) {
-	// if (S_ISSOCK(fmode))
-	// {
-	// 	fmode &= ~S_IFSOCK;
-	// 	fmode |= S_IFIFO;
-	// }
 	int_to_oct(fmode, (t)->th_buf.mode, 8);
 }
 
@@ -175,7 +123,6 @@ int th_set_from_stat(PAR *t, struct stat *s) {
 		S_ISFIFO(s->st_mode) || 
 		S_ISSOCK(s->st_mode))
 		return -1;
-		// th_set_device(t, s->st_rdev);
 
 	th_set_type(t, s->st_mode);
 	th_set_user(t, s->st_uid);

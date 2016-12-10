@@ -37,7 +37,6 @@ struct tar_ino {
 };
 typedef struct tar_ino tar_ino_t;
 
-
 /* free memory associated with a tar_dev_t */
 void tar_dev_free(tar_dev_t *tdp) {
 	libtar_hash_free(tdp->td_h, free);
@@ -181,7 +180,7 @@ int par_append_eof(PAR *t) {
 
 	memset(&block, 0, T_BLOCKSIZE);
 	for (j = 0; j < 2; j++) {
-		i = par_block_write(t, &block);
+		i = par_block_write(t, (char *)&block);
 		if (i != T_BLOCKSIZE) {
 			if (i != -1)
 				errno = EINVAL;
@@ -216,7 +215,7 @@ int par_append_regfile(PAR *t, const char *realname) {
 				errno = EINVAL;
 			goto fail;
 		}
-		if (par_block_write(t, &block) == -1)
+		if (par_block_write(t, (char *)&block) == -1)
 			goto fail;
 	}
 
@@ -225,7 +224,7 @@ int par_append_regfile(PAR *t, const char *realname) {
 		if (j == -1)
 			goto fail;
 		memset(&(block[i]), 0, T_BLOCKSIZE - i);
-		if (par_block_write(t, &block) == -1)
+		if (par_block_write(t, (char *)&block) == -1)
 			goto fail;
 	}
 

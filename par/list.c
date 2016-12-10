@@ -36,16 +36,12 @@ void th_print(PAR *t) {
 	printf("  size     = \"%.12s\"\n", t->th_buf.size);
 	printf("  mtime    = \"%.12s\"\n", t->th_buf.mtime);
 	printf("  chksum   = \"%.8s\"\n", t->th_buf.chksum);
-	printf("  typeflag = \'%c\'\n", t->th_buf.typeflag);
+	printf("  typeflag = \'0x%02x\'\n", t->th_buf.typeflag);
 	printf("  linkname = \"%.100s\"\n", t->th_buf.linkname);
 	printf("  magic    = \"%.6s\"\n", t->th_buf.magic);
-	/*printf("  version  = \"%.2s\"\n", t->th_buf.version); */
-	printf("  version[0] = \'%c\',version[1] = \'%c\'\n",
-	       t->th_buf.version[0], t->th_buf.version[1]);
+	printf("  version  = \'%c\',\'%c\'\n", t->th_buf.version[0], t->th_buf.version[1]);
 	printf("  uname    = \"%.32s\"\n", t->th_buf.uname);
 	printf("  gname    = \"%.32s\"\n", t->th_buf.gname);
-	printf("  devmajor = \"%.8s\"\n", t->th_buf.devmajor);
-	printf("  devminor = \"%.8s\"\n", t->th_buf.devminor);
 	printf("  prefix   = \"%.155s\"\n", t->th_buf.prefix);
 	printf("  padding  = \"%.12s\"\n", t->th_buf.padding);
 	printf("  gnu_longname = \"%s\"\n",
@@ -53,7 +49,6 @@ void th_print(PAR *t) {
 	printf("  gnu_longlink = \"%s\"\n",
 	       (t->th_buf.gnu_longlink ? t->th_buf.gnu_longlink : "[NULL]"));
 }
-
 
 void th_print_long_ls(PAR *t) {
 	char modestring[12];
