@@ -13,8 +13,6 @@
 #endif
 
 
-#if defined(NEED_BASENAME) && !defined(HAVE_BASENAME)
-
 # ifdef basename
 #  undef basename		/* fix glibc brokenness */
 # endif
@@ -22,15 +20,13 @@
 char *openbsd_basename(const char *);
 # define basename openbsd_basename
 
-#endif /* NEED_BASENAME && ! HAVE_BASENAME */
 
 
-#if defined(NEED_DIRNAME) && !defined(HAVE_DIRNAME)
+
 
 char *openbsd_dirname(const char *);
 # define dirname openbsd_dirname
 
-#endif /* NEED_DIRNAME && ! HAVE_DIRNAME */
 
 
 #  define FNM_NOMATCH	1	/* Match failed. */
@@ -61,6 +57,8 @@ int compat_gethostbyname_r(const char *, struct hostent *,
 # endif /* GETHOSTBYNAME_R_NUM_ARGS != 6 */
 
 #endif /* NEED_GETHOSTBYNAME_R */
+
+
 
 
 #if defined(NEED_GETHOSTNAME) && !defined(HAVE_GETHOSTNAME)
@@ -129,18 +127,12 @@ int mutt_vsnprintf(char *, size_t, const char *, va_list);
 #endif /* NEED_SNPRINTF && ! HAVE_SNPRINTF */
 
 
-#if defined(NEED_STRLCAT) && !defined(HAVE_STRLCAT)
+
 
 size_t strlcat(char *, const char *, size_t);
 
-#endif /* NEED_STRLCAT && ! HAVE_STRLCAT */
-
-
-#if defined(NEED_STRLCPY) && !defined(HAVE_STRLCPY)
 
 size_t strlcpy(char *, const char *, size_t);
-
-#endif /* NEED_STRLCPY && ! HAVE_STRLCPY */
 
 
 #if defined(NEED_STRDUP) && !defined(HAVE_STRDUP)
@@ -151,11 +143,9 @@ char *openbsd_strdup(const char *);
 #endif /* NEED_STRDUP && ! HAVE_STRDUP */
 
 
-#if defined(NEED_STRMODE) && !defined(HAVE_STRMODE)
 
 void strmode(register mode_t, register char *);
 
-#endif /* NEED_STRMODE && ! HAVE_STRMODE */
 
 
 #if defined(NEED_STRRSTR) && !defined(HAVE_STRRSTR)
