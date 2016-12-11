@@ -4,7 +4,7 @@
 **  Copyright 2015-2016 Mavicona, Quenza Inc.
 **  All rights reserved.
 **
-**  append.c - libtar code to append files to a tar archive
+**  append.c - append files to a archive
 **
 **  This file is part of the Mavicona project.
 **
@@ -43,7 +43,7 @@ void tar_dev_free(tar_dev_t *tdp) {
 	free(tdp);
 }
 
-/* appends a file to the tar archive */
+/* appends a file to archive */
 int par_append_file(PAR *t, const char *realname, const char *savename) {
 	struct stat s;
 	int i;
@@ -69,7 +69,7 @@ int par_append_file(PAR *t, const char *realname, const char *savename) {
 #ifdef DEBUG
 	puts("    par_append_file(): setting header block...");
 #endif
-	memset(&(t->th_buf), 0, sizeof(struct tar_header));
+	memset(&(t->th_buf), 0, sizeof(struct par_file_header));
 	if (th_set_from_stat(t, &s) != 0) {
 #ifdef DEBUG
 		puts("    par_append_file(): invalid file type...");
@@ -191,7 +191,7 @@ int par_append_eof(PAR *t) {
 	return 0;
 }
 
-/* add file contents to a tarchive */
+/* add file contents to a archive */
 int par_append_regfile(PAR *t, const char *realname) {
 	char block[T_BLOCKSIZE];
 	int filefd;

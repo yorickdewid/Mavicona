@@ -4,7 +4,7 @@
 **  Copyright 2015-2016 Mavicona, Quenza Inc.
 **  All rights reserved.
 **
-**  extract.c - libtar code to extract a file from a tar archive
+**  extract.c - extract a file from archive
 **
 **  This file is part of the Mavicona project.
 **
@@ -94,8 +94,7 @@ int par_extract_file(PAR *t, char *realname) {
 		i = par_extract_dir(t, realname);
 		if (i == 1)
 			i = 0;
-	}
-	else if (TH_ISLNK(t))
+	} else if (TH_ISLNK(t))
 		i = par_extract_hardlink(t, realname);
 	else if (TH_ISSYM(t))
 		i = par_extract_symlink(t, realname);
@@ -117,7 +116,7 @@ int par_extract_file(PAR *t, char *realname) {
 	strcpy(&lnp[0], th_get_pathname(t));
 	strcpy(&lnp[pathname_len], realname);
 #ifdef DEBUG
-	printf("tar_extract_file(): calling libtar_hash_add(): key=\"%s\", "
+	printf("par_extract_file(): calling libtar_hash_add(): key=\"%s\", "
 	       "value=\"%s\"\n", th_get_pathname(t), realname);
 #endif
 	if (libtar_hash_add(t->h, lnp) != 0)
@@ -138,7 +137,7 @@ int par_extract_regfile(PAR *t, char *realname) {
 	char *filename;
 
 #ifdef DEBUG
-	printf("==> tar_extract_regfile(t=0x%lx, realname=\"%s\")\n", t,
+	printf("==> par_extract_regfile(t=0x%lx, realname=\"%s\")\n", t,
 	       realname);
 #endif
 
@@ -241,8 +240,7 @@ int par_extract_hardlink(PAR * t, char *realname) {
 		return -1;
 	libtar_hashptr_reset(&hp);
 	if (libtar_hash_getkey(t->h, &hp, safer_name_suffix(th_get_linkname(t)),
-			       (libtar_matchfunc_t)libtar_str_match) != 0)
-	{
+			       (libtar_matchfunc_t)libtar_str_match) != 0) {
 		lnp = (char *)libtar_hashptr_data(&hp);
 		linktgt = &lnp[strlen(lnp) + 1];
 	}

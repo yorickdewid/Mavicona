@@ -4,7 +4,7 @@
 **  Copyright 2015-2016 Mavicona, Quenza Inc.
 **  All rights reserved.
 **
-**  libpar.h - header file for libtar library
+**  libpar.h - header file for libpar library
 **
 **  This file is part of the Mavicona project.
 **
@@ -64,7 +64,7 @@ typedef struct par_meta {
 	char name[64];
 } par_meta_t;
 
-/* our version of the tar header structure */
+/* our version of the header structure */
 struct archive_header {
 	char magic[8];
 	uint8_t version_major;
@@ -75,7 +75,7 @@ struct archive_header {
 };
 
 /* our version of the par header structure */
-struct tar_header {
+struct par_file_header {
 	char name[100];
 	char mode[8];
 	char uid[8];
@@ -104,7 +104,7 @@ typedef struct {
 	int oflags;
 	int options;
 	int use_gz;
-	struct tar_header th_buf;
+	struct par_file_header th_buf;
 	libtar_hash_t *h;
 	char *th_pathname;
 } PAR;
@@ -130,11 +130,11 @@ int par_write_header(PAR *t);
 /**/
 int par_read_header(PAR *t);
 
-/* open a new tarfile handle */
+/* open a new file handle */
 int par_open(PAR **t, const char *pathname, int compress,
 	     int oflags, int mode, int options);
 
-/* close tarfile handle */
+/* close file handle */
 int par_close(PAR *t);
 
 
@@ -146,7 +146,7 @@ struct tar_dev;
 /* cleanup function */
 void tar_dev_free(struct tar_dev *tdp);
 
-/* Appends a file to the tar archive.
+/* Appends a file to the archive.
  * Arguments:
  *    t        = PAR handle to append to
  *    realname = path of file to append
@@ -157,7 +157,7 @@ int par_append_file(PAR *t, const char *realname, const char *savename);
 /* write EOF indicator */
 int par_append_eof(PAR *t);
 
-/* add file contents to a tarchive */
+/* add file contents to a archive */
 int par_append_regfile(PAR *t, const char *realname);
 
 
@@ -181,7 +181,7 @@ int th_write(PAR *t);
 #define TH_ISLONGNAME(t)	((t)->th_buf.typeflag == GNU_LONGNAME_TYPE)
 #define TH_ISLONGLINK(t)	((t)->th_buf.typeflag == GNU_LONGLINK_TYPE)
 
-/* decode tar header info */
+/* decode header info */
 #define th_get_crc(t) oct_to_int((t)->th_buf.chksum)
 #define th_get_size(t) oct_to_size((t)->th_buf.size)
 #define th_get_mtime(t) oct_to_int((t)->th_buf.mtime)
@@ -227,7 +227,7 @@ int par_skip_regfile(PAR *t);
 
 /***** output.c ************************************************************/
 
-/* print the tar header */
+/* print the header */
 void th_print(PAR *t);
 
 /* print "ls -l"-like output for the file described by th */

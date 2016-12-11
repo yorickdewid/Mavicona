@@ -24,18 +24,14 @@
 #include <compat.h>
 
 int verbose = 0;
-int use_gnu = 0;
-int use_zlib = 0;
 
-int create(char *tarfile, char *rootdir, libtar_list_t *l) {
+int create(char *file, char *rootdir, libtar_list_t *l) {
 	PAR *t;
 	char *pathname;
 	char buf[MAXPATHLEN];
 	libtar_listptr_t lp;
 
-	if (par_open(&t, tarfile, 1, O_WRONLY | O_CREAT, 0644,
-		     (verbose ? PAR_VERBOSE : 0)
-		     | (use_gnu ? PAR_GNU : 0)) == -1) {
+	if (par_open(&t, file, 1, O_WRONLY | O_CREAT, 0644, 0) == -1) {
 		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
 		return -1;
 	}
@@ -76,13 +72,11 @@ int create(char *tarfile, char *rootdir, libtar_list_t *l) {
 	return 0;
 }
 
-int list(char *tarfile) {
+int list(char *file) {
 	PAR *t;
 	int i;
 
-	if (par_open(&t, tarfile, 1, O_RDONLY, 0,
-		     (verbose ? PAR_VERBOSE : 0)
-		     | (use_gnu ? PAR_GNU : 0)) == -1) {
+	if (par_open(&t, file, 1, O_RDONLY, 0, 0) == -1) {
 		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
 		return -1;
 	}
@@ -119,12 +113,10 @@ int list(char *tarfile) {
 	return 0;
 }
 
-int extract(char *tarfile, char *rootdir) {
+int extract(char *file, char *rootdir) {
 	PAR *t;
 
-	if (par_open(&t, tarfile, 1, O_RDONLY, 0,
-		     (verbose ? PAR_VERBOSE : 0)
-		     | (use_gnu ? PAR_GNU : 0)) == -1) {
+	if (par_open(&t, file, 1, O_RDONLY, 0, 0) == -1) {
 		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
 		return -1;
 	}
@@ -178,19 +170,12 @@ int main(int argc, char *argv[]) {
 			case 'v':
 				puts("libmavpar " PACKAGE_VERSION "\nCopyright 2015-2016 Mavicona, Quenza Inc.\n");
 				break;
-			// case 'C':
-				// rootdir = strdup(optarg);
-				// break;
 			case 'V':
 				verbose = 1;
 				break;
-			// case 'g':
-				// use_gnu = 1;
-				// break;
 			case 'c':
 				if (mode) {
 					usage(argv[0]);
-					free(rootdir);
 					return 1;
 				}
 				mode = MODE_CREATE;
@@ -198,7 +183,6 @@ int main(int argc, char *argv[]) {
 			case 'x':
 				if (mode){
 					usage(argv[0]);
-					free(rootdir);
 					return 1;
 				}
 				mode = MODE_EXTRACT;
@@ -206,7 +190,6 @@ int main(int argc, char *argv[]) {
 			case 'l':
 				if (mode) {
 					usage(argv[0]);
-					free(rootdir);
 					return 1;
 				}
 				mode = MODE_LIST;
@@ -215,14 +198,12 @@ int main(int argc, char *argv[]) {
 			case 'h':
 			default:
 				usage(argv[0]);
-				free(rootdir);
 				return 1;
 		}
 	}
 
 	if (!mode || ((argc - optind) < (mode == MODE_CREATE ? 2 : 1))) {
 		usage(argv[0]);
-		free(rootdir);
 		return 2;
 	}
 

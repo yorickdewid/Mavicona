@@ -131,7 +131,7 @@ static int par_init(PAR **t, const char *pathname, int compress,
 	return 0;
 }
 
-/* open a new tarfile handle */
+/* open a new file handle */
 int par_open(PAR **t, const char *pathname, int compress,
 	 int oflags, int mode, int options) {
 	if (par_init(t, pathname, compress, oflags, options) == -1)
@@ -156,7 +156,7 @@ int par_open(PAR **t, const char *pathname, int compress,
 	return 0;
 }
 
-/* close tarfile handle */
+/* close file handle */
 int par_close(PAR *t) {
 	int i;
 

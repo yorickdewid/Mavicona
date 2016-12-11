@@ -4,7 +4,7 @@
 **  Copyright 2015-2016 Mavicona, Quenza Inc.
 **  All rights reserved.
 **
-**  block.c - libtar code to handle tar archive header blocks
+**  block.c - handle archive header blocks
 **
 **  This file is part of the Mavicona project.
 **
@@ -63,7 +63,7 @@ int th_read_internal(PAR *t) {
 		if (BIT_ISSET(t->options, PAR_CHECK_MAGIC)
 		    && strncmp(t->th_buf.magic, TMAGIC, TMAGLEN - 1) != 0) {
 #ifdef DEBUG
-			puts("!!! unknown magic value in tar header");
+			puts("!!! unknown magic value in header");
 #endif
 			return -2;
 		}
@@ -71,7 +71,7 @@ int th_read_internal(PAR *t) {
 		if (BIT_ISSET(t->options, PAR_CHECK_VERSION)
 		    && strncmp(t->th_buf.version, TVERSION, TVERSLEN) != 0) {
 #ifdef DEBUG
-			puts("!!! unknown version value in tar header");
+			puts("!!! unknown version value in header");
 #endif
 			return -2;
 		}
@@ -80,7 +80,7 @@ int th_read_internal(PAR *t) {
 		if (!BIT_ISSET(t->options, PAR_IGNORE_CRC)
 		    && !th_crc_ok(t)) {
 #ifdef DEBUG
-			puts("!!! tar header checksum error");
+			puts("!!! header checksum error");
 #endif
 			return -2;
 		}
@@ -109,7 +109,7 @@ int th_read(PAR *t) {
 		free(t->th_buf.gnu_longname);
 	if (t->th_buf.gnu_longlink != NULL)
 		free(t->th_buf.gnu_longlink);
-	memset(&(t->th_buf), 0, sizeof(struct tar_header));
+	memset(&(t->th_buf), 0, sizeof(struct par_file_header));
 
 	i = th_read_internal(t);
 	if (i == 0)
@@ -321,7 +321,7 @@ int th_write(PAR *t) {
 	th_finish(t);
 
 #ifdef DEBUG
-	/* print tar header */
+	/* print header */
 	th_print(t);
 #endif
 

@@ -3,7 +3,7 @@
 **  Copyright 1998-2003 Mark D. Roth
 **  All rights reserved.
 **
-**  encode.c - libtar code to encode tar header blocks
+**  encode.c - encode header blocks
 **
 **  Mark D. Roth <roth@uiuc.edu>
 **  Campus Information Technologies and Educational Services
@@ -61,7 +61,7 @@ void th_set_path(PAR *t, const char *pathname) {
 			 ((tmp - pathname + 1) <
 			  155 ? (tmp - pathname + 1) : 155), "%s", pathname);
 	} else {
-		/* classic tar format */
+		/* classic format */
 		snprintf(t->th_buf.name, 100, "%s%s", pathname, suffix);
 	}
 
@@ -82,7 +82,7 @@ void th_set_link(PAR *t, const char *linkname) {
 		t->th_buf.gnu_longlink = strdup(linkname);
 		strcpy(t->th_buf.linkname, "././@LongLink");
 	} else {
-		/* classic tar format */
+		/* classic format */
 		strlcpy(t->th_buf.linkname, linkname, sizeof(t->th_buf.linkname));
 		if (t->th_buf.gnu_longlink != NULL)
 			free(t->th_buf.gnu_longlink);

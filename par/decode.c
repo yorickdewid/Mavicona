@@ -4,7 +4,7 @@
 **  Copyright 2015-2016 Mavicona, Quenza Inc.
 **  All rights reserved.
 **
-**  decode.c - libtar code to decode tar header blocks
+**  decode.c - decode header blocks
 **
 **  This file is part of the Mavicona project.
 **
@@ -66,17 +66,13 @@ char *th_get_pathname(PAR *t) {
 	 * POSIX prefix field. Thus, only honor the prefix field if the archive
 	 * is actually a POSIX archive. This is the same logic as GNU tar uses.
 	 */
-	if (strncmp(t->th_buf.magic, TMAGIC, TMAGLEN - 1) != 0 || t->th_buf.prefix[0] == '\0')
-	{
+	if (strncmp(t->th_buf.magic, TMAGIC, TMAGLEN - 1) != 0 || t->th_buf.prefix[0] == '\0') {
 		snprintf(t->th_pathname, MAXPATHLEN, "%.100s", t->th_buf.name);
-	}
-	else
-	{
-		snprintf(t->th_pathname, MAXPATHLEN, "%.155s/%.100s",
-			 t->th_buf.prefix, t->th_buf.name);
+	} else {
+		snprintf(t->th_pathname, MAXPATHLEN, "%.155s/%.100s", t->th_buf.prefix, t->th_buf.name);
 	}
 
-	/* will be deallocated in tar_close() */
+	/* will be deallocated in par_close() */
 	return safer_name_suffix(t->th_pathname);
 }
 
@@ -115,24 +111,9 @@ mode_t th_get_mode(PAR *t) {
 			case SYMTYPE:
 				mode |= S_IFLNK;
 				break;
-			// case CHRTYPE:
-				// mode |= S_IFCHR;
-				// break;
-			// case BLKTYPE:
-				// mode |= S_IFBLK;
-				// break;
 			case DIRTYPE:
 				mode |= S_IFDIR;
 				break;
-			// case FIFOTYPE:
-				// mode |= S_IFIFO;
-				// break;
-			// case AREGTYPE:
-			// 	if (t->th_buf.name[strlen(t->th_buf.name) - 1] == '/')
-			// 	{
-			// 		mode |= S_IFDIR;
-			// 		break;
-			// 	}
 				/* FALLTHROUGH */
 			case LNKTYPE:
 			case REGTYPE:
