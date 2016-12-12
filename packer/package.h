@@ -6,14 +6,11 @@ extern "C"
 {
 #endif
 
-#include <libtar.h>
+#include <libpar.h>
 
-int package_create(const char *tarfile, char *rootdir, libtar_list_t *list);
-int package_extract(const char *jobfile, const char *rootdir);
-int package_verify(const char *pkgfile);
-void package_info(const char *pkgfile);
-void package_set_verbose(int f);
-void package_set_compression(int f);
+int package_create(char *file, char *rootdir, libtar_list_t *list);
+int package_extract(char *file, char *rootdir);
+int package_verify(char *file);
 
 #ifdef __cplusplus
 }

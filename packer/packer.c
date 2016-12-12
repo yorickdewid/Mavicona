@@ -12,95 +12,15 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <Python.h>
+#include <libpar.h>
+#include <util.h>
 #include "package.h"
 
 #define VERSION "1.2"
 
 int job_check = 1;
 
-//TODO: from common utils
-int find_in_file(const char *fname, char *str) {
-	FILE *fp;
-	int line_num = 1;
-	int find_result = 0;
-	char temp[512];
-
-	if ((fp = fopen(fname, "r")) == NULL) {
-		return (-1);
-	}
-
-	while (fgets(temp, 512, fp) != NULL) {
-		if ((strstr(temp, str)) != NULL) {
-			find_result++;
-		}
-		line_num++;
-	}
-
-	if (fp) {
-		fclose(fp);
-	}
-	return find_result;
-}
-
-int file_exist(const char *fname) {
-	if (access(fname, F_OK) != -1) {
-	    return 1;
-	} else {
-	    return 0;
-	}
-}
-
-int remove_directory(const char *path) {
-	DIR *dir = opendir(path);
-	size_t path_len = strlen(path);
-	int r = -1;
-
-	if (dir) {
-		struct dirent *p;
-		r = 0;
-		while (!r && (p = readdir(dir))) {
-			int r2 = -1;
-
-			/* Skip "." and ".." */
-			if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))
-				continue;
-
-			size_t len = path_len + strlen(p->d_name) + 2; 
-			char *buf = (char *)malloc(len);
-			if (buf) {
-				struct stat statbuf;
-				snprintf(buf, len, "%s/%s", path, p->d_name);
-
-				if (!stat(buf, &statbuf)) {
-					if (S_ISDIR(statbuf.st_mode))
-						r2 = remove_directory(buf);
-					else
-						r2 = unlink(buf);
-				}
-
-				free(buf);
-			}
-
-			r = r2;
-		}
-
-		closedir(dir);
-	}
-
-	if (!r)
-		r = rmdir(path);
-
-	return r;
-}
-
-const char *file_extension(const char *fname) {
-	const char *dot = strrchr(fname, '.');
-	if (!dot || dot == fname)
-		return NULL;
-	return dot + 1;
-}
-
-void create_license() {
+static void create_license() {
 	FILE *pf = fopen("LICENSE", "w");
 	if (!pf)
 		return;
@@ -111,17 +31,14 @@ void create_license() {
 	fclose(pf);
 }
 
-void usage(const char *prog) {
+static void usage(const char *prog) {
 	printf("Packer " VERSION " Copyright (C) 2015-2016 Mavicona, Quenza Inc.\n"
 		   "All Rights Reserved\n"
 		   "usage: %s [OPTION] <job> [source...]\n\n"
-		   "  --info <job>      Show job info\n"
 		   "  --export <job>    Export package info\n"
 		   "  --skip-check      Ignore job and framework checks\n"
-		   "  --no-compression  Skip compression\n"
 		   "  --extract <job>   Unpack job\n"
 		   "  --verify <job>    Verify job is runnable\n"
-		   "  --verbose         Verbose output message\n"
 		   "  --version         Show version and exit\n"
 		   "  --help            This help message\n", prog);
 }
@@ -140,17 +57,12 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (!strcmp(argv[1], "--version") || !strcmp(argv[1], "-v") || !strcmp(argv[1], "-V")) {
-		printf("Jobpacker " VERSION "\n");
+		printf("Packer " VERSION "\n");
 		return 1;
 	}
 
 	if (!strcmp(argv[1], "--verify") && argc == 3) {
 		return package_verify(argv[2]);
-	}
-
-	if (!strcmp(argv[1], "--info") && argc == 3) {
-		package_info(argv[2]);
-		return 0;
 	}
 
 	if (!strcmp(argv[1], "--extract") && argc == 3) {
@@ -170,20 +82,8 @@ int main(int argc, char *argv[]) {
 	int c, has_job_init = 0, has_ace_job = 0, has_package = 0;
 	libtar_list_t *list = libtar_list_new(LIST_QUEUE, NULL);
 	for (c = 1; c < argc; ++c) {
-		if (!strcmp(argv[c], "--verbose")) {
-			package_set_verbose(1);
-			++jobname_idx;
-			continue;
-		}
-
 		if (!strcmp(argv[c], "--skip-check")) {
 			job_check = 0;
-			++jobname_idx;
-			continue;
-		}
-
-		if (!strcmp(argv[c], "--no-compression")) {
-			package_set_compression(0);
 			++jobname_idx;
 			continue;
 		}
