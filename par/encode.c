@@ -10,7 +10,7 @@
 **  University of Illinois at Urbana-Champaign
 */
 
-#include "internal.h"
+#include "libpar.h"
 
 #include <stdio.h>
 #include <pwd.h>
@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
+#include <compat.h>
 
 /* map a file mode to a typeflag */
 void th_set_type(PAR *t, mode_t mode) {

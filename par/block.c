@@ -12,10 +12,11 @@
 **  permission of the author.
 */
 
-#include "internal.h"
+#include "libpar.h"
 
 #include <errno.h>
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #define BIT_ISSET(bitmask, bit) ((bitmask) & (bit))
@@ -60,16 +61,14 @@ int th_read_internal(PAR *t) {
 		}
 
 		/* verify magic and version */
-		if (BIT_ISSET(t->options, PAR_CHECK_MAGIC)
-		    && strncmp(t->th_buf.magic, TMAGIC, TMAGLEN - 1) != 0) {
+		if (strncmp(t->th_buf.magic, TMAGIC, TMAGLEN - 1) != 0) {
 #ifdef DEBUG
 			puts("!!! unknown magic value in header");
 #endif
 			return -2;
 		}
 
-		if (BIT_ISSET(t->options, PAR_CHECK_VERSION)
-		    && strncmp(t->th_buf.version, TVERSION, TVERSLEN) != 0) {
+		if (strncmp(t->th_buf.version, TVERSION, TVERSLEN) != 0) {
 #ifdef DEBUG
 			puts("!!! unknown version value in header");
 #endif
@@ -77,8 +76,7 @@ int th_read_internal(PAR *t) {
 		}
 
 		/* check chksum */
-		if (!BIT_ISSET(t->options, PAR_IGNORE_CRC)
-		    && !th_crc_ok(t)) {
+		if (!th_crc_ok(t)) {
 #ifdef DEBUG
 			puts("!!! header checksum error");
 #endif

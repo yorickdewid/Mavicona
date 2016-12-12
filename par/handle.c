@@ -12,7 +12,7 @@
 **  permission of the author.
 */
 
-#include "internal.h"
+#include "libpar.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <compat.h>
 
 inline int par_block_read(PAR *t, char *buf) {
 	if (t->use_gz)
@@ -74,6 +75,9 @@ int par_write_header(PAR *t) {
 	header.version_minor = PACKAGE_VERSION_MINOR;
 	quid_create(&header.quid);
 
+	if (t->use_gz)
+		header.options |= PAR_COMPRESS;
+
 	if (write(t->fd, (char *)&header, sizeof(header)) == -1)
 		return -1;
 
@@ -102,8 +106,7 @@ int par_read_header(PAR *t) {
 	return 0;
 }
 
-static int par_init(PAR **t, const char *pathname, int compress, 
-	int oflags, int options) {
+static int par_init(PAR **t, const char *pathname, int compress, int oflags, int options) {
 	if ((oflags & O_ACCMODE) == O_RDWR) {
 		errno = EINVAL;
 		return -1;
@@ -132,8 +135,7 @@ static int par_init(PAR **t, const char *pathname, int compress,
 }
 
 /* open a new file handle */
-int par_open(PAR **t, const char *pathname, int compress,
-	 int oflags, int mode, int options) {
+int par_open(PAR **t, const char *pathname, int compress, int oflags, int mode, int options) {
 	if (par_init(t, pathname, compress, oflags, options) == -1)
 		return -1;
 

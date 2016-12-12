@@ -12,7 +12,7 @@
 **  permission of the author.
 */
 
-#include "internal.h"
+#include "libpar.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -23,6 +23,7 @@
 #include <utime.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <compat.h>
 
 static int par_set_file_perms(PAR *t, char *realname) {
 	mode_t mode;

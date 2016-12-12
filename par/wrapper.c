@@ -12,7 +12,7 @@
 **  permission of the author.
 */
 
-#include "internal.h"
+#include "libpar.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +21,7 @@
 #include <fnmatch.h>
 #include <errno.h>
 #include <string.h>
+#include <compat.h>
 
 int par_extract_glob(PAR *t, char *globname, char *prefix) {
 	char *filename;

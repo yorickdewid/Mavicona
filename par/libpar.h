@@ -114,9 +114,7 @@ typedef struct {
 #define PAR_VERBOSE		 2	/* output file info to stdout */
 #define PAR_NOOVERWRITE		 4	/* don't overwrite existing files */
 #define PAR_IGNORE_EOT		 8	/* ignore double zero blocks as EOF */
-#define PAR_CHECK_MAGIC		16	/* check magic in file header */
-#define PAR_CHECK_VERSION	32	/* check version in file header */
-#define PAR_IGNORE_CRC		64	/* ignore CRC in file header */
+#define PAR_COMPRESS		16	/* compress archive */
 
 /**/
 int par_block_read(PAR *t, char *buf);
@@ -188,6 +186,7 @@ int th_write(PAR *t);
 #define th_get_linkname(t) ((t)->th_buf.gnu_longlink \
                             ? (t)->th_buf.gnu_longlink \
                             : (t)->th_buf.linkname)
+char *safer_name_suffix(char const *file_name);
 char *th_get_pathname(PAR *t);
 mode_t th_get_mode(PAR *t);
 uid_t th_get_uid(PAR *t);

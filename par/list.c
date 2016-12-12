@@ -12,7 +12,7 @@
 **  permission of the author.
 */
 
-#include "internal.h"
+#include "libpar.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +22,7 @@
 #include <limits.h>
 #include <sys/param.h>
 #include <string.h>
+#include <compat.h>
 
 #ifndef _POSIX_LOGIN_NAME_MAX
 # define _POSIX_LOGIN_NAME_MAX	9

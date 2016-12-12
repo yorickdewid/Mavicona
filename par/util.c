@@ -12,12 +12,13 @@
 **  permission of the author.
 */
 
-#include "internal.h"
+#include "libpar.h"
 
 #include <stdio.h>
 #include <sys/param.h>
 #include <errno.h>
 #include <string.h>
+#include <compat.h>
 
 /* hashing function for pathnames */
 int path_hashfunc(char *key, int numbuckets) {
@@ -58,15 +59,12 @@ int ino_hash(ino_t *inode) {
 **	1			all directories already exist
 **	-1 (and sets errno)	error
 */
-int
-mkdirhier(char *path)
-{
+int mkdirhier(char *path) {
 	char src[MAXPATHLEN], dst[MAXPATHLEN] = "";
 	char *dirp, *nextp = src;
 	int retval = 1;
 
-	if (strlcpy(src, path, sizeof(src)) > sizeof(src))
-	{
+	if (strlcpy(src, path, sizeof(src)) > sizeof(src)) {
 		errno = ENAMETOOLONG;
 		return -1;
 	}
@@ -74,8 +72,7 @@ mkdirhier(char *path)
 	if (path[0] == '/')
 		strcpy(dst, "/");
 
-	while ((dirp = strsep(&nextp, "/")) != NULL)
-	{
+	while ((dirp = strsep(&nextp, "/")) != NULL) {
 		if (*dirp == '\0')
 			continue;
 
@@ -97,9 +94,7 @@ mkdirhier(char *path)
 
 
 /* calculate header checksum */
-int
-th_crc_calc(PAR *t)
-{
+int th_crc_calc(PAR *t) {
 	int i, sum = 0;
 
 	for (i = 0; i < T_BLOCKSIZE; i++)
@@ -111,9 +106,7 @@ th_crc_calc(PAR *t)
 }
 
 /* calculate a signed header checksum */
-int
-th_signed_crc_calc(PAR *t)
-{
+int th_signed_crc_calc(PAR *t) {
 	int i, sum = 0;
 
 	for (i = 0; i < T_BLOCKSIZE; i++)
@@ -125,27 +118,21 @@ th_signed_crc_calc(PAR *t)
 }
 
 /* string-octal to integer conversion */
-int
-oct_to_int(char *oct)
-{
+int oct_to_int(char *oct) {
 	int i;
 
 	return sscanf(oct, "%o", &i) == 1 ? i : 0;
 }
 
 /* string-octal to size_t conversion */
-size_t
-oct_to_size(char *oct)
-{
+size_t oct_to_size(char *oct) {
 	size_t i;
 
 	return sscanf(oct, "%zo", &i) == 1 ? i : 0;
 }
 
 /* integer to string-octal conversion, no NULL */
-void
-int_to_oct_nonull(int num, char *oct, size_t octlen)
-{
+void int_to_oct_nonull(int num, char *oct, size_t octlen) {
 	snprintf(oct, octlen, "%*lo", (int)(octlen - 1), (unsigned long)num);
 	oct[octlen - 1] = ' ';
 }

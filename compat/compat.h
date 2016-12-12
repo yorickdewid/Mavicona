@@ -1,7 +1,5 @@
 /* prototypes for borrowed "compatibility" code */
 
-// #include <config.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -26,20 +24,6 @@ char *openbsd_basename(const char *);
 
 char *openbsd_dirname(const char *);
 # define dirname openbsd_dirname
-
-
-
-#  define FNM_NOMATCH	1	/* Match failed. */
-
-#  define FNM_NOESCAPE	0x01	/* Disable backslash escaping. */
-#  define FNM_PATHNAME	0x02	/* Slash must be matched by slash. */
-#  define FNM_PERIOD	0x04	/* Period must be matched by period. */
-
-#  define FNM_LEADING_DIR 0x08	/* Ignore /<tail> after Imatch. */
-#  define FNM_CASEFOLD	0x10	/* Case insensitive search. */
-#  define FNM_IGNORECASE FNM_CASEFOLD
-#  define FNM_FILE_NAME FNM_PATHNAME
-
 
 
 

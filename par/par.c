@@ -25,7 +25,7 @@
 
 int verbose = 0;
 
-int create(char *file, char *rootdir, libtar_list_t *l) {
+int par_create(char *file, char *rootdir, libtar_list_t *l) {
 	PAR *t;
 	char *pathname;
 	char buf[MAXPATHLEN];
@@ -72,7 +72,7 @@ int create(char *file, char *rootdir, libtar_list_t *l) {
 	return 0;
 }
 
-int list(char *file) {
+int par_list(char *file) {
 	PAR *t;
 	int i;
 
@@ -113,7 +113,7 @@ int list(char *file) {
 	return 0;
 }
 
-int extract(char *file, char *rootdir) {
+int par_extract(char *file, char *rootdir) {
 	PAR *t;
 
 	if (par_open(&t, file, 1, O_RDONLY, 0, 0) == -1) {
@@ -152,6 +152,8 @@ void usage(const char *prog) {
 		   "  -v            Show version and exit\n"
 		   "  -h            This help message\n", prog);
 }
+
+#ifdef UTIL
 
 #define MODE_LIST	1
 #define MODE_CREATE	2
@@ -209,18 +211,18 @@ int main(int argc, char *argv[]) {
 
 	switch (mode) {
 		case MODE_EXTRACT:
-			return_code = extract(argv[optind], rootdir);
+			return_code = par_extract(argv[optind], rootdir);
 			break;
 		case MODE_CREATE:
 			tarfile = argv[optind];
 			l = libtar_list_new(LIST_QUEUE, NULL);
 			for (c = optind + 1; c < argc; c++)
 				libtar_list_add(l, argv[c]);
-			return_code = create(tarfile, rootdir, l);
+			return_code = par_create(tarfile, rootdir, l);
 			libtar_list_free(l, NULL);
 			break;
 		case MODE_LIST:
-			return_code = list(argv[optind]);
+			return_code = par_list(argv[optind]);
 			break;
 		default:
 			break;
@@ -229,3 +231,5 @@ int main(int argc, char *argv[]) {
 	free(rootdir);
 	return return_code;
 }
+
+#endif
