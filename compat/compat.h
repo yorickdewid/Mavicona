@@ -10,6 +10,10 @@
 # include <libgen.h>
 #endif
 
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 255
+#endif
+
 
 # ifdef basename
 #  undef basename		/* fix glibc brokenness */

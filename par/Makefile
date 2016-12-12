@@ -8,7 +8,7 @@ all: module util
 module: libmavpar.so
 
 .c.o:
-	$(CC) $(CFLAGS) -I ../compat -I../quid -g -O0 -fpic -DDEBUG -c $< -o $@
+	$(CC) $(CFLAGS) -I ../compat -I../quid -g -O0 -fpic -c $< -o $@
 
 libmavpar.so: $(OBJECTS)
 	$(CC) -shared $(OBJECTS) -o $@
