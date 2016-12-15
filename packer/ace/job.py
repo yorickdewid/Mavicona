@@ -58,10 +58,11 @@ class Chain(object):
 	def __init__(self, quid):
 		self.parent_quid = quid
 
-	def add(self, obj, name):
+	def add(self, obj, name, data=None):
 		self.subjobs.append({
 			'object' : obj,
 			'name' : name,
+			'data' : data,
 		})
 
 class Worker(object):

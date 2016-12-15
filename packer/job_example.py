@@ -97,6 +97,10 @@ class Example(ace.job.Job):
 		self.update_progress(1000)
 		time.sleep(2)
 
+		if self.is_spawn():
+			self.chains[0].subjobs[0]['data'] = data
+			self.chains[0].subjobs[1]['data'] = 'additional data'
+
 	def teardown(self):
 		""" This routine is run for every node """
 		print("Teardown")

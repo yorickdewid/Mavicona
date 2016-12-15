@@ -44,7 +44,7 @@ jobdata = ('Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean com
 def usage(name):
 	print(name, '[Python file]')
 
-def jobrunner(name, status=ace.job.JobStatus.spawn, partition=0, partition_count=0, parent=None):
+def jobrunner(name, data=None, status=ace.job.JobStatus.spawn, partition=0, partition_count=0, parent=None):
 	quid = uuid.uuid4()
 	ins = job_mod.job_init(ace.config.Config())
 	obj = ins.invoke()
@@ -66,7 +66,7 @@ def jobrunner(name, status=ace.job.JobStatus.spawn, partition=0, partition_count
 		obj.setup_once()
 	
 	obj.setup()
-	obj.run(jobdata)
+	obj.run(data)
 	obj.teardown()
 	
 	#TODO: find out when the latest job runs
@@ -85,7 +85,7 @@ def jobrunner(name, status=ace.job.JobStatus.spawn, partition=0, partition_count
 				newstatus = ace.job.JobStatus.partition
 			if status is ace.job.JobStatus.partition:
 				newstatus = ace.job.JobStatus.funnel
-			jobrunner(job['name'], newstatus, partition, len(chain.subjobs), quid)
+			jobrunner(job['name'], job['data'], newstatus, partition, len(chain.subjobs), quid)
 			partition += 1
 
 if __name__ == '__main__':
@@ -124,4 +124,4 @@ if __name__ == '__main__':
 					continue
 				os.environ[kv[0]] = str(kv[1])
 
-	jobrunner(random.choice(jobnames))
+	jobrunner(random.choice(jobnames), jobdata)
