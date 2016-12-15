@@ -23,6 +23,10 @@
 #include <unistd.h>
 #include <dirent.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int file_exist(const char *name);
 int dir_exist(const char *name);
 
@@ -30,6 +34,10 @@ char *randstring(size_t length);
 int find_in_file(const char *fname, char *str);
 const char *file_extension(const char *fname);
 int remove_directory(const char *path);
+
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef __cplusplus
 inline std::string normalize(std::string& str) {

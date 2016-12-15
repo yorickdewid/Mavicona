@@ -14,6 +14,9 @@
 #define MAXPATHLEN 255
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 # ifdef basename
 #  undef basename		/* fix glibc brokenness */
@@ -155,4 +158,6 @@ char *strsep(register char **, register const char *);
 
 #endif /* NEED_STRSEP */
 
-
+#ifdef __cplusplus
+}
+#endif

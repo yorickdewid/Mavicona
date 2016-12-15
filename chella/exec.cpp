@@ -12,6 +12,7 @@
 #include "dirent.h"
 #include "wal.h"
 #include "localenv.h"
+#include "package.h"
 #include "exec.h"
 
 void Execute::init(int workerid, const std::string& masterIPC, const std::string& masterProvision, Indexer *db) {
@@ -87,7 +88,7 @@ bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
 	exec.jobcontrol->resetInternalState();
 
 	/* Ensure package exist */
-	if (!file_exist(PKGDIR "/" + name)) {
+	if (!file_exist((PKGDIR "/" + name).c_str())) {
 		exec.jobcontrol->setStateIdle();
 		std::cerr << "Package does not exist" << std::endl;
 		return true;
@@ -102,10 +103,8 @@ bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
 
 	if (!jobenv.hasHome()) {
 		/* Extract package in job directory */
-		if (package_extract((PKGDIR "/" + name).c_str(), (LOCALDIR "/" + name).c_str())) {
-			std::cerr << "Cannot open package " << std::endl;
-			return true;
-		}
+		Package pack(PKGDIR "/" + name);
+		pack.extract(LOCALDIR "/" + name);
 
 		/* Setup job home */
 		if (!jobenv.setupHome())
@@ -369,7 +368,7 @@ void Execute::prospect(const std::string& name) {
 		return;
 	}
 
-	if (!file_exist(PKGDIR "/" + name)) {
+	if (!file_exist((PKGDIR "/" + name).c_str())) {
 		std::cerr << "Cannot access library" << std::endl;
 		return;
 	}

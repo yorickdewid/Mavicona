@@ -27,11 +27,11 @@ class LocalEnv {
 	void setLock();
 
 	inline bool hasHome() {
-		return file_exist(m_homedir + "/.jobhome");
+		return file_exist((m_homedir + "/.jobhome").c_str());
 	}
 
 	inline bool isLocked() {
-		return file_exist(m_homedir + "/MXLOCK");
+		return file_exist((m_homedir + "/MXLOCK").c_str());
 	}
 
 	FileLogger *openStream(enum StreamType type) {

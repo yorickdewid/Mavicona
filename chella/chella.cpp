@@ -229,7 +229,7 @@ void prepareJob(zmq::message_t& message) {
 	/* Store in cache */
 	sha1.update(job.content());
 	std::string exeName = sha1.final();
-	if (!file_exist(PKGDIR "/" + exeName)) {
+	if (!file_exist((PKGDIR "/" + exeName).c_str())) {
 		std::ofstream file((PKGDIR "/" + exeName).c_str());
 		file.write(job.content().c_str(), job.content().size());
 		file.close();
@@ -362,7 +362,7 @@ int main(int argc, char *argv[]) {
 	/* Make sure we have an pitcher and chella host even if the ruleset ignores this action */
 	if (options.count("hbs")) {
 		std::string configfile = options["hbs"].as<std::string>();
-		if (!file_exist(configfile)) {
+		if (!file_exist(configfile.c_str())) {
 			std::cerr << "error: " << configfile << ": No such file or directory" << std::endl;
 			return 1;
 		}

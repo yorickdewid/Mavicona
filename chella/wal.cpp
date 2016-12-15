@@ -76,7 +76,7 @@ void Wal::rollback(const std::string& name, std::function<void(const std::string
 	recovery_likeliness -= (header.failcount * -10);
 
 	/* Is module still in cache */
-	if (!file_exist(PKGDIR "/" + std::string(header.module, 40))) {
+	if (!file_exist((PKGDIR "/" + std::string(header.module, 40)).c_str())) {
 		std::cerr << "Module missing, unable to recover" << std::endl;
 		recovery_likeliness -= 75;
 	}

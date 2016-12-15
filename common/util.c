@@ -10,12 +10,12 @@
 
 #include "util.h"
 
-inline int file_exist(const char *name) {
+int file_exist(const char *name) {
 	struct stat buffer;
 	return (stat(name, &buffer) == 0);
 }
 
-inline int dir_exist(const char *name) {
+int dir_exist(const char *name) {
 	struct stat buffer;
 	return (stat(name, &buffer) == 0 && S_ISDIR(buffer.st_mode));
 }

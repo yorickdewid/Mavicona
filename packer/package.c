@@ -25,7 +25,7 @@ int package_create(char *file, char *rootdir, libtar_list_t *list) {
 	libtar_listptr_t lp;
 
 	if (par_open(&t, file, 1, O_WRONLY | O_CREAT, 0644, 0) == -1) {
-		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
+		fprintf(stderr, "par_open(): %s\n", strerror(errno));
 		return -1;
 	}
 
@@ -69,7 +69,7 @@ int package_extract(char *file, char *rootdir) {
 	PAR *t;
 
 	if (par_open(&t, file, 1, O_RDONLY, 0, 0) == -1) {
-		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
+		fprintf(stderr, "par_open(): %s\n", strerror(errno));
 		return -1;
 	}
 
@@ -98,7 +98,7 @@ int package_verify(char *file) {
 	int i;
 
 	if (par_open(&t, file, 1, O_RDONLY, 0, 0) == -1) {
-		fprintf(stderr, "tar_open(): %s\n", strerror(errno));
+		fprintf(stderr, "par_open(): %s\n", strerror(errno));
 		return -1;
 	}
 
