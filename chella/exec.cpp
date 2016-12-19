@@ -56,6 +56,7 @@ bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
 
 	Wal *executionLog = new Wal(name, param);
 
+	int i, j;
 	struct timeval t1, t2;
 	char buff[PATH_MAX + 1];
 
@@ -317,7 +318,54 @@ bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
 		goto py_failed;
 	}
 
-	//TODO: handle chains
+	if (!PyList_Check(pMemberChains)) {
+		PyErr_Print();
+		exec.jobcontrol->setStateFailed();
+		goto py_failed;
+	}
+	
+	for (i = 0; i < PyList_Size(pMemberChains); ++i) {
+		PyObject *pListChain = PyList_GetItem(pMemberChains, i);
+		if (!pListChain) {
+			PyErr_Print();
+			continue;
+		}
+
+		PyObject *pListSubjobs = PyObject_GetAttrString(pListChain, "subjobs");
+		if (!PyList_Check(pListSubjobs)) {
+			PyErr_Print();
+			continue;
+		}
+
+		for (j = 0; j < PyList_Size(pListSubjobs); ++j) {
+			PyObject *pObjectSubjob = PyList_GetItem(pListSubjobs, j);
+			if (!pObjectSubjob) {
+				PyErr_Print();
+				continue;
+			}
+
+			/* Get name */
+			PyObject *pyItemName = PyDict_GetItemString(pObjectSubjob, "name");
+			if (!pyItemName) {
+				PyErr_Print();
+				continue;
+			}
+
+			PyObject *pyStrObject = PyUnicode_AsEncodedString(pyItemName, "ASCII", "strict");
+			if (!pyStrObject) {
+				PyErr_Print();
+				continue;
+			}
+
+			const char *strSubjobName = PyBytes_AS_STRING(pyStrObject);
+			printf("name: %s\n", strSubjobName);
+
+			//
+
+			Py_DECREF(pyStrObject);
+			Py_DECREF(pyItemName);
+		}
+	}
 
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::PULLCHAIN);
