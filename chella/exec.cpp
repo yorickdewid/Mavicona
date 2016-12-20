@@ -364,8 +364,6 @@ bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
 			}
 
 			const char *strSubjobName = PyBytes_AS_STRING(pyStrNameObject);
-			printf("name: %s\n", strSubjobName);
-
 			Ace::Subjob subjob(strSubjobName);
 			Py_DECREF(pyStrNameObject);
 			Py_DECREF(pyItemName);
@@ -399,8 +397,6 @@ bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
 					strSubjobDataLength = strlen(strSubjobData);
 					Py_DECREF(pyStrDataObject);
 				}
-
-				printf("datalen: %lu\n", strSubjobDataLength);
 
 				if (strSubjobDataLength > 0)
 					subjob.setData(std::string(strSubjobData, strSubjobDataLength));
@@ -475,11 +471,6 @@ void Execute::prospect(const std::string& name) {
 	for (unsigned int i = 0; i < exec.chain->size(); ++i) {
 		auto subjob = exec.chain->at(i);
 
-		std::cout << "Subjob " << i << std::endl;
-		std::cout << "Subjob name " << subjob->name << std::endl;
-		std::cout << "Subjob QUID " << quidpp::Quid() << std::endl;
-		std::cout << "Subjob data sz " << subjob->data.size() << std::endl;
-
 		ProcessJob job;
 		job.set_name(subjob->name);
 		job.set_id(i);
@@ -493,16 +484,16 @@ void Execute::prospect(const std::string& name) {
 
 		std::cout << "Submit subjob " << i << " linked to parent " << exec.chain->parentQuid() + "(" + exec.chain->parentName() + ")" << std::endl;
 
-		// std::string serialized;
-		// job.SerializeToString(&serialized);
+		std::string serialized;
+		job.SerializeToString(&serialized);
 
-		// zmq::message_t request(serialized.size());
-		// memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		// socket.send(request);
+		zmq::message_t request(serialized.size());
+		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+		socket.send(request);
 
 		/* Get the reply */
-		// zmq::message_t reply;
-		// socket.recv(&reply);
+		zmq::message_t reply;
+		socket.recv(&reply);
 	}
 
 	delete exec.chain;

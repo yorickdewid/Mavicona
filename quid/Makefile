@@ -53,6 +53,7 @@ module: libquid.a
 libquid.a: $(OBJECTS)
 	$(AR) rcs $@ $^
 
+libquid.so: CFLAGS += -fPIC
 libquid.so: $(OBJECTS)
 	$(CC) -shared -o $@ $^
 

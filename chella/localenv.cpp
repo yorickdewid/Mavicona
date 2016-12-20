@@ -111,8 +111,8 @@ bool LocalEnv::teardown(double runtime) {
 	lastrun << (now->tm_year + 1900) << '-' 
 		 << (now->tm_mon + 1) << '-'
 		 << now->tm_mday << ' '
-		 << now->tm_hour << '-'
-		 << now->tm_min << '-'
+		 << now->tm_hour << ':'
+		 << now->tm_min << ':'
 		 << now->tm_sec
 		 << std::endl;
 
@@ -133,8 +133,8 @@ bool LocalEnv::teardown(double runtime) {
 	jobrun << (now->tm_year + 1900) << '-' 
 		 << (now->tm_mon + 1) << '-'
 		 << now->tm_mday << ' '
-		 << now->tm_hour << '-'
-		 << now->tm_min << '-'
+		 << now->tm_hour << ':'
+		 << now->tm_min << ':'
 		 << now->tm_sec
 		 << std::endl;
 
