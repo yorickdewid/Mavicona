@@ -14,12 +14,13 @@
 
 import os
 import sys
-import random
 import uuid
 import json
 import time
-import importlib
+import random
 import socket
+import datetime
+import importlib
 import pathlib
 import ace.config
 import ace.job
@@ -27,6 +28,7 @@ import ace.ipc
 import ace.db
 import ace.sha1
 
+job_count = 0
 jobnames = ['Random', 'SuperTest', 'Generator', 'WordCount', 'Coverage', 'Unit']
 jobdata = ('Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo'
 			'ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis '
@@ -42,9 +44,12 @@ jobdata = ('Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean com
 			'nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui.')
 
 def usage(name):
-	print(name, '[Python file]')
+	print('Job Mocker Copyright (C) 2015-2016 Mavicona, Quenza Inc.');
+	print('All Rights Reserved\n')
+	print('usage: %s [python file]' % name);
 
 def jobrunner(name, data=None, status=ace.job.JobStatus.spawn, partition=0, partition_count=0, parent=None):
+	global job_count
 	quid = uuid.uuid4()
 	ins = job_mod.job_init(ace.config.Config())
 	obj = ins.invoke()
@@ -79,20 +84,31 @@ def jobrunner(name, data=None, status=ace.job.JobStatus.spawn, partition=0, part
 
 		partition = 0
 		for job in chain.subjobs:
-			print('> Subjob', job['name'])
 			newstatus = ace.job.JobStatus.funnel
 			if status is ace.job.JobStatus.spawn:
 				newstatus = ace.job.JobStatus.partition
 			if status is ace.job.JobStatus.partition:
 				newstatus = ace.job.JobStatus.funnel
+
+			print('=========< Subjob >============')
+			print('Name:\t\t', job['name'])
+			print('Datasz:\t\t', len(job['data']))
+			print('Status:\t\t', newstatus)
+			print('Partition:\t %d/%d' % (partition, len(chain.subjobs)))
+			print('Timestamp:\t', datetime.datetime.today())
+			print('==================================')
+
 			jobrunner(job['name'], job['data'], newstatus, partition, len(chain.subjobs), quid)
 			partition += 1
+
+	job_count = job_count + 1
 
 if __name__ == '__main__':
 	if len(sys.argv) < 2:
 		usage(sys.argv[0])
 		exit(0)
 	
+
 	os.environ["WORKERID"] = str(random.randint(0, 150))
 
 	if sys.argv[1] == '--help' or sys.argv[1] == '-h':
@@ -124,4 +140,20 @@ if __name__ == '__main__':
 					continue
 				os.environ[kv[0]] = str(kv[1])
 
+	start_ts = time.time()
+	print('=========< Job Mocker >============')
+	print('Main:\t', file.name)
+	print('Invoke:\t job_init()')
+	print('Host:\t', socket.gethostname())
+	print('Start:\t', datetime.datetime.today())
+	print('==================================')
+
 	jobrunner(random.choice(jobnames), jobdata)
+
+	end_ts = time.time()
+	print('==========< Results >=============')
+	print('Passed:\t\t true')
+	print('Jobs run:\t', job_count)
+	print('Runtime:\t %ds' % (end_ts - start_ts))
+	print('End:\t\t', datetime.datetime.today())
+	print('==================================')

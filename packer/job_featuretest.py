@@ -1,17 +1,31 @@
+##
+# Copyright (C) 2015-2016 Mavicona, Quenza Inc.
+# All Rights Reserved
+#
+# This file is part of the Mavicona project.
+#
+# Content can not be copied and/or distributed without the express
+# permission of the author.
+#
+# This is an example job covering most of the options available
+# for use.
+#
+
 import os
 import time
 import pprint
+import pathlib
 import ace.job
 
 """ Package info """
 def package():
 	return {
-		'name'			: 'Random',
-		'description'	: 'Generate random data',
+		'name'			: 'FeatureTest',
+		'description'	: 'Utilize all features in the Ace framework',
 		'author' 		: 'Yorick de Wid',
 		'license' 		: 'MIT',
 		'url' 			: 'http://x3.mavicona.net/',
-		'keywords' 		: ['random', 'test'],
+		'keywords' 		: ['feature', 'test', 'introduction'],
 		'checksum' 		: 'abaf2abe1e8185f3b17c4d0c34dbeed2b4b9d2ad9232b195378d8ced6c519270',
 		'settings'		: {
 			'no-cache'	: False,
@@ -96,6 +110,11 @@ class Example(ace.job.Job):
 		time.sleep(1)
 		self.update_progress(1000)
 		time.sleep(2)
+
+		if self.is_partition():
+			mydata = pathlib.Path("mydata.txt")
+			if mydata.is_file():
+				print("Parse my data file")
 
 		if self.is_spawn():
 			self.chains[0].subjobs[0]['data'] = data

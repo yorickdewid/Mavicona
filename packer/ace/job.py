@@ -124,7 +124,6 @@ class Job(JobInterface):
 		self.id = id
 		self.name = name
 		self.module = module
-		self.module = module
 		self.quid = quid
 		self.partition = partition
 		self.total_partitions = total_partitions
