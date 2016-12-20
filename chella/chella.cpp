@@ -249,10 +249,11 @@ void prepareJob(zmq::message_t& message) {
 	parameters.jobdata = job.data();
 
 	/* Run procedure */
-	if (Execute::run(exeName, parameters, jobfork) && jobfork)
+	if (Execute::run(exeName, parameters, jobfork) && jobfork) {
+		/* Setup subjobs if any */
+		Execute::prospect(exeName);
 		exit(0);
-	/* Setup subjobs if any */
-	// Execute::prospect(exeName);
+	}
 }
 
 void initSlave() {

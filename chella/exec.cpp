@@ -323,7 +323,13 @@ bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
 		exec.jobcontrol->setStateFailed();
 		goto py_failed;
 	}
-	
+
+	if (PyList_Size(pMemberChains) > 0) {
+		std::cout << "Subjobs found, create chain" << std::endl;
+		exec.chain = new Ace::Chain(exec.jobquid);
+		exec.chain->setParentName(exec.jobname);
+	}
+
 	for (i = 0; i < PyList_Size(pMemberChains); ++i) {
 		PyObject *pListChain = PyList_GetItem(pMemberChains, i);
 		if (!pListChain) {
@@ -351,19 +357,57 @@ bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
 				continue;
 			}
 
-			PyObject *pyStrObject = PyUnicode_AsEncodedString(pyItemName, "ASCII", "strict");
-			if (!pyStrObject) {
+			PyObject *pyStrNameObject = PyUnicode_AsEncodedString(pyItemName, "ASCII", "strict");
+			if (!pyStrNameObject) {
 				PyErr_Print();
 				continue;
 			}
 
-			const char *strSubjobName = PyBytes_AS_STRING(pyStrObject);
+			const char *strSubjobName = PyBytes_AS_STRING(pyStrNameObject);
 			printf("name: %s\n", strSubjobName);
 
-			//
-
-			Py_DECREF(pyStrObject);
+			Ace::Subjob subjob(strSubjobName);
+			Py_DECREF(pyStrNameObject);
 			Py_DECREF(pyItemName);
+
+			/* Get data, if avaiable */
+			PyObject *pyItemData = PyDict_GetItemString(pObjectSubjob, "data");
+			if (pyItemData) {
+				long int strSubjobDataLength = 0;
+				char *strSubjobData = NULL;
+
+				/* Bytes object */
+				if (PyBytes_Check(pyItemData)) {
+					PyBytes_AsStringAndSize(pyItemData, &strSubjobData, &strSubjobDataLength);
+				}
+
+				/* Byte array object */
+				if (PyByteArray_Check(pyItemData)) {
+					strSubjobData = PyByteArray_AsString(pyItemData);
+					strSubjobDataLength = strlen(strSubjobData);
+				}
+
+				/* Unicode object */
+				if (PyUnicode_Check(pyItemData)) {
+					PyObject *pyStrDataObject = PyUnicode_AsEncodedString(pyItemData, "ASCII", "strict");
+					if (!pyStrDataObject) {
+						PyErr_Print();
+						continue;
+					}
+
+					strSubjobData = PyBytes_AsString(pyStrDataObject);
+					strSubjobDataLength = strlen(strSubjobData);
+					Py_DECREF(pyStrDataObject);
+				}
+
+				printf("datalen: %lu\n", strSubjobDataLength);
+
+				if (strSubjobDataLength > 0)
+					subjob.setData(std::string(strSubjobData, strSubjobDataLength));
+				Py_DECREF(pyItemData);
+			}
+
+			exec.chain->add(subjob);
 		}
 	}
 
@@ -417,7 +461,7 @@ void Execute::prospect(const std::string& name) {
 	}
 
 	if (!file_exist((PKGDIR "/" + name).c_str())) {
-		std::cerr << "Cannot access library" << std::endl;
+		std::cerr << "Cannot access package" << std::endl;
 		return;
 	}
 
@@ -430,6 +474,11 @@ void Execute::prospect(const std::string& name) {
 
 	for (unsigned int i = 0; i < exec.chain->size(); ++i) {
 		auto subjob = exec.chain->at(i);
+
+		std::cout << "Subjob " << i << std::endl;
+		std::cout << "Subjob name " << subjob->name << std::endl;
+		std::cout << "Subjob QUID " << quidpp::Quid() << std::endl;
+		std::cout << "Subjob data sz " << subjob->data.size() << std::endl;
 
 		ProcessJob job;
 		job.set_name(subjob->name);
@@ -444,16 +493,16 @@ void Execute::prospect(const std::string& name) {
 
 		std::cout << "Submit subjob " << i << " linked to parent " << exec.chain->parentQuid() + "(" + exec.chain->parentName() + ")" << std::endl;
 
-		std::string serialized;
-		job.SerializeToString(&serialized);
+		// std::string serialized;
+		// job.SerializeToString(&serialized);
 
-		zmq::message_t request(serialized.size());
-		memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
-		socket.send(request);
+		// zmq::message_t request(serialized.size());
+		// memcpy(reinterpret_cast<void *>(request.data()), serialized.c_str(), serialized.size());
+		// socket.send(request);
 
 		/* Get the reply */
-		zmq::message_t reply;
-		socket.recv(&reply);
+		// zmq::message_t reply;
+		// socket.recv(&reply);
 	}
 
 	delete exec.chain;

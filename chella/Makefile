@@ -14,7 +14,7 @@ OBJS = chella.o \
 CXX = g++
 OBJS += ../quid/libquid.a ../common/util.o ../compat/strlcpy.o
 DEBUG = -g -O0
-LIBS = -lprotobuf -lzmq $(shell python3-config --libs) -lleveldb -L../par -lmavpar
+LIBS = -lprotobuf -lzmq $(shell python3-config --libs) -lleveldb -L../par -lmavpar -L../quid -lquid
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -DDEBUG -DZMQ_CPP11 -I.. -I../common -I../quid -I../par -I../compat -I../packer -I../third_party $(shell python3-config --includes) -Wno-write-strings
 LXXFLAGS = -Wall $(DEBUG) $(LIBS)
 
