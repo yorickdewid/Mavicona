@@ -7,8 +7,8 @@ except ImportError:
 
 config = {
     'description': 'Processing library manager',
-    'author': 'Yorick de Wid',
-    'author_email': 'yorick17@outlook.com',
+    'author': 'Mavicona, Quenza Inc.',
+    'author_email': 'ydw@x3.quenza.net',
     'version': '0.1',
     'install_requires': ['nose'],
     'packages': ['ecoli'],

@@ -1,14 +1,12 @@
-from __future__ import print_function
-
 import os
 import sys
 import argparse
 import shutil
-import urllib2
-import pickledb
 import simplejson
 import signal
 import zipfile
+import urllib.request
+from . import pickledb
 
 default_url = 'http://ecoli.mavicona.net/api/v1/repository'
 file_name = 'index.json'
@@ -78,7 +76,7 @@ def install(install_list, db):
 	if query_yes_no('\nInstalling %d package(s)?' % len(downloader)):
 		print('Downloading...')
 		for download in downloader:
-			reponse = urllib2.urlopen(download['location'])
+			reponse = urllib.request.urlopen(download['location'])
 			file = open('.ecoli/tmp/' + download['name'].lower() + '.zip', 'wb')
 			print('Fetching %s...' % download['name'], end="")
 
@@ -114,7 +112,7 @@ def update_repo(db):
 	print('Updating catalogs...', end="")
 
 	for source in db.lgetall('sources'):
-		reponse = urllib2.urlopen(source)
+		reponse = urllib.request.urlopen(source)
 		file = open('.ecoli/' + file_name, 'wb')
 
 		block_sz = 8192
@@ -214,7 +212,7 @@ def main(args=sys.argv[1:]):
 	if results.install_package:
 		take_action = True
 		install(results.install_package, localdb)
-	
+
 	if results.remove_package:
 		take_action = True
 		remove(results.remove_package, localdb)
