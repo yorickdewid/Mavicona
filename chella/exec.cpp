@@ -265,12 +265,13 @@ bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::INJECT);
 
-	//TODO: call first time only
-	pResult = PyObject_CallMethod(pInstanceJob, "setup_once", NULL);
-	if (!pResult) {
-		PyErr_Print();
-		exec.jobcontrol->setStateFailed();
-		goto py_failed;
+	if (param.jobstate == JobState::SPAWN) {
+		pResult = PyObject_CallMethod(pInstanceJob, "setup_once", NULL);
+		if (!pResult) {
+			PyErr_Print();
+			exec.jobcontrol->setStateFailed();
+			goto py_failed;
+		}
 	}
 
 	/* Move WAL forward */
