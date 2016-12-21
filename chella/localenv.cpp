@@ -21,7 +21,20 @@ bool LocalEnv::setupHome() {
 		std::cerr << m_homedir << " not writable" << std::endl;
 		return false;
 	}
+
+	tab << "# Initial tab" << std::endl;
+	tab << "# Execute commands before job is loaded\n#" << std::endl;
+	tab << "# Commands are run per line and	can" << std::endl;
+	tab << "# be used to setup a local environment\n#" << std::endl;
 	tab.close();
+	
+	std::ofstream wrap;
+	wrap.open(m_homedir + "/.initwrap");
+	if (wrap.fail()) {
+		std::cerr << m_homedir << " not writable" << std::endl;
+		return false;
+	}
+	wrap.close();
 
 	//TODO: check if directories already exist
 	mkdir((m_homedir + "/run").c_str(), 0700);

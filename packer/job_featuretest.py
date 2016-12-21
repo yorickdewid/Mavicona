@@ -112,9 +112,10 @@ class Example(ace.job.Job):
 		time.sleep(2)
 
 		if self.is_partition():
-			mydata = pathlib.Path("mydata.txt")
+			mydata = pathlib.Path('mydata.txt')
 			if mydata.is_file():
-				print("Parse my data file")
+				with open(mydata.name, 'r') as f:
+					print(f.read())
 
 		if self.is_spawn():
 			self.chains[0].subjobs[0]['data'] = data
