@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Make sure only root can run our script
+if [ "$(id -u)" != "0" ]; then
+  echo "This script must be run as root" 1>&2
+  exit 1
+fi
+
+/usr/bin/dnf -y install \
+	protobuf-compiler \
+	protobuf \
+	zeromq \
+	bison \
+	flex \
+	leveldb \
+	leveldb-devel \
+	python3 \
+	python3-devel
