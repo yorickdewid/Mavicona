@@ -1,11 +1,17 @@
 UTILDIR = util
+COMPATDIR = ../compat
+COMMONDIR = ../common
 WFLAGS = -pedantic -std=c99 -Wall -Werror -Wextra -Winit-self -Wswitch-default -Wshadow
-CFLAGS = $(WFLAGS) -DX64
+INCLUDES = -I. -I$(COMPATDIR) -I../$(COMMONDIR)
+CFLAGS = $(WFLAGS) $(INCLUDES) -DX64
 LDFLAGS = -L.
 SOURCES = $(wildcard *.c)
 OBJECTS = $(SOURCES:.c=.o)
 DYNOBJ = libquid.so
 STATOBJ = libquid.a
+
+# Uncomment for debug mode
+CFLAGS += -g -O0 -DDEBUG
 
 ifeq ($(OS),Windows_NT)
 	CFLAGS += -DWIN32
@@ -45,12 +51,15 @@ endif
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
 
-.PHONY: all genquid clean cleanutil cleandist
+#------------#
+# Directives #
+#------------#
+
+.PHONY: all module util genquid clean cleanall cleanutil cleandist
 
 all: module util
 
 # Modules
-module: CFLAGS += -g -O0 -DDEBUG -DMOD
 module: $(DYNOBJ)
 
 $(STATOBJ): $(OBJECTS)
@@ -67,10 +76,10 @@ genquid:
 	$(CC) $(CFLAGS)	$(UTILDIR)/genquid.c $(LDFLAGS) -o $@ -lquid -lm
 
 # Cleanup
-cleanall: clean cleanutil
-
 clean:
 	@$(RM) -rf *.o *.so *.a
+
+cleanall: clean cleanutil
 
 cleanutil:
 	@$(RM) -rf $(UTILDIR)/*.o
