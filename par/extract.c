@@ -138,7 +138,7 @@ int par_extract_regfile(PAR *t, char *realname) {
 	char *filename;
 
 #ifdef DEBUG
-	printf("==> par_extract_regfile(t=0x%lx, realname=\"%s\")\n", t,
+	printf("==> par_extract_regfile(t=0x%p, realname=\"%s\")\n", (void *)t,
 	       realname);
 #endif
 
@@ -157,7 +157,7 @@ int par_extract_regfile(PAR *t, char *realname) {
 		return -1;
 
 #ifdef DEBUG
-	printf("  ==> extracting: %s (mode %04o, uid %d, gid %d, %d bytes)\n",
+	printf("  ==> extracting: %s (mode %04o, uid %d, gid %d, %zu bytes)\n",
 	       filename, mode, uid, gid, size);
 #endif
 	fdout = open(filename, O_WRONLY | O_CREAT | O_TRUNC

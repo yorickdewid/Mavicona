@@ -4,8 +4,6 @@
 **  Copyright 2015-2016 Mavicona, Quenza Inc.
 **  All rights reserved.
 **
-**  
-**
 **  This file is part of the Mavicona project.
 **
 **  Content can not be copied and/or distributed without the express
@@ -41,7 +39,6 @@ int ino_match(ino_t *ino1, ino_t *ino2) {
 	return !memcmp(ino1, ino2, sizeof(ino_t));
 }
 
-
 /* hashing function for dev_t's */
 int dev_hash(dev_t *dev) {
 	return *dev % 16;
@@ -51,47 +48,6 @@ int dev_hash(dev_t *dev) {
 int ino_hash(ino_t *inode) {
 	return *inode % 256;
 }
-
-/*
-** mkdirhier() - create all directories in a given path
-** returns:
-**	0			success
-**	1			all directories already exist
-**	-1 (and sets errno)	error
-*/
-int mkdirhier(char *path) {
-	char src[MAXPATHLEN], dst[MAXPATHLEN] = "";
-	char *dirp, *nextp = src;
-	int retval = 1;
-
-	if (strlcpy(src, path, sizeof(src)) > sizeof(src)) {
-		errno = ENAMETOOLONG;
-		return -1;
-	}
-
-	if (path[0] == '/')
-		strcpy(dst, "/");
-
-	while ((dirp = strsep(&nextp, "/")) != NULL) {
-		if (*dirp == '\0')
-			continue;
-
-		if (dst[0] != '\0')
-			strcat(dst, "/");
-		strcat(dst, dirp);
-
-		if (mkdir(dst, 0777) == -1)
-		{
-			if (errno != EEXIST)
-				return -1;
-		}
-		else
-			retval = 0;
-	}
-
-	return retval;
-}
-
 
 /* calculate header checksum */
 int th_crc_calc(PAR *t) {
@@ -119,7 +75,7 @@ int th_signed_crc_calc(PAR *t) {
 
 /* string-octal to integer conversion */
 int oct_to_int(char *oct) {
-	int i;
+	unsigned int i;
 
 	return sscanf(oct, "%o", &i) == 1 ? i : 0;
 }

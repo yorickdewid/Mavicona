@@ -100,7 +100,7 @@ int th_read(PAR *t) {
 	char *ptr;
 
 #ifdef DEBUG
-	printf("==> th_read(t=0x%lx)\n", t);
+	printf("==> th_read(t=0x%p)\n", (void *)t);
 #endif
 
 	if (t->th_buf.gnu_longname != NULL)
@@ -128,7 +128,7 @@ int th_read(PAR *t) {
 		}
 #ifdef DEBUG
 		printf("    th_read(): GNU long linkname detected "
-		       "(%ld bytes, %d blocks)\n", sz, blocks);
+		       "(%zu bytes, %zu blocks)\n", sz, blocks);
 #endif
 		t->th_buf.gnu_longlink = (char *)malloc(blocks * T_BLOCKSIZE);
 		if (t->th_buf.gnu_longlink == NULL)
@@ -138,7 +138,7 @@ int th_read(PAR *t) {
 		     j++, ptr += T_BLOCKSIZE) {
 #ifdef DEBUG
 			printf("    th_read(): reading long linkname "
-			       "(%d blocks left, ptr == %ld)\n", blocks-j, ptr);
+			       "(%zu blocks left, ptr == %p)\n", blocks-j, (void *)ptr);
 #endif
 			i = par_block_read(t, ptr);
 			if (i != T_BLOCKSIZE) {
@@ -173,7 +173,7 @@ int th_read(PAR *t) {
 		}
 #ifdef DEBUG
 		printf("    th_read(): GNU long filename detected "
-		       "(%ld bytes, %d blocks)\n", sz, blocks);
+		       "(%zu bytes, %zu blocks)\n", sz, blocks);
 #endif
 		t->th_buf.gnu_longname = (char *)malloc(blocks * T_BLOCKSIZE);
 		if (t->th_buf.gnu_longname == NULL)
@@ -183,7 +183,7 @@ int th_read(PAR *t) {
 		     j++, ptr += T_BLOCKSIZE) {
 #ifdef DEBUG
 			printf("    th_read(): reading long filename "
-			       "(%d blocks left, ptr == %ld)\n", blocks-j, ptr);
+			       "(%zu blocks left, ptr == %p)\n", blocks-j, (void *)ptr);
 #endif
 			i = par_block_read(t, ptr);
 			if (i != T_BLOCKSIZE)

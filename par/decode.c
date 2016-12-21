@@ -16,6 +16,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+// #include <sys/types.h>
+// #include <sys/stat.h>
+// #include <unistd.h>
 #include <sys/param.h>
 #include <pwd.h>
 #include <grp.h>
@@ -77,7 +80,7 @@ char *th_get_pathname(PAR *t) {
 }
 
 uid_t th_get_uid(PAR *t) {
-	int uid;
+	unsigned int uid;
 	struct passwd *pw;
 
 	pw = getpwnam(t->th_buf.uname);
@@ -90,7 +93,7 @@ uid_t th_get_uid(PAR *t) {
 }
 
 gid_t th_get_gid(PAR *t) {
-	int gid;
+	unsigned int gid;
 	struct group *gr;
 
 	gr = getgrnam(t->th_buf.gname);

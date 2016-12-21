@@ -53,8 +53,8 @@ int par_append_file(PAR *t, const char *realname, const char *savename) {
 	char path[MAXPATHLEN];
 
 #ifdef DEBUG
-	printf("==> par_append_file(PAR=0x%lx (\"%s\"), realname=\"%s\", "
-	       "savename=\"%s\")\n", t, t->pathname, realname,
+	printf("==> par_append_file(PAR=0x%p (\"%s\"), realname=\"%s\", "
+	       "savename=\"%s\")\n", (void *)t, t->pathname, realname,
 	       (savename ? savename : "[NULL]"));
 #endif
 
@@ -92,7 +92,7 @@ int par_append_file(PAR *t, const char *realname, const char *savename) {
 		td = (tar_dev_t *)libtar_hashptr_data(&hp);
 	} else {
 #ifdef DEBUG
-		printf("+++ adding hash for device (0x%lx, 0x%lx)...\n",
+		printf("+++ adding hash for device (0x%x, 0x%x)...\n",
 		       major(s.st_dev), minor(s.st_dev));
 #endif
 		td = (tar_dev_t *)calloc(1, sizeof(tar_dev_t));
@@ -121,7 +121,7 @@ int par_append_file(PAR *t, const char *realname, const char *savename) {
 		th_set_link(t, ti->ti_name);
 	} else {
 #ifdef DEBUG
-		printf("+++ adding entry: device (0x%lx,0x%lx), inode %ld "
+		printf("+++ adding entry: device (0x%x,0x%x), inode %ld "
 		       "(\"%s\")...\n", major(s.st_dev), minor(s.st_dev),
 		       s.st_ino, realname);
 #endif

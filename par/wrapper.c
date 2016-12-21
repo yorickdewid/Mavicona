@@ -16,6 +16,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <sys/param.h>
 #include <dirent.h>
 #include <fnmatch.h>
@@ -92,8 +95,8 @@ int par_append_tree(PAR *t, char *realdir, char *savedir) {
 	struct stat s;
 
 #ifdef DEBUG
-	printf("==> par_append_tree(0x%lx, \"%s\", \"%s\")\n",
-	       t, realdir, (savedir ? savedir : "[NULL]"));
+	printf("==> par_append_tree(0x%p, \"%s\", \"%s\")\n",
+	       (void *)t, realdir, (savedir ? savedir : "[NULL]"));
 #endif
 
 	if (par_append_file(t, realdir, savedir) != 0)

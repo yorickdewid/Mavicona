@@ -353,8 +353,7 @@ libtar_list_add_str(libtar_list_t *l,
 	char *tokp, *nextp = tmp;
 
 	strlcpy(tmp, str, sizeof(tmp));
-	while ((tokp = strsep(&nextp, delim)) != NULL)
-	{
+	while ((tokp = strsep(&nextp, delim)) != NULL) {
 		if (*tokp == '\0')
 			continue;
 		if (libtar_list_add(l, strdup(tokp)))

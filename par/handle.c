@@ -40,6 +40,8 @@ static gzFile gzopen_init(const char *pathname, int oflags, int mode, int fd) {
 	char *gzoflags;
 	gzFile gzfd;
 
+	UNUSED(pathname);
+
 	switch (oflags & O_ACCMODE) {
 		case O_WRONLY:
 			gzoflags = "wb";

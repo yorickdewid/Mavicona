@@ -15,6 +15,10 @@
 #ifndef LIBPAR_H
 #define LIBPAR_H
 
+#if defined(LINUX)
+# define _DEFAULT_SOURCE
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdint.h>
