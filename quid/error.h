@@ -1,3 +1,13 @@
+/**
+ * Copyright (C) 2015-2016 Mavicona, Quenza Inc.
+ * All Rights Reserved
+ *
+ * This file is part of the Mavicona project.
+ *
+ * Content can not be copied and/or distributed without the express
+ * permission of the author.
+ */
+
 #ifndef ERROR_H_INCLUDED
 #define ERROR_H_INCLUDED
 

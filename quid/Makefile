@@ -1,12 +1,10 @@
-AR = ar
 UTILDIR = util
-WFLAGS = -pedantic-errors -std=c99 -Wall -Werror -Wextra -Winit-self -Wswitch-default -Wshadow
-CFLAGS = $(WFLAGS) -DX64 -DTN12
+WFLAGS = -pedantic -std=c99 -Wall -Werror -Wextra -Winit-self -Wswitch-default -Wshadow
+CFLAGS = $(WFLAGS) -DX64
 SOURCES = $(wildcard *.c)
-CLIENT_SOURCES = $(UTILDIR)/qcli.c
 OBJECTS = $(SOURCES:.c=.o)
-CLIENTOBJECTS = $(SOURCES:.c=.o) $(CLIENT_SOURCES:.c=.o)
-EXECUTABLECLIENT = qcli
+DYNOBJ = libquid.so
+STATOBJ = libquid.a
 
 ifeq ($(OS),Windows_NT)
 	CFLAGS += -DWIN32
@@ -20,13 +18,15 @@ else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
 		CFLAGS += -DLINUX
-		LDFLAGS += -lrt
 	endif
 	ifeq ($(UNAME_S),Darwin)
 		CFLAGS += -DOSX
 	endif
 	ifeq ($(UNAME_S),OpenBSD)
 		CFLAGS += -DOBSD
+	endif
+	ifeq ($(UNAME_S),FreeBSD)
+		CFLAGS += -DFBSD -I/usr/local/include -L/usr/local/lib
 	endif
 	UNAME_P := $(shell uname -p)
 	ifeq ($(UNAME_P),x86_64)
@@ -40,40 +40,31 @@ else
 	endif
 endif
 
-.PHONY: all fixeof genquid genlookup3 qcli clean cleanutil cleandist
-
-all: module
-
-module: CFLAGS += -g -O0 -DDEBUG -DMOD
-module: libquid.a
-
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
 
-libquid.a: $(OBJECTS)
+.PHONY: all genquid clean cleanutil cleandist
+
+all: module util
+
+# Modules
+module: CFLAGS += -g -O0 -DDEBUG -DMOD
+module: $(DYNOBJ)
+
+$(STATOBJ): $(OBJECTS)
 	$(AR) rcs $@ $^
 
-libquid.so: CFLAGS += -fPIC
-libquid.so: $(OBJECTS)
+$(DYNOBJ): CFLAGS += -fPIC
+$(DYNOBJ): $(OBJECTS)
 	$(CC) -shared -o $@ $^
 
-util: fixeof genquid genlookup3 qcli
-
-fixeof:
-	$(CC) $(UTILDIR)/lfeof.c -pedantic-errors -std=c1x -Wall -Werror -Wextra -Winit-self -Wswitch-default -Wshadow -o $(UTILDIR)/lfeof
-	find . -type f -name *.[c\|h] -print -exec $(UTILDIR)/lfeof {} \;
+# Utils
+util: genquid
 
 genquid:
-	$(CC) $(CFLAGS) \
-		time.c \
-		log.c \
-		error.c \
-		zmalloc.c \
-		itoa.c \
-		quid.c \
-		arc4random.c \
-		$(UTILDIR)/genquid.c $(LDFLAGS) -o genquid
+	$(CC) $(CFLAGS)	$(UTILDIR)/genquid.c $(LDFLAGS) -o $@ -L. -lquid -lm
 
+# Cleanup
 cleanall: clean cleanutil
 
 clean:
@@ -81,9 +72,6 @@ clean:
 
 cleanutil:
 	@$(RM) -rf $(UTILDIR)/*.o
-	@$(RM) -rf $(UTILDIR)/lfeof
-	@$(RM) -rf $(UTILDIR)/genquid
-	@$(RM) -rf $(UTILDIR)/genlookup3
-	@$(RM) -rf $(UTILDIR)/qcli
+	@$(RM) -rf genquid
 
 cleandist: clean
