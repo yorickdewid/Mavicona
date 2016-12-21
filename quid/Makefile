@@ -1,6 +1,7 @@
 UTILDIR = util
 WFLAGS = -pedantic -std=c99 -Wall -Werror -Wextra -Winit-self -Wswitch-default -Wshadow
 CFLAGS = $(WFLAGS) -DX64
+LDFLAGS = -L.
 SOURCES = $(wildcard *.c)
 OBJECTS = $(SOURCES:.c=.o)
 DYNOBJ = libquid.so
@@ -26,7 +27,8 @@ else
 		CFLAGS += -DOBSD
 	endif
 	ifeq ($(UNAME_S),FreeBSD)
-		CFLAGS += -DFBSD -I/usr/local/include -L/usr/local/lib
+		CFLAGS += -DFBSD -I/usr/local/include
+		LDFLAGS += -L/usr/local/lib
 	endif
 	UNAME_P := $(shell uname -p)
 	ifeq ($(UNAME_P),x86_64)
@@ -62,7 +64,7 @@ $(DYNOBJ): $(OBJECTS)
 util: genquid
 
 genquid:
-	$(CC) $(CFLAGS)	$(UTILDIR)/genquid.c $(LDFLAGS) -o $@ -L. -lquid -lm
+	$(CC) $(CFLAGS)	$(UTILDIR)/genquid.c $(LDFLAGS) -o $@ -lquid -lm
 
 # Cleanup
 cleanall: clean cleanutil
