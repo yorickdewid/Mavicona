@@ -14,9 +14,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-int
-inet_aton(const char *cp, struct in_addr *inp)
-{
+int inet_aton(const char *cp, struct in_addr *inp) {
 	inp->s_addr = inet_addr(cp);
 	if (inp->s_addr == (unsigned char)-1)
 		return 0;

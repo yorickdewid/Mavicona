@@ -1,5 +1,3 @@
-/*	$OpenBSD: strsep.c,v 1.3 1997/08/20 04:28:14 millert Exp $	*/
-
 /*-
  * Copyright (c) 1990, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -36,15 +34,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#if defined(LIBC_SCCS) && !defined(lint)
-#if 0
-static char sccsid[] = "@(#)strsep.c	8.1 (Berkeley) 6/4/93";
-#else
-static char *rcsid = "$OpenBSD: strsep.c,v 1.3 1997/08/20 04:28:14 millert Exp $";
-#endif
-#endif /* LIBC_SCCS and not lint */
-
-#ifndef HAVE_STRSEP
 /*
  * Get next token from string *stringp, where tokens are possibly-empty
  * strings separated by characters from delim.  
@@ -56,11 +45,7 @@ static char *rcsid = "$OpenBSD: strsep.c,v 1.3 1997/08/20 04:28:14 millert Exp $
  *
  * If *stringp is NULL, strsep returns NULL.
  */
-char *
-strsep(stringp, delim)
-	register char **stringp;
-	register const char *delim;
-{
+char *compat_strsep(register char **stringp, register const char *delim) {
 	register char *s;
 	register const char *spanp;
 	register int c, sc;
@@ -84,4 +69,3 @@ strsep(stringp, delim)
 	}
 	/* NOTREACHED */
 }
-#endif /* ! HAVE_STRSEP */

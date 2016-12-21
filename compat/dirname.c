@@ -1,5 +1,3 @@
-/*	$OpenBSD: dirname.c,v 1.4 1999/05/30 17:10:30 espie Exp $	*/
-
 /*
  * Copyright (c) 1997 Todd C. Miller <Todd.Miller@courtesan.com>
  * All rights reserved.
@@ -31,10 +29,7 @@
 #include <string.h>
 #include <sys/param.h>
 
-char *
-openbsd_dirname(path)
-	const char *path;
-{
+char *compat_dirname(const char *path) {
 	static char bname[MAXPATHLEN];
 	register const char *endp;
 
@@ -67,7 +62,8 @@ openbsd_dirname(path)
 		errno = ENAMETOOLONG;
 		return(NULL);
 	}
-	(void)strncpy(bname, path, endp - path + 1);
+
+	strncpy(bname, path, endp - path + 1);
 	bname[endp - path + 1] = '\0';
-	return(bname);
+	return bname ;
 }

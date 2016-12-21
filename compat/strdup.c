@@ -1,5 +1,3 @@
-/*	$OpenBSD: strdup.c,v 1.3 1997/08/20 04:18:52 millert Exp $	*/
-
 /*
  * Copyright (c) 1988, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -33,30 +31,19 @@
  * SUCH DAMAGE.
  */
 
-#if defined(LIBC_SCCS) && !defined(lint)
-#if 0
-static char sccsid[] = "@(#)strdup.c	8.1 (Berkeley) 6/4/93";
-#else
-static char *rcsid = "$OpenBSD: strdup.c,v 1.3 1997/08/20 04:18:52 millert Exp $";
-#endif
-#endif /* LIBC_SCCS and not lint */
-
 #include <sys/types.h>
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
-char *
-openbsd_strdup(str)
-	const char *str;
-{
+char *compat_strdup(const char *str) {
 	size_t siz;
 	char *copy;
 
 	siz = strlen(str) + 1;
 	if ((copy = malloc(siz)) == NULL)
 		return(NULL);
-	(void)memcpy(copy, str, siz);
-	return(copy);
+	memcpy(copy, str, siz);
+	return copy;
 }

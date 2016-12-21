@@ -1,5 +1,3 @@
-/*	$OpenBSD: basename.c,v 1.4 1999/05/30 17:10:30 espie Exp $	*/
-
 /*
  * Copyright (c) 1997 Todd C. Miller <Todd.Miller@courtesan.com>
  * All rights reserved.
@@ -31,10 +29,7 @@
 #include <string.h>
 #include <sys/param.h>
 
-char *
-openbsd_basename(path)
-	const char *path;
-{
+char *compat_basename(const char *path) {
 	static char bname[MAXPATHLEN];
 	register const char *endp, *startp;
 
@@ -64,7 +59,8 @@ openbsd_basename(path)
 		errno = ENAMETOOLONG;
 		return(NULL);
 	}
-	(void)strncpy(bname, startp, endp - startp + 1);
+
+	strncpy(bname, startp, endp - startp + 1);
 	bname[endp - startp + 1] = '\0';
-	return(bname);
+	return bname ;
 }

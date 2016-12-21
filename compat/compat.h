@@ -1,88 +1,118 @@
-/* prototypes for borrowed "compatibility" code */
+/**
+ * Copyright (C) 2015-2016 Mavicona, Quenza Inc.
+ * All Rights Reserved
+ *
+ * This file is part of the Mavicona project.
+ *
+ * Content can not be copied and/or distributed without the express
+ * permission of the author.
+ */
 
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #include <stdarg.h>
 #include <stddef.h>
-
-#ifdef HAVE_LIBGEN_H
-# include <libgen.h>
-#endif
+#include <libgen.h>
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 255
 #endif
 
+#define UNUSED(x) (void)(x)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/*
+ * basename
+ */
+
+#if defined(OS_UNKNOWN)
 # ifdef basename
-#  undef basename		/* fix glibc brokenness */
+#  undef basename
 # endif
 
-char *openbsd_basename(const char *);
-# define basename openbsd_basename
+char *compat_basename(const char *);
+# define basename compat_basename
+
+#endif // OS_UNKNOWN
 
 
+/*
+ * dirname
+ */
+
+#if defined(OS_UNKNOWN)
+# ifdef dirname
+#  undef dirname
+# endif
+
+char *compat_dirname(const char *);
+# define dirname compat_dirname
+
+#endif // OS_UNKNOWN
 
 
+/*
+ * gethostbyname_r
+ */
 
-char *openbsd_dirname(const char *);
-# define dirname openbsd_dirname
-
-
-
-#ifdef NEED_GETHOSTBYNAME_R
-
+#if defined(OS_UNKNOWN)
 # include <netdb.h>
-
-# if GETHOSTBYNAME_R_NUM_ARGS != 6
 
 int compat_gethostbyname_r(const char *, struct hostent *,
 			   char *, size_t, struct hostent **, int *);
+# define gethostbyname_r compat_gethostbyname_r
 
-#  define gethostbyname_r compat_gethostbyname_r
-
-# endif /* GETHOSTBYNAME_R_NUM_ARGS != 6 */
-
-#endif /* NEED_GETHOSTBYNAME_R */
+#endif // OS_UNKNOWN
 
 
+/*
+ * gethostname
+ */
 
-
-#if defined(NEED_GETHOSTNAME) && !defined(HAVE_GETHOSTNAME)
+#if defined(OS_UNKNOWN)
+# ifdef gethostname
+#  undef gethostname
+# endif
 
 int gethostname(char *, size_t);
 
-#endif /* NEED_GETHOSTNAME && ! HAVE_GETHOSTNAME */
+#endif // OS_UNKNOWN
 
 
-#ifdef NEED_GETSERVBYNAME_R
+/*
+ * getservbyname_r
+ */
 
+#if defined(OS_UNKNOWN)
 # include <netdb.h>
-
-# if GETSERVBYNAME_R_NUM_ARGS != 6
 
 int compat_getservbyname_r(const char *, const char *, struct servent *,
 			   char *, size_t, struct servent **);
+# define getservbyname_r compat_getservbyname_r
 
-#  define getservbyname_r compat_getservbyname_r
-
-# endif /* GETSERVBYNAME_R_NUM_ARGS != 6 */
-
-#endif /* NEED_GETSERVBYNAME_R */
+#endif // OS_UNKNOWN
 
 
-#if defined(NEED_INET_ATON) && !defined(HAVE_INET_ATON)
+/*
+ * inet_aton
+ */
+
+#if defined(OS_UNKNOWN)
 
 int inet_aton(const char *, struct in_addr *);
 
-#endif /* NEED_INET_ATON && ! HAVE_INET_ATON */
+#endif // OS_UNKNOWN
 
 
-#ifdef NEED_MAKEDEV
+/*
+ * makedev
+ */
+
+#if defined(OS_UNKNOWN)
 
 # ifdef MAJOR_IN_MKDEV
 #  include <sys/mkdev.h>
@@ -105,58 +135,104 @@ int inet_aton(const char *, struct in_addr *);
 #  define compat_makedev		makedev
 # endif
 
-#endif /* NEED_MAKEDEV */
+#endif // OS_UNKNOWN
 
 
-#if defined(NEED_SNPRINTF) && !defined(HAVE_SNPRINTF)
+/*
+ * snprintf
+ */
+
+#if defined(OS_UNKNOWN)
 
 int mutt_snprintf(char *, size_t, const char *, ...);
 int mutt_vsnprintf(char *, size_t, const char *, va_list);
 #define snprintf mutt_snprintf
 #define vsnprintf mutt_vsnprintf
 
-#endif /* NEED_SNPRINTF && ! HAVE_SNPRINTF */
+#endif // OS_UNKNOWN
 
 
+/*
+ * mkdirhier
+ */
+#if defined(OS_UNKNOWN)
 
+int mkdirhier(char *path);
+
+#endif // OS_UNKNOWN
+
+
+/*
+ * strlcat / strlcpy
+ */
+
+#if defined(LINUX)
 
 size_t strlcat(char *, const char *, size_t);
-
-
 size_t strlcpy(char *, const char *, size_t);
 
-
-#if defined(NEED_STRDUP) && !defined(HAVE_STRDUP)
-
-char *openbsd_strdup(const char *);
-# define strdup openbsd_strdup
-
-#endif /* NEED_STRDUP && ! HAVE_STRDUP */
+#endif // LINUX
 
 
+/*
+ * strdup
+ */
+
+#if defined(LINUX)
+
+char *compat_strdup(const char *);
+# define strdup compat_strdup
+
+#endif // LINUX
+
+
+/*
+ * strmode
+ */
+
+#if defined(LINUX)
 
 void strmode(register mode_t, register char *);
 
+#endif // LINUX
 
 
-#if defined(NEED_STRRSTR) && !defined(HAVE_STRRSTR)
+/*
+ * strrstr
+ */
+
+#if defined(LINUX)
 
 char *strrstr(char *, char *);
 
-#endif /* NEED_STRRSTR && ! HAVE_STRRSTR */
+#endif // LINUX
 
 
-#ifdef NEED_STRSEP
+/*
+ * strsep
+ */
 
-# ifdef HAVE_STRSEP
-#  define _LINUX_SOURCE_COMPAT		/* needed on AIX 4.3.3 */
-# else
-
-char *strsep(register char **, register const char *);
-
+#if defined(LINUX)
+# ifdef strsep
+#  undef strsep
 # endif
 
-#endif /* NEED_STRSEP */
+char *compat_strsep(register char **, register const char *);
+# define strsep compat_strsep
+
+#endif // LINUX
+
+
+/*
+ * getopt
+ */
+
+#if defined(OS_UNKNOWN)
+
+int getopt(int argc, char *const *argv, const char *optstring);
+
+#endif // OS_UNKNOWN
+
 
 #ifdef __cplusplus
 }
