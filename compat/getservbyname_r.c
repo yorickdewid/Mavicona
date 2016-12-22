@@ -18,8 +18,7 @@
 int
 compat_getservbyname_r(const char *name, const char *proto,
 		       struct servent *sp, char *buf, size_t buflen,
-		       struct servent **spp)
-{
+		       struct servent **spp) {
 #if GETSERVBYNAME_R_NUM_ARGS == 5
 	*spp = getservbyname_r(name, proto, sp, buf, buflen);
 
@@ -36,5 +35,3 @@ compat_getservbyname_r(const char *name, const char *proto,
 #endif /* GETSERVBYNAME_R_NUM_ARGS == 5 */
 	return 0;
 }
-
-

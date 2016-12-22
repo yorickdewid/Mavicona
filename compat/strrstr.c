@@ -10,18 +10,17 @@
 **  University of Illinois at Urbana-Champaign
 */
 
+#if defined(LINUX)
+
 #include <stdio.h>
 #include <sys/types.h>
 
 #include <string.h>
 
-
 /*
 ** find the last occurrance of find in string
 */
-char *
-strrstr(char *string, char *find)
-{
+char *strrstr(char *string, char *find) {
 	size_t stringlen, findlen;
 	char *cp;
 
@@ -37,4 +36,6 @@ strrstr(char *string, char *find)
 	return NULL;
 }
 
-
+#else
+typedef int _translation_declaration;
+#endif // LINUX

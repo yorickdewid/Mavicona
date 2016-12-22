@@ -1,5 +1,3 @@
-/*	$OpenBSD: strlcat.c,v 1.5 2001/01/13 16:17:24 millert Exp $	*/
-
 /*
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
  * All rights reserved.
@@ -27,9 +25,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if defined(LIBC_SCCS) && !defined(lint)
-static char *rcsid = "$OpenBSD: strlcat.c,v 1.5 2001/01/13 16:17:24 millert Exp $";
-#endif /* LIBC_SCCS and not lint */
+#if defined(LINUX)
 
 #include <sys/types.h>
 #include <string.h>
@@ -41,11 +37,7 @@ static char *rcsid = "$OpenBSD: strlcat.c,v 1.5 2001/01/13 16:17:24 millert Exp 
  * Returns strlen(initial dst) + strlen(src); if retval >= siz,
  * truncation occurred.
  */
-size_t strlcat(dst, src, siz)
-	char *dst;
-	const char *src;
-	size_t siz;
-{
+size_t strlcat(char *dst, const char *src, size_t siz) {
 	register char *d = dst;
 	register const char *s = src;
 	register size_t n = siz;
@@ -70,3 +62,7 @@ size_t strlcat(dst, src, siz)
 
 	return(dlen + (s - src));	/* count does not include NUL */
 }
+
+#else
+typedef int _translation_declaration;
+#endif // LINUX

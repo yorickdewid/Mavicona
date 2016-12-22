@@ -33,7 +33,6 @@
 
 #if defined(LINUX)
 # define _DEFAULT_SOURCE
-#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -158,3 +157,7 @@ void strmode(register mode_t mode, register char *p) {
 	*p++ = ' ';		/* will be a '+' if ACL's implemented */
 	*p = '\0';
 }
+
+#else
+typedef int _translation_declaration;
+#endif // LINUX

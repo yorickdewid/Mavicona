@@ -20,5 +20,3 @@ int inet_aton(const char *cp, struct in_addr *inp) {
 		return 0;
 	return 1;
 }
-
-

@@ -31,6 +31,8 @@
  * SUCH DAMAGE.
  */
 
+#if defined(LINUX)
+
 #include <string.h>
 #include <stdio.h>
 
@@ -69,3 +71,7 @@ char *compat_strsep(register char **stringp, register const char *delim) {
 	}
 	/* NOTREACHED */
 }
+
+#else
+typedef int _translation_declaration;
+#endif // LINUX

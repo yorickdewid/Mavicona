@@ -31,6 +31,8 @@
  * SUCH DAMAGE.
  */
 
+#if defined(LINUX)
+
 #include <sys/types.h>
 
 #include <stddef.h>
@@ -47,3 +49,7 @@ char *compat_strdup(const char *str) {
 	memcpy(copy, str, siz);
 	return copy;
 }
+
+#else
+typedef int _translation_declaration;
+#endif // LINUX
