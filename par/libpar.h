@@ -16,7 +16,9 @@
 #define LIBPAR_H
 
 #if defined(LINUX)
-# define _DEFAULT_SOURCE
+# ifndef _DEFAULT_SOURCE
+#  define _DEFAULT_SOURCE
+# endif
 #endif
 
 #include <sys/types.h>

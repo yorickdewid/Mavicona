@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 echo "one" > one.txt
 echo "two" > two.txt

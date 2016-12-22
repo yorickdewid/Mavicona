@@ -1,7 +1,8 @@
 UTILDIR = util
 COMPATDIR = ../compat
+COMMONDIR = ../common
 WFLAGS = -pedantic -std=c99 -Wall -Werror -Wextra -Winit-self -Wswitch-default -Wshadow
-INCLUDES = -I. -I$(COMPATDIR) -I../$(COMMONDIR) -I../quid
+INCLUDES = -I. -I$(COMPATDIR) -I$(COMMONDIR) -I../quid
 CFLAGS = $(WFLAGS) $(INCLUDES) -DX64
 LDFLAGS = -L. -L../quid
 SOURCES = $(wildcard *.c)
@@ -72,14 +73,14 @@ $(DYNOBJ): $(OBJECTS)
 	$(CC) $(CFLAGS)	$(COMPATDIR)/strmode.c -c -o strmode.o
 	$(CC) $(CFLAGS)	$(COMPATDIR)/strdup.c -c -o strdup.o
 	$(CC) $(CFLAGS)	$(COMPATDIR)/strsep.c -c -o strsep.o
-	$(CC) -shared -o $@ mkdirhier.o strdup.o strsep.o strmode.o $^
+	$(CC) -shared $(LDFLAGS) -o $@ mkdirhier.o strdup.o strsep.o strmode.o $^ -lquid -lz
 
 # Utils
 util: parutil
 
 parutil:
 	$(CC) $(CFLAGS)	$(COMPATDIR)/strlcpy.c -c -o $(UTILDIR)/strlcpy.o
-	$(CC) $(CFLAGS)	$(UTILDIR)/parutil.c $(UTILDIR)/strlcpy.o $(LDFLAGS) -o $@ -lmavpar -lquid -lz -lm
+	$(CC) $(CFLAGS)	$(UTILDIR)/parutil.c $(UTILDIR)/strlcpy.o $(LDFLAGS) -o $@ -lmavpar
 
 # Cleanup
 clean:

@@ -123,7 +123,7 @@ int par_append_file(PAR *t, const char *realname, const char *savename) {
 #ifdef DEBUG
 		printf("+++ adding entry: device (0x%x,0x%x), inode %ld "
 		       "(\"%s\")...\n", major(s.st_dev), minor(s.st_dev),
-		       s.st_ino, realname);
+		       (long int)s.st_ino, realname);
 #endif
 		ti = (tar_ino_t *)calloc(1, sizeof(tar_ino_t));
 		if (ti == NULL)

@@ -8,6 +8,12 @@
  * permission of the author.
  */
 
+#if defined(LINUX)
+# ifndef _DEFAULT_SOURCE
+#  define _DEFAULT_SOURCE
+# endif
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
