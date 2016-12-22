@@ -2,7 +2,7 @@ UTILDIR = util
 COMPATDIR = ../compat
 COMMONDIR = ../common
 WFLAGS = -pedantic -std=c99 -Wall -Werror -Wextra -Winit-self -Wswitch-default -Wshadow
-INCLUDES = -I. -I$(COMPATDIR) -I../$(COMMONDIR)
+INCLUDES = -I. -I$(COMPATDIR) -I$(COMMONDIR)
 CFLAGS = $(WFLAGS) $(INCLUDES) -DX64
 LDFLAGS = -L.
 SOURCES = $(wildcard *.c)
@@ -67,13 +67,13 @@ $(STATOBJ): $(OBJECTS)
 
 $(DYNOBJ): CFLAGS += -fPIC
 $(DYNOBJ): $(OBJECTS)
-	$(CC) -shared -o $@ $^
+	$(CC) -shared $(LDFLAGS) -o $@ $^ -lm
 
 # Utils
 util: genquid
 
 genquid:
-	$(CC) $(CFLAGS)	$(UTILDIR)/genquid.c $(LDFLAGS) -o $@ -lquid -lm
+	$(CC) $(CFLAGS)	$(UTILDIR)/genquid.c $(LDFLAGS) -o $@ -lquid
 
 # Cleanup
 clean:
