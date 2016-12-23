@@ -29,7 +29,7 @@
 #include <string.h>
 #include <sys/param.h>
 
-char *compat_dirname(const char *path) {
+char *compat_cdirname(const char *path) {
 	static char bname[MAXPATHLEN];
 	register const char *endp;
 
@@ -50,7 +50,7 @@ char *compat_dirname(const char *path) {
 
 	/* Either the dir is "/" or there are no slashes */
 	if (endp == path) {
-		(void)strcpy(bname, *endp == '/' ? "/" : ".");
+		strcpy(bname, *endp == '/' ? "/" : ".");
 		return(bname);
 	} else {
 		do {

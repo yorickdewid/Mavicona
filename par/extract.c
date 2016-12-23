@@ -13,7 +13,7 @@
 */
 
 #include "libpar.h"
-
+#define OS_UNKNOWN 1
 #include <stdio.h>
 #include <string.h>
 #include <sys/param.h>
@@ -128,10 +128,12 @@ int par_extract_file(PAR *t, char *realname) {
 
 /* extract regular file */
 int par_extract_regfile(PAR *t, char *realname) {
-	mode_t mode;
 	size_t size;
+#ifdef DEBUG
+	mode_t mode;
 	uid_t uid;
 	gid_t gid;
+#endif
 	int fdout;
 	ssize_t i, k;
 	char buf[T_BLOCKSIZE];
@@ -148,23 +150,21 @@ int par_extract_regfile(PAR *t, char *realname) {
 	}
 
 	filename = (realname ? realname : th_get_pathname(t));
-	mode = th_get_mode(t);
 	size = th_get_size(t);
+#ifdef DEBUG
+	mode = th_get_mode(t);
 	uid = th_get_uid(t);
 	gid = th_get_gid(t);
+#endif
 
-	if (mkdirhier(dirname(filename)) == -1)
+	if (mkdirhier(cdirname(filename)) == -1)
 		return -1;
 
 #ifdef DEBUG
 	printf("  ==> extracting: %s (mode %04o, uid %d, gid %d, %zu bytes)\n",
 	       filename, mode, uid, gid, size);
 #endif
-	fdout = open(filename, O_WRONLY | O_CREAT | O_TRUNC
-#ifdef O_BINARY
-		     | O_BINARY
-#endif
-		    , 0666);
+	fdout = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (fdout == -1) {
 #ifdef DEBUG
 		perror("open()");

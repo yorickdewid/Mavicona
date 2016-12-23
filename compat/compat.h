@@ -44,15 +44,12 @@ char *compat_basename(const char *);
  * dirname
  */
 
-#if defined(OS_UNKNOWN)
-# ifdef dirname
-#  undef dirname
-# endif
+#ifdef cdirname
+# undef cdirname
+#endif
 
-char *compat_dirname(const char *);
-# define dirname compat_dirname
-
-#endif // OS_UNKNOWN
+char *compat_cdirname(const char *);
+# define cdirname compat_cdirname
 
 
 /*
@@ -155,11 +152,8 @@ int mutt_vsnprintf(char *, size_t, const char *, va_list);
 /*
  * mkdirhier
  */
-#if defined(OS_UNKNOWN)
 
 int mkdirhier(char *path);
-
-#endif // OS_UNKNOWN
 
 
 /*

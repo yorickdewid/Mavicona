@@ -255,9 +255,6 @@ int dev_hash(dev_t *dev);
 /* hashing function for ino_t's */
 int ino_hash(ino_t *inode);
 
-/* create any necessary dirs */
-int mkdirhier(char *path);
-
 /* calculate header checksum */
 int th_crc_calc(PAR *t);
 
