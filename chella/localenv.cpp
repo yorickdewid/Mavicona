@@ -15,28 +15,6 @@ bool LocalEnv::setupHome() {
 	}
 	hometest.close();
 
-	std::ofstream tab;
-	tab.open(m_homedir + "/.inittab");
-	if (tab.fail()) {
-		std::cerr << m_homedir << " not writable" << std::endl;
-		return false;
-	}
-
-	tab << "# Initial tab" << std::endl;
-	tab << "# Execute commands before job is loaded\n#" << std::endl;
-	tab << "# Commands are run per line and	can" << std::endl;
-	tab << "# be used to setup a local environment\n#" << std::endl;
-	tab.close();
-	
-	std::ofstream wrap;
-	wrap.open(m_homedir + "/.initwrap");
-	if (wrap.fail()) {
-		std::cerr << m_homedir << " not writable" << std::endl;
-		return false;
-	}
-	wrap.close();
-
-	//TODO: check if directories already exist
 	mkdir((m_homedir + "/run").c_str(), 0700);
 	mkdir((m_homedir + "/tmp").c_str(), 0700);
 	return true;
@@ -54,6 +32,10 @@ void LocalEnv::setLock() {
 }
 
 bool LocalEnv::setupEnv() {
+	setenv("JOBHOME", m_homedir.c_str(), 1);
+	setenv("JOBID", std::to_string(m_jobid).c_str(), 1);
+	setenv("WORKERID", std::to_string(m_workerid).c_str(), 1);
+
 	std::ifstream environ;
 	environ.open(m_homedir + "/.env", std::ofstream::in);
 	if (environ.fail()) {
@@ -70,7 +52,15 @@ bool LocalEnv::setupEnv() {
 		setenv(key.c_str(), value.c_str(), 1);
 	}
 
-	setenv("WORKERID", std::to_string(m_workerid).c_str(), 1);
+	/* Execute inittab commands */
+	std::ifstream tab;
+	tab.open(m_homedir + "/.inittab", std::ofstream::in);
+	while (std::getline(tab, line)) {
+		if (line[0] == '#')
+			continue;
+		system(line.c_str());
+	}
+	tab.close();
 
 	environ.close();
 	return true;
@@ -115,6 +105,17 @@ bool LocalEnv::teardown(double runtime) {
 
 	time_t t = time(NULL);
 	struct tm *now = localtime(&t);
+
+	/* Execute initwrap commands */
+	std::ifstream tab;
+	tab.open(m_homedir + "/.initwrap", std::ofstream::in);
+	std::string line;
+	while (std::getline(tab, line)) {
+		if (line[0] == '#')
+			continue;
+		system(line.c_str());
+	}
+	tab.close();
 
 	/* Last job */
 	lastrun.open(m_homedir + "/lastrun", std::ofstream::out);

@@ -78,6 +78,13 @@ class Example(ace.job.Job):
 		print('')
 
 		""" Print environment injected variables """
+		print('JOBHOME', os.environ.get('JOBHOME'))
+		print('JOBID', os.environ.get('JOBID'))
+		print('WORKERID', os.environ.get('WORKERID'))
+
+		print('')
+
+		""" Print environment injected variables """
 		print('Database host', os.environ.get('PG_HOST'))
 		print('Database user', os.environ.get('PG_USER'))
 		print('Database pasword', os.environ.get('PG_PASSWD'))
