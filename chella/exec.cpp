@@ -272,10 +272,10 @@ bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
 			exec.jobcontrol->setStateFailed();
 			goto py_failed;
 		}
-	}
 
-	/* Move WAL forward */
-	executionLog->setCheckpoint(Wal::Checkpoint::SETUP_ONCE);
+		/* Move WAL forward */
+		executionLog->setCheckpoint(Wal::Checkpoint::SETUP_ONCE);
+	}
 
 	exec.jobcontrol->setStateSetup();
 	pResult = PyObject_CallMethod(pInstanceJob, "setup", NULL);
@@ -310,16 +310,6 @@ bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
 	/* Move WAL forward */
 	executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN);
 
-	pResult = PyObject_CallMethod(pInstanceJob, "teardown_once", NULL);
-	if (!pResult) {
-		PyErr_Print();
-		exec.jobcontrol->setStateFailed();
-		goto py_failed;
-	}
-
-	/* Move WAL forward */
-	executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN_ONCE);
-
 	pMemberChains = PyObject_GetAttrString(pInstanceJob, "chains");	
 	if (!pMemberChains) {
 		PyErr_Print();
@@ -331,6 +321,18 @@ bool Execute::run(const std::string& name, Parameter& param, bool canfork) {
 		PyErr_Print();
 		exec.jobcontrol->setStateFailed();
 		goto py_failed;
+	}
+
+	if (param.jobstate == JobState::FUNNEL || (param.jobstate == JobState::SPAWN && PyList_Size(pMemberChains) == 0)) {
+		pResult = PyObject_CallMethod(pInstanceJob, "teardown_once", NULL);
+		if (!pResult) {
+			PyErr_Print();
+			exec.jobcontrol->setStateFailed();
+			goto py_failed;
+		}
+
+		/* Move WAL forward */
+		executionLog->setCheckpoint(Wal::Checkpoint::TEARDOWN_ONCE);
 	}
 
 	if (PyList_Size(pMemberChains) > 0) {

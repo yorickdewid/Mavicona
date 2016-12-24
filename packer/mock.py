@@ -74,8 +74,9 @@ def jobrunner(name, data=None, status=ace.job.JobStatus.spawn, partition=0, part
 	obj.run(data)
 	obj.teardown()
 	
-	#TODO: find out when the latest job runs
-	if status is ace.job.JobStatus.partition:
+	if status is ace.job.JobStatus.spawn and len(obj.chains) is 0:
+		obj.teardown_once()
+	if status is ace.job.JobStatus.funnel:
 		obj.teardown_once()
 
 	print('Chains', len(obj.chains))
@@ -108,8 +109,9 @@ if __name__ == '__main__':
 		usage(sys.argv[0])
 		exit(0)
 	
-
 	os.environ["WORKERID"] = str(random.randint(0, 150))
+	os.environ["JOBID"] = str(random.randint(1, 10000))
+	os.environ["JOBHOME"] = os.getcwd()
 
 	if sys.argv[1] == '--help' or sys.argv[1] == '-h':
 		usage(sys.argv[0])
@@ -153,7 +155,7 @@ if __name__ == '__main__':
 	end_ts = time.time()
 	print('==========< Results >=============')
 	print('Passed:\t\t true')
-	print('Jobs run:\t', job_count)
+	print('Jobs run:\t 1 ->', (job_count - 1))
 	print('Runtime:\t %ds' % (end_ts - start_ts))
 	print('End:\t\t', datetime.datetime.today())
 	print('==================================')
