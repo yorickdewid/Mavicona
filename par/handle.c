@@ -80,7 +80,7 @@ int par_write_header(PAR *t) {
 	if (t->use_gz)
 		header.options |= PAR_COMPRESS;
 
-	if (write(t->fd, (char *)&header, sizeof(header)) == -1)
+	if (write(t->fd, (char *)&header, sizeof(header)) < 0)
 		return -1;
 
 	return 0;
@@ -89,7 +89,10 @@ int par_write_header(PAR *t) {
 int par_read_header(PAR *t) {
 	struct archive_header header;
 
-	if (read(t->fd, (char *)&header, sizeof(header)) == -1)
+	if (lseek(t->fd, 0, SEEK_SET) < 0)
+		return -1;
+
+	if (read(t->fd, (char *)&header, sizeof(header)) < 0)
 		return -1;
 
 	if (strncmp(header.magic, PACKAGE_MAGIC, sizeof(header.magic)) != 0)
@@ -138,14 +141,14 @@ static int par_init(PAR **t, const char *pathname, int compress, int oflags, int
 
 /* open a new file handle */
 int par_open(PAR **t, const char *pathname, int compress, int oflags, int mode, int options) {
-	if (par_init(t, pathname, compress, oflags, options) == -1)
+	if (par_init(t, pathname, compress, oflags, options) < 0)
 		return -1;
 
 	if ((options & PAR_NOOVERWRITE) && (oflags & O_CREAT))
 		oflags |= O_EXCL;
 
 	(*t)->fd = open(pathname, oflags, mode);
-	if ((*t)->fd == -1)
+	if ((*t)->fd < 0)
 		return -1;
 
 	if ((*t)->use_gz)
