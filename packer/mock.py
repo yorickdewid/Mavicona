@@ -48,7 +48,7 @@ def usage(name):
 	print('All Rights Reserved\n')
 	print('usage: %s [python file]' % name);
 
-def jobrunner(name, data=None, status=ace.job.JobStatus.spawn, partition=0, partition_count=0, parent=None):
+def jobrunner(job_mod, name, data=None, status=ace.job.JobStatus.spawn, partition=0, partition_count=0, parent=None):
 	global job_count
 	quid = uuid.uuid4()
 	ins = job_mod.job_init(ace.config.Config())
@@ -56,8 +56,7 @@ def jobrunner(name, data=None, status=ace.job.JobStatus.spawn, partition=0, part
 	obj.cfg = ins
 	obj.__ipc__ = ace.ipc.Callback()
 	obj.__db__ = ace.db.DB()
-	obj.inject(
-		random.randint(1, 10000),
+	obj.inject(random.randint(1, 10000),
 		name,
 		ace.sha1.sha1(bytearray(os.urandom(10))),
 		quid,
@@ -79,6 +78,7 @@ def jobrunner(name, data=None, status=ace.job.JobStatus.spawn, partition=0, part
 	if status is ace.job.JobStatus.funnel:
 		obj.teardown_once()
 
+	job_count = job_count + 1
 	print('Chains', len(obj.chains))
 	for chain in obj.chains:
 		print('Subjobs', len(chain.subjobs))
@@ -99,16 +99,16 @@ def jobrunner(name, data=None, status=ace.job.JobStatus.spawn, partition=0, part
 			print('Timestamp:\t', datetime.datetime.today())
 			print('==================================')
 
-			jobrunner(job['name'], job['data'], newstatus, partition, len(chain.subjobs), quid)
+			jobrunner(job_mod,
+				job['name'],
+				job['data'],
+				newstatus,
+				partition,
+				len(chain.subjobs),
+				quid)
 			partition += 1
 
-	job_count = job_count + 1
-
-if __name__ == '__main__':
-	if len(sys.argv) < 2:
-		usage(sys.argv[0])
-		exit(0)
-	
+def main():
 	os.environ["WORKERID"] = str(random.randint(0, 150))
 	os.environ["JOBID"] = str(random.randint(1, 10000))
 	os.environ["JOBHOME"] = os.getcwd()
@@ -150,7 +150,7 @@ if __name__ == '__main__':
 	print('Start:\t', datetime.datetime.today())
 	print('==================================')
 
-	jobrunner(random.choice(jobnames), jobdata)
+	jobrunner(job_mod, random.choice(jobnames), jobdata)
 
 	end_ts = time.time()
 	print('==========< Results >=============')
@@ -159,3 +159,21 @@ if __name__ == '__main__':
 	print('Runtime:\t %ds' % (end_ts - start_ts))
 	print('End:\t\t', datetime.datetime.today())
 	print('==================================')
+
+if __name__ == '__main__':
+	if len(sys.argv) < 2:
+		usage(sys.argv[0])
+		exit(0)
+	try:
+		main()
+	except KeyboardInterrupt:
+		print('')
+		print('===========< Canceled >===========')
+		print('Passed:\t\t interrupted')
+		print('Jobs run:\t', job_count)
+		print('End:\t\t', datetime.datetime.today())
+		print('==================================')
+		try:
+			sys.exit(0)
+		except SystemExit:
+			os._exit(0)
