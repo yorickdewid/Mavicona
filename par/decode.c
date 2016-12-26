@@ -16,9 +16,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-// #include <sys/types.h>
-// #include <sys/stat.h>
-// #include <unistd.h>
 #include <sys/param.h>
 #include <pwd.h>
 #include <grp.h>
@@ -54,8 +51,7 @@ char *th_get_pathname(PAR *t) {
 		return safer_name_suffix(t->th_buf.gnu_longname);
 
 	/* allocate the th_pathname buffer if not already */
-	if (t->th_pathname == NULL)
-	{
+	if (t->th_pathname == NULL) {
 		t->th_pathname = malloc(MAXPATHLEN * sizeof(char));
 		if (t->th_pathname == NULL)
 			/* out of memory */

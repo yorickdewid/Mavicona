@@ -40,19 +40,11 @@ static int par_set_file_perms(PAR *t, char *realname) {
 
 	/* change owner/group */
 	if (geteuid() == 0)
-#ifdef HAVE_LCHOWN
-		if (lchown(filename, uid, gid) == -1) {
-# ifdef DEBUG
-			fprintf(stderr, "lchown(\"%s\", %d, %d): %s\n",
-				filename, uid, gid, strerror(errno));
-# endif
-#else /* ! HAVE_LCHOWN */
 		if (!TH_ISSYM(t) && chown(filename, uid, gid) == -1) {
 # ifdef DEBUG
 			fprintf(stderr, "chown(\"%s\", %d, %d): %s\n",
 				filename, uid, gid, strerror(errno));
 # endif
-#endif /* HAVE_LCHOWN */
 			return -1;
 		}
 
@@ -95,12 +87,13 @@ int par_extract_file(PAR *t, char *realname) {
 		i = par_extract_dir(t, realname);
 		if (i == 1)
 			i = 0;
-	} else if (TH_ISLNK(t))
+	} else if (TH_ISLNK(t)) {
 		i = par_extract_hardlink(t, realname);
-	else if (TH_ISSYM(t))
+	} else if (TH_ISSYM(t)) {
 		i = par_extract_symlink(t, realname);
-	else /* if (TH_ISREG(t)) */
+	} else { /* if (TH_ISREG(t)) */
 		i = par_extract_regfile(t, realname);
+	}
 
 	if (i != 0)
 		return i;
@@ -112,8 +105,9 @@ int par_extract_file(PAR *t, char *realname) {
 	pathname_len = strlen(th_get_pathname(t)) + 1;
 	realname_len = strlen(realname) + 1;
 	lnp = (char *)calloc(1, pathname_len + realname_len);
-	if (lnp == NULL)
+	if (!lnp)
 		return -1;
+
 	strcpy(&lnp[0], th_get_pathname(t));
 	strcpy(&lnp[pathname_len], realname);
 #ifdef DEBUG
