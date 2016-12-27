@@ -9,9 +9,12 @@ fi
 /usr/bin/dnf -y install \
 	protobuf-compiler \
 	protobuf \
+	protobuf-devel \
 	zeromq \
+	zeromq-devel \
 	bison \
 	flex \
+	gcc-c++ \
 	zlib-devel \
 	leveldb \
 	leveldb-devel \
