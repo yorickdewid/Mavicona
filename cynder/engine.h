@@ -35,14 +35,13 @@ class AbstractEngine {
   public:
 	AbstractEngine(const char *prefix, bool allow_duplicates = false, unsigned _counter = 0,
 	               const char *datadir = defaultDataDir) : name_prefix(prefix), counter(_counter) {
-
 		mkdir(datadir, 0700);
 
 		assert(strlen(name_prefix) == 3);
 
 		try {
 			const auto dbfile = dbname(datadir);
-			if (!file_exist(dbfile)) {
+			if (!file_exist(dbfile.c_str())) {
 				env.create(dbfile.c_str());
 				db = env.create_db(1, allow_duplicates ? UPS_ENABLE_DUPLICATE_KEYS : 0);
 			} else {

@@ -23,11 +23,6 @@ std::string Stringify(const std::string& str) {
 	return str;
 }
 
-template <>
-std::string Stringify(const char* const& str) {
-	return str;
-}
-
 }
 
 namespace Consistent {

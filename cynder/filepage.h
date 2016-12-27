@@ -31,7 +31,7 @@ class Filepage {
 
   public:
 	Filepage(const std::string& file) : m_File(file) {
-		if (!file_exist(m_File)) {
+		if (!file_exist(m_File.c_str())) {
 			create();
 		} else {
 			open();

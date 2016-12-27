@@ -11,11 +11,10 @@ OBJS = chella.o \
 		sha1.o \
 		../protoc/processjob.pb.o \
 		../protoc/controlmessage.pb.o
-CXX = g++
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq $(shell python3-config --libs) -lleveldb -L../par -lmavpar -L../quid -lquid
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -DDEBUG -DZMQ_CPP11 -I.. -I../common -I../quid -I../par -I../compat -I../packer -I../third_party $(shell python3-config --includes) -Wno-write-strings
-LXXFLAGS = -Wall $(DEBUG) $(LIBS)
+LFLAGS = -Wall $(DEBUG) $(LIBS)
 
 ifeq ($(OS),Windows_NT)
 	CFLAGS += -DWIN32
@@ -71,7 +70,7 @@ endif
 all: $(OBJS)
 	$(CC) $(CFLAGS) -c ../common/util.c -o util.o
 	$(CC) $(CFLAGS) -c ../compat/strlcpy.c -o strlcpy.o
-	$(CXX) $(OBJS) util.o strlcpy.o $(LXXFLAGS) -o chella
+	$(CXX) $(OBJS) util.o strlcpy.o $(LFLAGS) -o chella
 
 clean:
 	$(RM) -rf *.o ace/*.o

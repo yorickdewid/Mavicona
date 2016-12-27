@@ -328,7 +328,7 @@ int main(int argc, char *argv[]) {
 	/* Make sure we have an pitcher and cynder host even if the ruleset ignores this action */
 	if (options.count("hbs")) {
 		std::string configfile = options["hbs"].as<std::string>();
-		if (!file_exist(configfile)) {
+		if (!file_exist(configfile.c_str())) {
 			std::cerr << "error: " << configfile << ": No such file or directory" << std::endl;
 			return 1;
 		}
