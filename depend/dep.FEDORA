@@ -12,6 +12,7 @@ fi
 	zeromq \
 	bison \
 	flex \
+	zlib-devel \
 	leveldb \
 	leveldb-devel \
 	python3 \
