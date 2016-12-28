@@ -3,10 +3,10 @@
 
 #include "module.h"
 
-class Pitcher : public IModule, public Command<Pitcher> {
+class Pitcher : public IModule { // , public Command<Pitcher>
   public:
 	Pitcher() {
-		registerCommand("newTask", "Create new task", &Pitcher::newTask);
+		// registerCommand("newtask", "Create new task", &Pitcher::newTask);
 	}
 
 	inline const std::string name() const {
@@ -14,15 +14,15 @@ class Pitcher : public IModule, public Command<Pitcher> {
 	}
 
 	inline const std::string description() const {
-		return "Queue management";
+		return "Job queue management";
 	}
 
-	void exec(const std::string& command) {
-		Command::runCommand(command);
+	void exec(const std::string& command, const std::vector<std::string>& argv) {
+	// 	Command::runCommand(command, argv);
 	}
 
 	void commandlist(std::function<void(const std::string&, const std::string&)> print) {
-		Command::foreachCommand(print);
+	// 	Command::foreachCommand(print);
 	}
 
 	/* Module specific commands */

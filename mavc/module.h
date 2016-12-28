@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <map>
 #include <iostream>
+#include <vector>
 #include <functional>
 #include <exception>
 
@@ -24,25 +25,24 @@ class IModule {
 		return name;
 	}
 
-	virtual void exec(const std::string& command) = 0;
+	virtual void exec(const std::string& command, const std::vector<std::string>& argv) = 0;
 	virtual void commandlist(std::function<void(const std::string&, const std::string&)> print) = 0;
 };
 
 template<typename T>
 class Command {
-	typedef void (T::*cmd_t)(int, char *argv[]);
+	typedef void (T::*VirtualFunc)(int, const std::vector<std::string>&);
 
-	std::map<std::string, std::pair<std::string, cmd_t>> functions;
+	std::map<std::string, std::pair<std::string, VirtualFunc>> functions;
 
   public:
 	virtual ~Command() {}
 
-	virtual bool runCommand(const std::string& command) {
+	virtual bool runCommand(const std::string& command, const std::vector<std::string>& argv) {
 		if (functions.find(command) == functions.end())
 			throw UnknownCommand();
 
-		char *pz = nullptr;
-		(dynamic_cast<T *>(this)->*(functions[command].second))(0, &pz);
+		(dynamic_cast<T *>(this)->*(functions[command].second))(argv.size(), argv);
 		return true;
 	}
 
@@ -52,7 +52,7 @@ class Command {
 		}
 	}
 
-	virtual void registerCommand(const std::string& name, const std::string& desc, cmd_t f) final {
+	virtual void registerCommand(const std::string& name, const std::string& desc, VirtualFunc f) final {
 		functions[name] = std::make_pair(desc, f);
 	}
 };

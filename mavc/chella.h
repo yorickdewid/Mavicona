@@ -1,18 +1,18 @@
-#ifndef CYNDER_H
-#define CYNDER_H
+#ifndef CHELLA_H
+#define CHELLA_H
 
 #include "module.h"
 
-class Cynder : public IModule {
+class Chella : public IModule {
   public:
-	Cynder() {}
+	Chella() {}
 
 	inline const std::string name() const {
-		return "Cynder";
+		return "Chella";
 	}
 
 	inline const std::string description() const {
-		return "Control to storage cluster";
+		return "Job processing cluster";
 	}
 
 	void exec(const std::string& command, const std::vector<std::string>& argv) {
@@ -24,4 +24,4 @@ class Cynder : public IModule {
 	}
 };
 
-#endif // CYNDER_H
+#endif // CHELLA_H

@@ -11,6 +11,8 @@
 #include "param_util.h"
 #include "cynder.h"
 #include "pitcher.h"
+#include "chella.h"
+#include "quid.h"
 
 static bool interrupted = false;
 static std::vector<IModule *> moduleList;
@@ -35,11 +37,26 @@ struct UnknownModule : public std::exception {
 	}
 };
 
-static void runModuleCommand(const std::string& command) {
+static void runModuleCommand(const std::string& commandline) {
+	std::stringstream ss;
+	ss.str(commandline);
+	std::string command;
+	std::vector<std::string> argv;
+
 	if (!currentModule)
 		throw UnknownCommand();
 
-	currentModule->exec(command);
+	std::string item;
+	while (std::getline(ss, item, ' ')) {
+		if (command.empty()) {
+			command = item;
+			continue;
+		}
+
+		argv.push_back(item);
+	}
+
+	currentModule->exec(command, argv);
 }
 
 static bool findModule(const std::string& modname) {
@@ -71,22 +88,42 @@ static void eval(std::string& command) {
 
 	/* Show help */
 	if (command == "help" || command == "?") {
-		std::cout << "Console:" << std::endl;
+		if (!currentModule) {
+			std::cout << "Loaded modules:" << std::endl;
 
-		printHelpElement("  <module>", "Switch to module");
-		printHelpElement("  help", "This console help");
-		std::cout << std::endl;
-
-		/* Print functions per module */
-		for (const auto module : moduleList) {
-			printHelpElement(module->name(), module->description());
-			module->commandlist([](const std::string & name, const std::string & desc) {
-				printHelpElement("  " + name, desc);
-			});
+			for (const auto module : moduleList) {
+				printHelpElement("  " + module->name(), module->description());
+			}
 
 			std::cout << std::endl;
+		
+			return;
 		}
 
+		/* Print functions per module */
+		printHelpElement(currentModule->name(), currentModule->description());
+		currentModule->commandlist([](const std::string& name, const std::string& desc) {
+			printHelpElement("  " + name, desc);
+		});
+
+		std::cout << std::endl;
+
+		return;
+	}
+
+	/* Move to main */
+	if (command == ".." || command == "main") {
+		currentModule = nullptr;
+		return;
+	}
+
+	if (command == "." || command == "module") {
+		std::cout << "Current module: ";
+		if (currentModule)
+			std::cout << currentModule->name();
+		else
+			std::cout << "(main)";
+		std::cout << std::endl;
 		return;
 	}
 
@@ -110,6 +147,8 @@ static std::string shellState() {
 void loadModules() {
 	moduleList.push_back(new Cynder());
 	moduleList.push_back(new Pitcher());
+	moduleList.push_back(new Chella());
+	moduleList.push_back(new Quid());
 }
 
 void unloadModules() {
@@ -128,8 +167,10 @@ void runShellLoop() {
 
 	std::string input;
 	while (std::getline(std::cin, input)) {
-		if (input.empty())
+		if (input.empty()) {
+			std::cout << shellState();
 			continue;
+		}
 
 		/* Evaluate command */
 		eval(input);
@@ -166,7 +207,7 @@ int main(int argc, char *argv[]) {
 
 	if (options.count("hbs")) {
 		std::string name = options["hbs"].as<std::string>();
-		if (!file_exist(name)) {
+		if (!file_exist(name.c_str())) {
 			std::cerr << "error: " << name << ": No such file or directory" << std::endl;
 			return 1;
 		}
@@ -175,8 +216,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	runShellLoop();
-
-	std::cout << "Cheers" << std::endl;
 
 	return 0;
 }
