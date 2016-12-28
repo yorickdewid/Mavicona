@@ -56,7 +56,11 @@ static void runModuleCommand(const std::string& commandline) {
 		argv.push_back(item);
 	}
 
-	currentModule->exec(command, argv);
+	try {
+		currentModule->exec(command, argv);
+	} catch (InvalidParameters& e) {
+		std::cerr << e.what() << std::endl;
+	}
 }
 
 static bool findModule(const std::string& modname) {
@@ -148,7 +152,7 @@ void loadModules() {
 	moduleList.push_back(new Cynder());
 	moduleList.push_back(new Pitcher());
 	moduleList.push_back(new Chella());
-	moduleList.push_back(new Quid());
+	moduleList.push_back(new ModQuid());
 }
 
 void unloadModules() {

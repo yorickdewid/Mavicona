@@ -8,9 +8,23 @@
 #include <functional>
 #include <exception>
 
+#define defaultModCommand() \
+	void exec(const std::string& command, const std::vector<std::string>& argv) { \
+		Command::runCommand(command, argv); \
+	} \
+	void commandlist(std::function<void(const std::string&, const std::string&)> print) { \
+		Command::foreachCommand(print); \
+	}
+
 struct UnknownCommand : public std::exception {
 	const char *what() const throw () {
 		return "Unknown module command";
+	}
+};
+
+struct InvalidParameters : public std::exception {
+	const char *what() const throw () {
+		return "Invalid or too few parameters provided";
 	}
 };
 

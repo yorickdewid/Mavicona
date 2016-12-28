@@ -1,12 +1,12 @@
-#ifndef QUID_H
-#define QUID_H
+#ifndef MAVC_QUID_H
+#define MAVC_QUID_H
 
 #include "module.h"
 
-class Quid : public IModule, public Command<Quid> {
+class ModQuid : public IModule, public Command<ModQuid> {
   public:
-	Quid() {
-		registerCommand("generate", "Create new task", &Quid::generateQuid);
+	ModQuid() {
+		registerCommand("generate", "Create new task", &ModQuid::generateQuid);
 	}
 
 	inline const std::string name() const {
@@ -17,19 +17,9 @@ class Quid : public IModule, public Command<Quid> {
 		return "Quantica unique random identifiers";
 	}
 
-	void exec(const std::string& command, const std::vector<std::string>& argv) {
-		Command::runCommand(command, argv);
-	}
+	void generateQuid(int paramc, const std::vector<std::string>& params);
 
-	void commandlist(std::function<void(const std::string&, const std::string&)> print) {
-		Command::foreachCommand(print);
-	}
-
-	void generateQuid(int paramc, const std::vector<std::string>& params) {
-		std::cout << "Run generateQuid, paramc: " << paramc << std::endl;
-		if (paramc > 0)
-			std::cout << "Argv0: " << params[0] << std::endl;
-	}
+	defaultModCommand();
 };
 
-#endif // QUID_H
+#endif // MAVC_QUID_H
