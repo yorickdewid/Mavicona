@@ -3,9 +3,9 @@
 
 #include "module.h"
 
-class Cynder : public IModule {
+class ModCynder : public IModule {
   public:
-	Cynder() {}
+	ModCynder() {}
 
 	inline const std::string name() const {
 		return "Cynder";

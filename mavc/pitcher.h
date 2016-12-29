@@ -3,10 +3,10 @@
 
 #include "module.h"
 
-class Pitcher : public IModule { // , public Command<Pitcher>
+class ModPitcher : public IModule { // , public Command<ModPitcher>
   public:
-	Pitcher() {
-		// registerCommand("newtask", "Create new task", &Pitcher::newTask);
+	ModPitcher() {
+		// registerCommand("newtask", "Create new task", &ModPitcher::newTask);
 	}
 
 	inline const std::string name() const {

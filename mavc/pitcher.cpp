@@ -5,7 +5,7 @@
 #include "pitcher.h"
 
 /* Module specific commands */
-void Pitcher::newTask(int paramc, char *param[]) {
+void ModPitcher::newTask(int paramc, char *param[]) {
 	std::string name;
 	std::cout << "Task name: ";
 	std::cin >> name;

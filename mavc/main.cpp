@@ -14,6 +14,8 @@
 #include "chella.h"
 #include "quid.h"
 
+#define LoadMod(m) moduleList.push_back(new Mod##m());
+
 static bool interrupted = false;
 static std::vector<IModule *> moduleList;
 static IModule *currentModule = nullptr;
@@ -151,19 +153,18 @@ static std::string shellState() {
 }
 
 void loadModules() {
-	moduleList.push_back(new Cynder());
-	moduleList.push_back(new Pitcher());
-	moduleList.push_back(new ModChella());
-	moduleList.push_back(new ModQuid());
+	LoadMod(Cynder);
+	LoadMod(Chella);
+	LoadMod(Chella);
+	LoadMod(Quid);
 }
 
 void unloadModules() {
-	for (const auto module : moduleList) {
+	for (const auto module : moduleList)
 		delete module;
-	}
 }
 
-void runShellLoop(const std::string& startmod = "", const std::string& startcmd = "") {
+void runShellLoop(const std::string& startmod = "", std::string startcmd = "") {
 	loadModules();
 
 	catch_signals();
@@ -171,7 +172,10 @@ void runShellLoop(const std::string& startmod = "", const std::string& startcmd 
 	if (!startmod.empty())
 		findModule(startmod);
 
-	// if (!startcmd.empty())
+	if (!startcmd.empty()) {
+		eval(startcmd);
+		return;
+	}
 
 	std::cout << "Type 'help' to get started" << std::endl;
 	std::cout << shellState();
@@ -197,14 +201,17 @@ void runShellLoop(const std::string& startmod = "", const std::string& startcmd 
 
 int main(int argc, char *argv[]) {
 
-	std::string startmod;
+	std::string startmod, startcmd;
 	cxxopts::Options options(argv[0], "");
 
 	options.add_options("Help")
 	("s,hbs", "Verify Host based service config", cxxopts::value<std::string>(), "FILE")
 	("m,module", "Start with module", cxxopts::value<std::string>(), "module")
-	("c,command", "Run command", cxxopts::value<std::string>(), "command")
+	("c,command", "Run command", cxxopts::value<std::string>(), "command args")
 	("h,help", "Print this help");
+
+	options.add_options()
+	("positional", "&", cxxopts::value<std::vector<std::string>>());
 
 	try {
 		options.parse_positional("positional");
@@ -223,6 +230,17 @@ int main(int argc, char *argv[]) {
 		startmod = options["module"].as<std::string>();
 	}
 
+	if (options.count("command")) {
+		startcmd = options["command"].as<std::string>();
+
+		if (options.count("positional")) {
+			auto args = options["positional"].as<std::vector<std::string>>();
+			for (const auto& f : args) {
+				startcmd += " " + f;
+			}
+		}
+	}
+
 	if (options.count("hbs")) {
 		std::string name = options["hbs"].as<std::string>();
 		if (!file_exist(name.c_str())) {
@@ -233,7 +251,7 @@ int main(int argc, char *argv[]) {
 		return ParamUtil::VerifyHbs(name) ? 0 : 1;
 	}
 
-	runShellLoop(startmod);
+	runShellLoop(startmod, startcmd);
 
 	return 0;
 }
