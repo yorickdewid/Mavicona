@@ -41,7 +41,7 @@ DEFINES:
         will be added. This is the only C standard library function used
         by web.
 
-    WBY_UINT_PTR
+    unsigned long
         If your compiler is C99 you do not need to define this.
         Otherwise, web will try default assignments for them
         and validate them at compile time. If they are incorrect, you will
@@ -165,17 +165,17 @@ extern "C" {
 
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 19901L)
 #include <stdint.h>
-#ifndef WBY_UINT_PTR
-#define WBY_UINT_PTR uintptr_t
+#ifndef unsigned long
+#define unsigned long uintptr_t
 #endif
 #else
-#ifndef WBY_UINT_PTR
-#define WBY_UINT_PTR unsigned long
+#ifndef unsigned long
+#define unsigned long unsigned long
 #endif
 #endif
-typedef unsigned char wby_byte;
-typedef WBY_UINT_PTR wby_size;
-typedef WBY_UINT_PTR wby_ptr;
+typedef unsigned char unsigned char;
+typedef unsigned long unsigned long;
+typedef unsigned long unsigned long;
 
 #define WBY_OK (0)
 #define WBY_FLAG(x) (1 << (x))
@@ -216,11 +216,11 @@ struct wby_con {
 };
 
 struct wby_frame {
-    wby_byte flags;
-    wby_byte opcode;
-    wby_byte header_size;
-    wby_byte padding_;
-    wby_byte mask_key[4];
+    unsigned char flags;
+    unsigned char opcode;
+    unsigned char header_size;
+    unsigned char padding_;
+    unsigned char mask_key[4];
     int payload_length;
 };
 
@@ -249,11 +249,11 @@ struct wby_config {
     /* The port to listen to. */
     unsigned int connection_max;
     /* Maximum number of simultaneous connections. */
-    wby_size request_buffer_size;
+    unsigned long request_buffer_size;
     /* The size of the request buffer. This must be big enough to contain all
     * headers and the request line sent by the client. 2-4k is a good size for
     * this buffer. */
-    wby_size io_buffer_size;
+    unsigned long io_buffer_size;
     /* The size of the I/O buffer, used when writing the reponse. 4k is a good
     * choice for this buffer.*/
     wby_log_f log;
@@ -283,18 +283,18 @@ struct wby_connection;
 struct wby_server {
     struct wby_config config;
     /* server configuration */
-    wby_size memory_size;
+    unsigned long memory_size;
     /* minimum required memory */
-    wby_ptr socket;
+    unsigned long socket;
     /* server socket */
-    wby_size con_count;
+    unsigned long con_count;
     /* number of active connection */
     struct wby_connection *con;
     /* connections */
 };
 
 WBY_API void wby_init(struct wby_server*, const struct wby_config*,
-                            wby_size *needed_memory);
+                            unsigned long *needed_memory);
 /*  this function clears the server and calculates the needed memory to run
     Input:
     -   filled server configuration data to calculate the needed memory
@@ -326,7 +326,7 @@ WBY_API void wby_response_end(struct wby_con*);
 /*  this function finishes a response. When you're done wirting the response
  *  body, call this function. this makes sure chunked encoding is terminated
  *  correctly and that the connection is setup for reuse. */
-WBY_API int wby_read(struct wby_con*, void *ptr, wby_size len);
+WBY_API int wby_read(struct wby_con*, void *ptr, unsigned long len);
 /*  this function reads data from the request body. Only read what the client
  *  has priovided (via content_length) parameter, or you will end up blocking
  *  forever.
@@ -334,7 +334,7 @@ WBY_API int wby_read(struct wby_con*, void *ptr, wby_size len);
     - pointer to a memory block that will be filled
     - size of the memory block to fill
 */
-WBY_API int wby_write(struct wby_con*, const void *ptr, wby_size len);
+WBY_API int wby_write(struct wby_con*, const void *ptr, unsigned long len);
 /*  this function writes a response data to the connection. If you're not using
  *  chunked encoding, be careful not to send more than the specified content
  *  length. You can call this function multiple times as long as the total
@@ -347,7 +347,7 @@ WBY_API int wby_frame_begin(struct wby_con*, int opcode);
 /*  this function begins an outgoing websocket frame */
 WBY_API int wby_frame_end(struct wby_con*);
 /*  this function finishes an outgoing websocket frame */
-WBY_API int wby_find_query_var(const char *buf, const char *name, char *dst, wby_size dst_len);
+WBY_API int wby_find_query_var(const char *buf, const char *name, char *dst, unsigned long dst_len);
 /*  this function is a helper function to lookup a query parameter given a URL
  *  encoded string. Returns the size of the returned data, or -1 if the query
  *  var wasn't found. */
@@ -366,7 +366,7 @@ WBY_API const char* wby_find_header(struct wby_con*, const char *name);
  * ===============================================================*/
 #ifdef WBY_IMPLEMENTATION
 
-typedef int wby__check_ptr_size[(sizeof(void*) == sizeof(WBY_UINT_PTR)) ? 1 : -1];
+typedef int wby__check_ptr_size[(sizeof(void*) == sizeof(unsigned long)) ? 1 : -1];
 #define WBY_LEN(a) (sizeof(a)/sizeof((a)[0]))
 #define WBY_UNUSED(a) ((void)(a))
 
@@ -395,11 +395,11 @@ typedef int wby__check_ptr_size[(sizeof(void*) == sizeof(WBY_UINT_PTR)) ? 1 : -1
  *                          UTIL
  * ===============================================================*/
 struct wby_buffer {
-    wby_size used;
+    unsigned long used;
     /* current buffer size */
-    wby_size max;
+    unsigned long max;
     /* buffer capacity */
-    wby_byte *data;
+    unsigned char *data;
     /* pointer inside a global buffer */
 };
 
@@ -418,7 +418,7 @@ wby_dbg(wby_log_f log, const char *fmt, ...)
 }
 
 WBY_INTERN int
-wb_peek_request_size(const wby_byte *buf, int len)
+wb_peek_request_size(const unsigned char *buf, int len)
 {
     int i;
     int max = len - 3;
@@ -469,34 +469,34 @@ wby_tok_inplace(char *buf, const char* separator, char *tokens[], int max, int f
     return token_count;
 }
 
-WBY_INTERN wby_size
-wby_make_websocket_header(wby_byte buffer[10], wby_byte opcode,
+WBY_INTERN unsigned long
+wby_make_websocket_header(unsigned char buffer[10], unsigned char opcode,
     int payload_len, int fin)
 {
-    buffer[0] = (wby_byte)((fin ? 0x80 : 0x00) | opcode);
+    buffer[0] = (unsigned char)((fin ? 0x80 : 0x00) | opcode);
     if (payload_len < 126) {
-        buffer[1] = (wby_byte)(payload_len & 0x7f);
+        buffer[1] = (unsigned char)(payload_len & 0x7f);
         return 2;
     } else if (payload_len < 65536) {
         buffer[1] = 126;
-        buffer[2] = (wby_byte)(payload_len >> 8);
-        buffer[3] = (wby_byte)payload_len;
+        buffer[2] = (unsigned char)(payload_len >> 8);
+        buffer[3] = (unsigned char)payload_len;
         return 4;
     } else {
         buffer[1] = 127;
         /* Ignore high 32-bits. I didn't want to require 64-bit types and typdef hell in the API. */
         buffer[2] = buffer[3] = buffer[4] = buffer[5] = 0;
-        buffer[6] = (wby_byte)(payload_len >> 24);
-        buffer[7] = (wby_byte)(payload_len >> 16);
-        buffer[8] = (wby_byte)(payload_len >> 8);
-        buffer[9] = (wby_byte)payload_len;
+        buffer[6] = (unsigned char)(payload_len >> 24);
+        buffer[7] = (unsigned char)(payload_len >> 16);
+        buffer[8] = (unsigned char)(payload_len >> 8);
+        buffer[9] = (unsigned char)payload_len;
         return 10;
     }
 }
 
 WBY_INTERN int
 wby_read_buffered_data(int *data_left, struct wby_buffer* buffer,
-    char **dest_ptr, wby_size *dest_len)
+    char **dest_ptr, unsigned long *dest_len)
 {
     int offset, read_size;
     int left = *data_left;
@@ -507,10 +507,10 @@ wby_read_buffered_data(int *data_left, struct wby_buffer* buffer,
     len = (int) *dest_len;
     offset = (int)buffer->used - left;
     read_size = (len > left) ? left : len;
-    memcpy(*dest_ptr, buffer->data + offset, (wby_size)read_size);
+    memcpy(*dest_ptr, buffer->data + offset, (unsigned long)read_size);
 
     (*dest_ptr) += read_size;
-    (*dest_len) -= (wby_size) read_size;
+    (*dest_len) -= (unsigned long) read_size;
     (*data_left) -= read_size;
     return read_size;
 }
@@ -547,7 +547,7 @@ strcasecmp(const char *a, const char *b)
 }
 
 WBY_INTERN int
-strncasecmp(const char *a, const char *b, wby_size len)
+strncasecmp(const char *a, const char *b, unsigned long len)
 {
     return _strnicmp(a, b, len);
 }
@@ -643,10 +643,10 @@ wby_socket_config_incoming(wby_socket socket)
 }
 
 WBY_INTERN int
-wby_socket_send(wby_socket socket, const wby_byte *buffer, int size)
+wby_socket_send(wby_socket socket, const unsigned char *buffer, int size)
 {
     while (size > 0) {
-        long err = send(socket, (const char*)buffer, (wby_size)size, 0);
+        long err = send(socket, (const char*)buffer, (unsigned long)size, 0);
         if (err <= 0) return 1;
         buffer += err;
         size -= (int)err;
@@ -668,7 +668,7 @@ wby_socket_recv(wby_socket socket, struct wby_buffer *buf, wby_log_f log)
             return WBY_FILL_FULL;
 
         /* Read what we can into the current buffer space. */
-        err = recv(socket, (char*)buf->data + buf->used, (wby_size)buf_left, 0);
+        err = recv(socket, (char*)buf->data + buf->used, (unsigned long)buf_left, 0);
         if (err < 0) {
             int sock_err = wby_socket_error();
             if (wby_socket_is_blocking_error(sock_err)) {
@@ -682,7 +682,7 @@ wby_socket_recv(wby_socket socket, struct wby_buffer *buf, wby_log_f log)
           /* The peer has closed the connection. */
           wby_dbg(log, "peer has closed the connection");
           return WBY_FILL_ERROR;
-        } else buf->used += (wby_size)err;
+        } else buf->used += (unsigned long)err;
     }
 }
 
@@ -708,20 +708,20 @@ wby_socket_flush(wby_socket socket, struct wby_buffer *buf)
  *
  * This bit of code was taken from mongoose.
  */
-WBY_INTERN wby_size
-wby_url_decode(const char *src, wby_size src_len, char *dst, wby_size dst_len,
+WBY_INTERN unsigned long
+wby_url_decode(const char *src, unsigned long src_len, char *dst, unsigned long dst_len,
     int is_form_url_encoded)
 {
     int a, b;
-    wby_size i, j;
+    unsigned long i, j;
     #define HEXTOI(x) (isdigit(x) ? x - '0' : x - 'W')
     for (i = j = 0; i < src_len && j < dst_len - 1; i++, j++) {
         if (src[i] == '%' &&
-            isxdigit(*(const wby_byte*)(src + i + 1)) &&
-            isxdigit(*(const wby_byte*)(src + i + 2)))
+            isxdigit(*(const unsigned char*)(src + i + 1)) &&
+            isxdigit(*(const unsigned char*)(src + i + 2)))
         {
-            a = tolower(*(const wby_byte*)(src + i + 1));
-            b = tolower(*(const wby_byte*)(src + i + 2));
+            a = tolower(*(const unsigned char*)(src + i + 1));
+            b = tolower(*(const unsigned char*)(src + i + 2));
             dst[j] = (char)((HEXTOI(a) << 4) | HEXTOI(b));
             i += 2;
         } else if (is_form_url_encoded && src[i] == '+') {
@@ -735,12 +735,12 @@ wby_url_decode(const char *src, wby_size src_len, char *dst, wby_size dst_len,
 
 /* Pulled from mongoose */
 WBY_API int
-wby_find_query_var(const char *buf, const char *name, char *dst, wby_size dst_len)
+wby_find_query_var(const char *buf, const char *name, char *dst, unsigned long dst_len)
 {
     const char *p, *e, *s;
-    wby_size name_len;
+    unsigned long name_len;
     int len;
-    wby_size buf_len = strlen(buf);
+    unsigned long buf_len = strlen(buf);
 
     name_len = strlen(name);
     e = buf + buf_len;
@@ -755,12 +755,12 @@ wby_find_query_var(const char *buf, const char *name, char *dst, wby_size dst_le
             /* Point p to variable value */
             p += name_len + 1;
             /* Point s to the end of the value */
-            s = (const char *) memchr(p, '&', (wby_size)(e - p));
+            s = (const char *) memchr(p, '&', (unsigned long)(e - p));
             if (s == NULL) s = e;
             WBY_ASSERT(s >= p);
             /* Decode variable into destination buffer */
-            if ((wby_size) (s - p) < dst_len)
-                len = (int)wby_url_decode(p, (wby_size)(s - p), dst, dst_len, 1);
+            if ((unsigned long) (s - p) < dst_len)
+                len = (int)wby_url_decode(p, (unsigned long)(s - p), dst, dst_len, 1);
             break;
         }
     }
@@ -772,21 +772,21 @@ wby_find_query_var(const char *buf, const char *name, char *dst, wby_size dst_le
  * ---------------------------------------------------------------*/
 #define WBY_BASE64_QUADS_BEFORE_LINEBREAK 19
 
-WBY_INTERN wby_size
-wby_base64_bufsize(wby_size input_size)
+WBY_INTERN unsigned long
+wby_base64_bufsize(unsigned long input_size)
 {
-    wby_size triplets = (input_size + 2) / 3;
-    wby_size base_size = 4 * triplets;
-    wby_size line_breaks = 2 * (triplets / WBY_BASE64_QUADS_BEFORE_LINEBREAK);
-    wby_size null_termination = 1;
+    unsigned long triplets = (input_size + 2) / 3;
+    unsigned long base_size = 4 * triplets;
+    unsigned long line_breaks = 2 * (triplets / WBY_BASE64_QUADS_BEFORE_LINEBREAK);
+    unsigned long null_termination = 1;
     return base_size + line_breaks + null_termination;
 }
 
 WBY_INTERN int
-wby_base64_encode(char* output, wby_size output_size,
-    const wby_byte *input, wby_size input_size)
+wby_base64_encode(char* output, unsigned long output_size,
+    const unsigned char *input, unsigned long input_size)
 {
-    wby_size i = 0;
+    unsigned long i = 0;
     int line_out = 0;
     WBY_STORAGE const char enc[] =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -831,8 +831,8 @@ wby_base64_encode(char* output, wby_size output_size,
 struct wby_sha1 {
     unsigned int state[5];
     unsigned int msg_size[2];
-    wby_size buf_used;
-    wby_byte buffer[64];
+    unsigned long buf_used;
+    unsigned char buffer[64];
 };
 
 WBY_INTERN unsigned int
@@ -842,7 +842,7 @@ wby_sha1_rol(unsigned int value, unsigned int bits)
 }
 
 WBY_INTERN void
-wby_sha1_hash_block(unsigned int state[5], const wby_byte *block)
+wby_sha1_hash_block(unsigned int state[5], const unsigned char *block)
 {
     int i;
     unsigned int a, b, c, d, e;
@@ -892,16 +892,16 @@ wby_sha1_init(struct wby_sha1 *s)
 }
 
 WBY_INTERN void
-wby_sha1_update(struct wby_sha1 *s, const void *data_, wby_size size)
+wby_sha1_update(struct wby_sha1 *s, const void *data_, unsigned long size)
 {
     const char *data = (const char*)data_;
     unsigned int size_lo;
     unsigned int size_lo_orig;
-    wby_size remain = size;
+    unsigned long remain = size;
 
     while (remain > 0) {
-        wby_size buf_space = sizeof(s->buffer) - s->buf_used;
-        wby_size copy_size = (remain < buf_space) ? remain : buf_space;
+        unsigned long buf_space = sizeof(s->buffer) - s->buf_used;
+        unsigned long copy_size = (remain < buf_space) ? remain : buf_space;
         memcpy(s->buffer + s->buf_used, data, copy_size);
 
         s->buf_used += copy_size;
@@ -922,17 +922,17 @@ wby_sha1_update(struct wby_sha1 *s, const void *data_, wby_size size)
 }
 
 WBY_INTERN void
-wby_sha1_final(wby_byte digest[20], struct wby_sha1 *s)
+wby_sha1_final(unsigned char digest[20], struct wby_sha1 *s)
 {
-    wby_byte zero = 0x00;
-    wby_byte one_bit = 0x80;
-    wby_byte count_data[8];
+    unsigned char zero = 0x00;
+    unsigned char one_bit = 0x80;
+    unsigned char count_data[8];
     int i;
 
     /* Generate size data in bit endian format */
     for (i = 0; i < 8; ++i) {
         unsigned int word = s->msg_size[i >> 2];
-        count_data[i] = (wby_byte)(word >> ((3 - (i & 3)) * 8));
+        count_data[i] = (unsigned char)(word >> ((3 - (i & 3)) * 8));
     }
 
     /* Set trailing one-bit */
@@ -949,7 +949,7 @@ wby_sha1_final(wby_byte digest[20], struct wby_sha1 *s)
     /* Generate digest */
     for (i = 0; i < 20; ++i) {
         unsigned int word = s->state[i >> 2];
-        wby_byte byte = (wby_byte) ((word >> ((3 - (i & 3)) * 8)) & 0xff);
+        unsigned char byte = (unsigned char) ((word >> ((3 - (i & 3)) * 8)) & 0xff);
         digest[i] = byte;
     }
 }
@@ -959,10 +959,10 @@ wby_sha1_final(wby_byte digest[20], struct wby_sha1 *s)
  * ---------------------------------------------------------------*/
 #define WBY_WEBSOCKET_VERSION "13"
 WBY_GLOBAL const char wby_continue_header[] = "HTTP/1.1 100 Continue\r\n\r\n";
-WBY_GLOBAL const wby_size wby_continue_header_len = sizeof(wby_continue_header) - 1;
+WBY_GLOBAL const unsigned long wby_continue_header_len = sizeof(wby_continue_header) - 1;
 WBY_GLOBAL const char wby_websocket_guid[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-WBY_GLOBAL const wby_size wby_websocket_guid_len = sizeof(wby_websocket_guid) - 1;
-WBY_GLOBAL const wby_byte wby_websocket_pong[] = { 0x80, WBY_WSOP_PONG, 0x00 };
+WBY_GLOBAL const unsigned long wby_websocket_guid_len = sizeof(wby_websocket_guid) - 1;
+WBY_GLOBAL const unsigned char wby_websocket_pong[] = { 0x80, WBY_WSOP_PONG, 0x00 };
 WBY_GLOBAL const struct wby_header wby_plain_text_headers[]={{"Content-Type","text/plain"}};
 
 enum wby_connection_flags {
@@ -985,13 +985,13 @@ struct wby_connection {
     unsigned short flags;
     unsigned short state;
 
-    wby_ptr socket;
+    unsigned long socket;
     wby_log_f log;
 
-    wby_size request_buffer_size;
+    unsigned long request_buffer_size;
     struct wby_buffer header_buf;
     struct wby_buffer io_buf;
-    wby_size io_buffer_size;
+    unsigned long io_buffer_size;
 
     int header_body_left;
     int io_data_left;
@@ -999,8 +999,8 @@ struct wby_connection {
     int body_bytes_read;
 
     struct wby_frame ws_frame;
-    wby_byte ws_opcode;
-    wby_size blocking_count;
+    unsigned char ws_opcode;
+    unsigned long blocking_count;
 };
 
 WBY_INTERN int
@@ -1020,7 +1020,7 @@ wby_connection_set_blocking(struct wby_connection *conn)
 WBY_INTERN int
 wby_connection_set_nonblocking(struct wby_connection *conn)
 {
-    wby_size count = conn->blocking_count;
+    unsigned long count = conn->blocking_count;
     if ((conn->flags & WBY_CON_FLAG_ALIVE) != 0 && count == 1) {
         if (wby_socket_set_blocking(WBY_SOCK(conn->socket), 0) != WBY_OK) {
             wby_dbg(conn->log, "failed to switch connection to non-blocking");
@@ -1033,8 +1033,8 @@ wby_connection_set_nonblocking(struct wby_connection *conn)
 }
 
 WBY_INTERN void
-wby_connection_reset(struct wby_connection *conn, wby_size request_buffer_size,
-    wby_size io_buffer_size)
+wby_connection_reset(struct wby_connection *conn, unsigned long request_buffer_size,
+    unsigned long io_buffer_size)
 {
     conn->header_buf.used = 0;
     conn->header_buf.max = request_buffer_size;
@@ -1054,7 +1054,7 @@ wby_connection_close(struct wby_connection* connection)
 {
     if (WBY_SOCK(connection->socket) != WBY_INVALID_SOCKET) {
         wby_socket_close(WBY_SOCK(connection->socket));
-        connection->socket = (wby_ptr)WBY_INVALID_SOCKET;
+        connection->socket = (unsigned long)WBY_INVALID_SOCKET;
     }
     connection->flags = 0;
 }
@@ -1098,7 +1098,7 @@ wby_connection_setup_request(struct wby_connection *connection, int request_size
 
     {
         /* Decode the URI in place */
-        wby_size uri_len = strlen(req->uri);
+        unsigned long uri_len = strlen(req->uri);
         wby_url_decode(req->uri, uri_len, (char*)req->uri, uri_len + 1, 1);
     }
 
@@ -1126,7 +1126,7 @@ wby_connection_send_websocket_upgrade(struct wby_connection* connection)
 {
     const char *hdr;
     struct wby_sha1 sha;
-    wby_byte digest[20];
+    unsigned char digest[20];
     char output_digest[64];
     struct wby_header headers[3];
     struct wby_con *conn = &connection->public_data;
@@ -1171,7 +1171,7 @@ WBY_INTERN int
 wby_connection_push(struct wby_connection *conn, const void *data_, int len)
 {
     struct wby_buffer *buf = &conn->io_buf;
-    const wby_byte* data = (const wby_byte*)data_;
+    const unsigned char* data = (const unsigned char*)data_;
     if (conn->state != WBY_CON_STATE_SERVE) {
         wby_dbg(conn->log, "attempt to write in non-serve state");
         return 1;
@@ -1182,15 +1182,15 @@ wby_connection_push(struct wby_connection *conn, const void *data_, int len)
     while (len > 0) {
         int buf_space = (int)buf->max - (int)buf->used;
         int copy_size = len < buf_space ? len : buf_space;
-        memcpy(buf->data + buf->used, data, (wby_size)copy_size);
-        buf->used += (wby_size)copy_size;
+        memcpy(buf->data + buf->used, data, (unsigned long)copy_size);
+        buf->used += (unsigned long)copy_size;
 
         data += copy_size;
         len -= copy_size;
         if (buf->used == buf->max) {
             if (wby_socket_flush(WBY_SOCK(conn->socket), buf) != WBY_OK)
                 return 1;
-            if ((wby_size)len >= buf->max)
+            if ((unsigned long)len >= buf->max)
                 return wby_socket_send(WBY_SOCK(conn->socket), data, len);
         }
     }
@@ -1205,9 +1205,9 @@ wby_con_discard_incoming_data(struct wby_con* conn, int count)
 {
     while (count > 0) {
         char buffer[1024];
-        int read_size = (int)(((wby_size)count > sizeof(buffer)) ?
-            sizeof(buffer) : (wby_size)count);
-        if (wby_read(conn, buffer, (wby_size)read_size) != WBY_OK)
+        int read_size = (int)(((unsigned long)count > sizeof(buffer)) ?
+            sizeof(buffer) : (unsigned long)count);
+        if (wby_read(conn, buffer, (unsigned long)read_size) != WBY_OK)
             return -1;
         count -= read_size;
     }
@@ -1239,16 +1239,16 @@ wby_con_is_websocket_request(struct wby_con* conn)
 WBY_INTERN int
 wby_scan_websocket_frame(struct wby_frame *frame, const struct wby_buffer *buf)
 {
-    wby_byte flags = 0;
+    unsigned char flags = 0;
     unsigned int len = 0;
     unsigned int opcode = 0;
-    wby_byte* data = buf->data;
-    wby_byte* data_max = data + buf->used;
+    unsigned char* data = buf->data;
+    unsigned char* data_max = data + buf->used;
 
     int i;
     int len_bytes = 0;
     int mask_bytes = 0;
-    wby_byte header0, header1;
+    unsigned char header0, header1;
     if (buf->used < 2)
         return -1;
 
@@ -1283,9 +1283,9 @@ wby_scan_websocket_frame(struct wby_frame *frame, const struct wby_buffer *buf)
     /* Read mask word if present */
     for (i = 0; i < mask_bytes; ++i)
         frame->mask_key[i] = *data++;
-    frame->header_size = (wby_byte) (data - buf->data);
+    frame->header_size = (unsigned char) (data - buf->data);
     frame->flags = flags;
-    frame->opcode = (wby_byte) opcode;
+    frame->opcode = (unsigned char) opcode;
     frame->payload_length = (int)len;
     return 0;
 }
@@ -1294,7 +1294,7 @@ WBY_API int
 wby_frame_begin(struct wby_con *conn_pub, int opcode)
 {
     struct wby_connection *conn = (struct wby_connection*)conn_pub;
-    conn->ws_opcode = (wby_byte) opcode;
+    conn->ws_opcode = (unsigned char) opcode;
     /* Switch socket to blocking mode */
     return wby_connection_set_blocking(conn);
 }
@@ -1302,8 +1302,8 @@ wby_frame_begin(struct wby_con *conn_pub, int opcode)
 WBY_API int
 wby_frame_end(struct wby_con *conn_pub)
 {
-    wby_byte header[10];
-    wby_size header_size;
+    unsigned char header[10];
+    unsigned long header_size;
     struct wby_connection *conn = (struct wby_connection*) conn_pub;
     header_size = wby_make_websocket_header(header, conn->ws_opcode, 0, 1);
     if (wby_socket_send(WBY_SOCK(conn->socket), header, (int) header_size) != WBY_OK)
@@ -1313,7 +1313,7 @@ wby_frame_end(struct wby_con *conn_pub)
 }
 
 WBY_API int
-wby_read(struct wby_con *conn, void *ptr_, wby_size len)
+wby_read(struct wby_con *conn, void *ptr_, unsigned long len)
 {
     struct wby_connection* conn_prv = (struct wby_connection*)conn;
     char *ptr = (char*) ptr_;
@@ -1332,23 +1332,23 @@ wby_read(struct wby_con *conn, void *ptr_, wby_size len)
     }
 
     while (len > 0) {
-        long err = recv(WBY_SOCK(conn_prv->socket), ptr, (wby_size)len, 0);
+        long err = recv(WBY_SOCK(conn_prv->socket), ptr, (unsigned long)len, 0);
         if (err < 0) {
             conn_prv->flags &= (unsigned short)~WBY_CON_FLAG_ALIVE;
             return (int)err;
         }
-        len -= (wby_size)err;
-        ptr += (wby_size)err;
+        len -= (unsigned long)err;
+        ptr += (unsigned long)err;
         conn_prv->body_bytes_read += (int)err;
     }
 
     if ((conn_prv->flags & WBY_CON_FLAG_WEBSOCKET) && (conn_prv->ws_frame.flags & WBY_WSF_MASKED)) {
         /* XOR outgoing data with websocket ofuscation key */
         int i, end_pos = conn_prv->body_bytes_read;
-        const wby_byte *mask = conn_prv->ws_frame.mask_key;
+        const unsigned char *mask = conn_prv->ws_frame.mask_key;
         ptr = (char*) ptr_; /* start over */
         for (i = start_pos; i < end_pos; ++i) {
-            wby_byte byte = (wby_byte)*ptr;
+            unsigned char byte = (unsigned char)*ptr;
             *ptr++ = (char)(byte ^ mask[i & 3]);
         }
     }
@@ -1356,12 +1356,12 @@ wby_read(struct wby_con *conn, void *ptr_, wby_size len)
 }
 
 WBY_API int
-wby_write(struct wby_con *conn, const void *ptr, wby_size len)
+wby_write(struct wby_con *conn, const void *ptr, unsigned long len)
 {
     struct wby_connection *conn_priv = (struct wby_connection*) conn;
     if (conn_priv->flags & WBY_CON_FLAG_WEBSOCKET) {
-        wby_byte header[10];
-        wby_size header_size;
+        unsigned char header[10];
+        unsigned long header_size;
         header_size = wby_make_websocket_header(header, conn_priv->ws_opcode, (int)len, 0);
 
         /* Overwrite opcode to be continuation packages from here on out */
@@ -1370,7 +1370,7 @@ wby_write(struct wby_con *conn, const void *ptr, wby_size len)
             conn_priv->flags &= (unsigned short)~WBY_CON_FLAG_ALIVE;
             return -1;
         }
-        if (wby_socket_send(WBY_SOCK(conn_priv->socket),(const wby_byte*)ptr, (int)len) != WBY_OK) {
+        if (wby_socket_send(WBY_SOCK(conn_priv->socket),(const unsigned char*)ptr, (int)len) != WBY_OK) {
             conn_priv->flags &= (unsigned short)~WBY_CON_FLAG_ALIVE;
             return -1;
         }
@@ -1393,7 +1393,7 @@ wby_printf(struct wby_con* conn, const char* fmt, ...)
     va_start(args, fmt);
     len = vsnprintf(buffer, sizeof buffer, fmt, args);
     va_end(args);
-    return wby_write(conn, buffer, (wby_size)len);
+    return wby_write(conn, buffer, (unsigned long)len);
 }
 
 /* ---------------------------------------------------------------
@@ -1528,22 +1528,22 @@ wby_response_end(struct wby_con *conn)
 /* Pointer to Integer type conversion for pointer alignment */
 #if defined(__PTRDIFF_TYPE__) /* This case should work for GCC*/
 # define WBY_UINT_TO_PTR(x) ((void*)(__PTRDIFF_TYPE__)(x))
-# define WBY_PTR_TO_UINT(x) ((wby_size)(__PTRDIFF_TYPE__)(x))
+# define unsigned long_TO_UINT(x) ((unsigned long)(__PTRDIFF_TYPE__)(x))
 #elif !defined(__GNUC__) /* works for compilers other than LLVM */
 # define WBY_UINT_TO_PTR(x) ((void*)&((char*)0)[x])
-# define WBY_PTR_TO_UINT(x) ((wby_size)(((char*)x)-(char*)0))
+# define unsigned long_TO_UINT(x) ((unsigned long)(((char*)x)-(char*)0))
 #elif defined(WBY_USE_FIXED_TYPES) /* used if we have <stdint.h> */
 # define WBY_UINT_TO_PTR(x) ((void*)(uintptr_t)(x))
-# define WBY_PTR_TO_UINT(x) ((uintptr_t)(x))
+# define unsigned long_TO_UINT(x) ((uintptr_t)(x))
 #else /* generates warning but works */
 # define WBY_UINT_TO_PTR(x) ((void*)(x))
-# define WBY_PTR_TO_UINT(x) ((wby_size)(x))
+# define unsigned long_TO_UINT(x) ((unsigned long)(x))
 #endif
 
 /* simple pointer math */
-#define WBY_PTR_ADD(t, p, i) ((t*)((void*)((wby_byte*)(p) + (i))))
+#define unsigned long_ADD(t, p, i) ((t*)((void*)((unsigned char*)(p) + (i))))
 #define WBY_ALIGN_PTR(x, mask)\
-    (WBY_UINT_TO_PTR((WBY_PTR_TO_UINT((wby_byte*)(x) + (mask-1)) & ~(mask-1))))
+    (WBY_UINT_TO_PTR((unsigned long_TO_UINT((unsigned char*)(x) + (mask-1)) & ~(mask-1))))
 
 /* pointer alignment  */
 #ifdef __cplusplus
@@ -1558,9 +1558,9 @@ template<typename T> struct wby_alignof{struct Big {T x; char c;}; enum {
 #endif
 
 WBY_API void
-wby_init(struct wby_server *srv, const struct wby_config *cfg, wby_size *needed_memory)
+wby_init(struct wby_server *srv, const struct wby_config *cfg, unsigned long *needed_memory)
 {
-    WBY_STORAGE const wby_size wby_conn_align = WBY_ALIGNOF(struct wby_connection);
+    WBY_STORAGE const unsigned long wby_conn_align = WBY_ALIGNOF(struct wby_connection);
     WBY_ASSERT(srv);
     WBY_ASSERT(cfg);
     WBY_ASSERT(needed_memory);
@@ -1580,21 +1580,21 @@ wby_init(struct wby_server *srv, const struct wby_config *cfg, wby_size *needed_
 WBY_API int
 wby_start(struct wby_server *server, void *memory)
 {
-    wby_size i;
+    unsigned long i;
     wby_socket sock;
     wby_sockopt on = 1;
-    wby_byte *buffer = (wby_byte*)memory;
+    unsigned char *buffer = (unsigned char*)memory;
     struct sockaddr_in bind_addr;
-    WBY_STORAGE const wby_size wby_conn_align = WBY_ALIGNOF(struct wby_connection);
+    WBY_STORAGE const unsigned long wby_conn_align = WBY_ALIGNOF(struct wby_connection);
 
     WBY_ASSERT(server);
     WBY_ASSERT(memory);
     memset(buffer, 0, server->memory_size);
 
     /* setup sever memory */
-    server->socket = (wby_ptr)WBY_INVALID_SOCKET;
+    server->socket = (unsigned long)WBY_INVALID_SOCKET;
     server->con = (struct wby_connection*)WBY_ALIGN_PTR(buffer, wby_conn_align);
-    buffer += ((wby_byte*)server->con - buffer);
+    buffer += ((unsigned char*)server->con - buffer);
     buffer += server->config.connection_max * sizeof(struct wby_connection);
 
     for (i = 0; i < server->config.connection_max; ++i) {
@@ -1606,10 +1606,10 @@ wby_start(struct wby_server *server, void *memory)
         server->con[i].io_buffer_size = server->config.io_buffer_size;
         buffer += server->config.io_buffer_size;
     }
-    WBY_ASSERT((wby_size)(buffer - (wby_byte*)memory) <= server->memory_size);
+    WBY_ASSERT((unsigned long)(buffer - (unsigned char*)memory) <= server->memory_size);
 
     /* server socket setup */
-    sock = (wby_ptr)socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    sock = (unsigned long)socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     wby_dbg(server->config.log, "Server socket = %d", (int)sock);
     if (!wby_socket_is_valid(sock)) {
         wby_dbg(server->config.log, "failed to initialized server socket: %d", wby_socket_error());
@@ -1640,7 +1640,7 @@ wby_start(struct wby_server *server, void *memory)
         wby_socket_close(WBY_SOCK(sock));
         goto error;
     }
-    server->socket = (wby_ptr)sock;
+    server->socket = (unsigned long)sock;
     wby_dbg(server->config.log, "server initialized: %s", strerror(errno));
     return 0;
 
@@ -1653,7 +1653,7 @@ error:
 WBY_API void
 wby_stop(struct wby_server *srv)
 {
-    wby_size i;
+    unsigned long i;
     wby_socket_close(WBY_SOCK(srv->socket));
     for (i = 0; i < srv->con_count; ++i)
         wby_socket_close(WBY_SOCK(srv->con[i].socket));
@@ -1662,7 +1662,7 @@ wby_stop(struct wby_server *srv)
 WBY_INTERN int
 wby_on_incoming(struct wby_server *srv)
 {
-    wby_size connection_index;
+    unsigned long connection_index;
     char WBY_ALIGN(8) client_addr[64];
     struct wby_connection* connection;
     wby_socklen client_addr_len = sizeof(client_addr);
@@ -1698,7 +1698,7 @@ wby_on_incoming(struct wby_server *srv)
     /* OK, keep this connection */
     wby_dbg(srv->config.log, "tagging connection %d as alive", connection_index);
     connection->flags |= WBY_CON_FLAG_ALIVE;
-    connection->socket = (wby_ptr)fd;
+    connection->socket = (unsigned long)fd;
     return 0;
 }
 
@@ -1764,7 +1764,7 @@ wby_update_connection(struct wby_server *srv, struct wby_connection* connection)
             int offset = (int)wby_continue_header_len - left;
             long written = 0;
 
-            written = send(WBY_SOCK(connection->socket), wby_continue_header + offset, (wby_size)left, 0);
+            written = send(WBY_SOCK(connection->socket), wby_continue_header + offset, (unsigned long)left, 0);
             wby_dbg(srv->config.log, "continue write: %d bytes", written);
             if (written < 0) {
                 wby_dbg(srv->config.log, "failed to write 100-continue header");
@@ -1916,7 +1916,7 @@ WBY_API void
 wby_update(struct wby_server *srv)
 {
     int err;
-    wby_size i, count;
+    unsigned long i, count;
     wby_socket max_socket;
     fd_set read_fds, write_fds, except_fds;
     struct timeval timeout;
@@ -1976,11 +1976,11 @@ wby_update(struct wby_server *srv)
     for (i = 0; i < srv->con_count; ) {
         struct wby_connection *connection = &srv->con[i];
         if (!(connection->flags & WBY_CON_FLAG_ALIVE)) {
-            wby_size remain;
+            unsigned long remain;
             wby_dbg(srv->config.log, "closing connection %d (%08x)", i, connection->flags);
             if (connection->flags & WBY_CON_FLAG_WEBSOCKET)
                 srv->config.ws_closed(&connection->public_data, srv->config.userdata);
-            remain = srv->con_count - (wby_size)i - 1;
+            remain = srv->con_count - (unsigned long)i - 1;
             wby_connection_close(connection);
             memmove(&srv->con[i], &srv->con[i + 1], remain*sizeof(srv->con[i]));
             --srv->con_count;

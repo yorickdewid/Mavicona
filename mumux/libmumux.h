@@ -8,32 +8,12 @@
  * permission of the author.
  */
 
-#ifndef WBY_H_
-#define WBY_H_
+#ifndef MUMUX_H
+#define MUMUX_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifdef WBY_STATIC
-#define WBY_API static
-#else
-#define WBY_API extern
-#endif
-
-#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 19901L)
-#include <stdint.h>
-#ifndef WBY_UINT_PTR
-#define WBY_UINT_PTR uintptr_t
-#endif
-#else
-#ifndef WBY_UINT_PTR
-#define WBY_UINT_PTR unsigned long
-#endif
-#endif
-typedef unsigned char wby_byte;
-typedef WBY_UINT_PTR wby_size;
-typedef WBY_UINT_PTR wby_ptr;
 
 #define WBY_OK (0)
 #define WBY_FLAG(x) (1 << (x))
@@ -74,11 +54,11 @@ struct wby_con {
 };
 
 struct wby_frame {
-    wby_byte flags;
-    wby_byte opcode;
-    wby_byte header_size;
-    wby_byte padding_;
-    wby_byte mask_key[4];
+    unsigned char flags;
+    unsigned char opcode;
+    unsigned char header_size;
+    unsigned char padding_;
+    unsigned char mask_key[4];
     int payload_length;
 };
 
@@ -98,6 +78,7 @@ enum wby_websock_operation {
 
 /* Configuration data required for starting a server. */
 typedef void(*wby_log_f)(const char *msg);
+
 struct wby_config {
     void *userdata;
     /* userdata which will be passed */
@@ -107,11 +88,11 @@ struct wby_config {
     /* The port to listen to. */
     unsigned int connection_max;
     /* Maximum number of simultaneous connections. */
-    wby_size request_buffer_size;
+    unsigned long request_buffer_size;
     /* The size of the request buffer. This must be big enough to contain all
     * headers and the request line sent by the client. 2-4k is a good size for
     * this buffer. */
-    wby_size io_buffer_size;
+    unsigned long io_buffer_size;
     /* The size of the I/O buffer, used when writing the reponse. 4k is a good
     * choice for this buffer.*/
     wby_log_f log;
@@ -138,38 +119,39 @@ struct wby_config {
 };
 
 struct wby_connection;
+
 struct wby_server {
     struct wby_config config;
     /* server configuration */
-    wby_size memory_size;
+    unsigned long memory_size;
     /* minimum required memory */
-    wby_ptr socket;
+    unsigned long socket;
     /* server socket */
-    wby_size con_count;
+    unsigned long con_count;
     /* number of active connection */
     struct wby_connection *con;
     /* connections */
 };
 
-WBY_API void wby_init(struct wby_server*, const struct wby_config*,
-                            wby_size *needed_memory);
+void wby_init(struct wby_server*, const struct wby_config*,
+                            unsigned long *needed_memory);
 /*  this function clears the server and calculates the needed memory to run
     Input:
     -   filled server configuration data to calculate the needed memory
     Output:
     -   needed memory for the server to run
 */
-WBY_API int wby_start(struct wby_server*, void *memory);
+int wby_start(struct wby_server*, void *memory);
 /*  this function starts running the server in the specificed memory space. Size
  *  must be at least big enough as determined in the wby_server_init().
     Input:
     -   allocated memory space to create the server into
 */
-WBY_API void wby_update(struct wby_server*);
+void wby_update(struct wby_server*);
 /* updates the server by being called frequenctly (at least once a frame) */
-WBY_API void wby_stop(struct wby_server*);
+void wby_stop(struct wby_server*);
 /* stops and shutdown the server */
-WBY_API int wby_response_begin(struct wby_con*, int status_code, int content_length,
+int wby_response_begin(struct wby_con*, int status_code, int content_length,
                                     const struct wby_header headers[], int header_count);
 /*  this function begins a response
     Input:
@@ -180,11 +162,11 @@ WBY_API int wby_response_begin(struct wby_con*, int status_code, int content_len
     Output:
     -   returns 0 on success, non-zero on error.
 */
-WBY_API void wby_response_end(struct wby_con*);
+void wby_response_end(struct wby_con*);
 /*  this function finishes a response. When you're done wirting the response
  *  body, call this function. this makes sure chunked encoding is terminated
  *  correctly and that the connection is setup for reuse. */
-WBY_API int wby_read(struct wby_con*, void *ptr, wby_size len);
+int wby_read(struct wby_con*, void *ptr, unsigned long len);
 /*  this function reads data from the request body. Only read what the client
  *  has priovided (via content_length) parameter, or you will end up blocking
  *  forever.
@@ -192,7 +174,7 @@ WBY_API int wby_read(struct wby_con*, void *ptr, wby_size len);
     - pointer to a memory block that will be filled
     - size of the memory block to fill
 */
-WBY_API int wby_write(struct wby_con*, const void *ptr, wby_size len);
+int wby_write(struct wby_con*, const void *ptr, unsigned long len);
 /*  this function writes a response data to the connection. If you're not using
  *  chunked encoding, be careful not to send more than the specified content
  *  length. You can call this function multiple times as long as the total
@@ -201,19 +183,20 @@ WBY_API int wby_write(struct wby_con*, const void *ptr, wby_size len);
     - pointer to a memory block that will be send
     - size of the memory block to send
 */
-WBY_API int wby_frame_begin(struct wby_con*, int opcode);
+int wby_frame_begin(struct wby_con*, int opcode);
 /*  this function begins an outgoing websocket frame */
-WBY_API int wby_frame_end(struct wby_con*);
+int wby_frame_end(struct wby_con*);
 /*  this function finishes an outgoing websocket frame */
-WBY_API int wby_find_query_var(const char *buf, const char *name, char *dst, wby_size dst_len);
+int wby_find_query_var(const char *buf, const char *name, char *dst, unsigned long dst_len);
 /*  this function is a helper function to lookup a query parameter given a URL
  *  encoded string. Returns the size of the returned data, or -1 if the query
  *  var wasn't found. */
-WBY_API const char* wby_find_header(struct wby_con*, const char *name);
+const char *wby_find_header(struct wby_con*, const char *name);
 /*  this convenience function to find a header in a request. Returns the value
  *  of the specified header, or NULL if its was not present. */
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* WBY_H_ */
+
+#endif // MUMUX_H

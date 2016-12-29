@@ -8,69 +8,46 @@
  * permission of the author.
  */
 
+#include "internal.h"
+#include "connection.h"
+#include "util.h"
+#include "socket.h"
+
 #ifdef _WIN32
-#include <winsock2.h>
-typedef SOCKET wby_socket;
-typedef int wby_socklen;
-typedef char wby_sockopt;
 
-#if defined(__GNUC__)
-#define WBY_ALIGN(x) __attribute__((aligned(x)))
-#else
-#define WBY_ALIGN(x) __declspec(align(x))
-#endif
-
-#define WBY_INVALID_SOCKET INVALID_SOCKET
-#define snprintf _snprintf
-
-WBY_INTERN int
-wby_socket_error(void)
-{
+int wby_socket_error() {
     return WSAGetLastError();
 }
 
 #if !defined(__GNUC__)
-WBY_INTERN int
-strcasecmp(const char *a, const char *b)
-{
+int strcasecmp(const char *a, const char *b) {
     return _stricmp(a, b);
 }
 
-WBY_INTERN int
-strncasecmp(const char *a, const char *b, wby_size len)
-{
+int strncasecmp(const char *a, const char *b, unsigned long len) {
     return _strnicmp(a, b, len);
 }
 #endif
 
-WBY_INTERN int
-wby_socket_set_blocking(wby_socket socket, int blocking)
-{
+int wby_socket_set_blocking(wby_socket socket, int blocking) {
     u_long val = !blocking;
     return ioctlsocket(socket, FIONBIO, &val);
 }
 
-WBY_INTERN int
-wby_socket_is_valid(wby_socket socket)
-{
+int wby_socket_is_valid(wby_socket socket) {
     return (INVALID_SOCKET != socket);
 }
 
-WBY_INTERN void
-wby_socket_close(wby_socket socket)
-{
+void wby_socket_close(wby_socket socket) {
     closesocket(socket);
 }
 
-WBY_INTERN int
-wby_socket_is_blocking_error(int error)
-{
+int wby_socket_is_blocking_error(int error) {
     return WSAEWOULDBLOCK == error;
 }
 
 #else /* UNIX */
 
-#include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/select.h>
@@ -81,40 +58,23 @@ wby_socket_is_blocking_error(int error)
 #include <errno.h>
 #include <strings.h>
 
-typedef int wby_socket;
-typedef socklen_t wby_socklen;
-typedef int wby_sockopt;
-
-#define WBY_ALIGN(x) __attribute__((aligned(x)))
-#define WBY_INVALID_SOCKET (-1)
-
-WBY_INTERN int
-wby_socket_error(void)
-{
+int wby_socket_error() {
     return errno;
 }
 
-WBY_INTERN int
-wby_socket_is_valid(wby_socket socket)
-{
+int wby_socket_is_valid(wby_socket socket) {
     return (socket > 0);
 }
 
-WBY_INTERN void
-wby_socket_close(wby_socket socket)
-{
+void wby_socket_close(wby_socket socket) {
     close(socket);
 }
 
-WBY_INTERN int
-wby_socket_is_blocking_error(int error)
-{
+int wby_socket_is_blocking_error(int error) {
     return (EAGAIN == error);
 }
 
-WBY_INTERN int
-wby_socket_set_blocking(wby_socket socket, int blocking)
-{
+int wby_socket_set_blocking(wby_socket socket, int blocking) {
     int flags = fcntl(socket, F_GETFL, 0);
     if (flags < 0) return flags;
     flags = blocking ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK);
@@ -122,9 +82,8 @@ wby_socket_set_blocking(wby_socket socket, int blocking)
 }
 #endif
 
-WBY_INTERN int
-wby_socket_config_incoming(wby_socket socket)
-{
+
+int wby_socket_config_incoming(wby_socket socket) {
     wby_sockopt off = 0;
     int err;
     if ((err = wby_socket_set_blocking(socket, 0)) != WBY_OK) return err;
@@ -132,11 +91,9 @@ wby_socket_config_incoming(wby_socket socket)
     return 0;
 }
 
-WBY_INTERN int
-wby_socket_send(wby_socket socket, const wby_byte *buffer, int size)
-{
+int wby_socket_send(wby_socket socket, const unsigned char *buffer, int size) {
     while (size > 0) {
-        long err = send(socket, (const char*)buffer, (wby_size)size, 0);
+        long err = send(socket, (const char*)buffer, (unsigned long)size, 0);
         if (err <= 0) return 1;
         buffer += err;
         size -= (int)err;
@@ -144,11 +101,7 @@ wby_socket_send(wby_socket socket, const wby_byte *buffer, int size)
     return 0;
 }
 
-/* Read as much as possible without blocking while there is buffer space. */
-enum {WBY_FILL_OK, WBY_FILL_ERROR, WBY_FILL_FULL};
-WBY_INTERN int
-wby_socket_recv(wby_socket socket, struct wby_buffer *buf, wby_log_f log)
-{
+int wby_socket_recv(wby_socket socket, struct wby_buffer *buf, wby_log_f log) {
     long err;
     int buf_left;
     for (;;) {
@@ -158,7 +111,7 @@ wby_socket_recv(wby_socket socket, struct wby_buffer *buf, wby_log_f log)
             return WBY_FILL_FULL;
 
         /* Read what we can into the current buffer space. */
-        err = recv(socket, (char*)buf->data + buf->used, (wby_size)buf_left, 0);
+        err = recv(socket, (char*)buf->data + buf->used, (unsigned long)buf_left, 0);
         if (err < 0) {
             int sock_err = wby_socket_error();
             if (wby_socket_is_blocking_error(sock_err)) {
@@ -172,13 +125,11 @@ wby_socket_recv(wby_socket socket, struct wby_buffer *buf, wby_log_f log)
           /* The peer has closed the connection. */
           wby_dbg(log, "peer has closed the connection");
           return WBY_FILL_ERROR;
-        } else buf->used += (wby_size)err;
+        } else buf->used += (unsigned long)err;
     }
 }
 
-WBY_INTERN int
-wby_socket_flush(wby_socket socket, struct wby_buffer *buf)
-{
+int wby_socket_flush(wby_socket socket, struct wby_buffer *buf) {
     if (buf->used > 0){
         if (wby_socket_send(socket, buf->data, (int)buf->used) != WBY_OK)
             return 1;
