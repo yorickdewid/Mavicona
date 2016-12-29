@@ -3,9 +3,11 @@
 
 #include "module.h"
 
-class Chella : public IModule {
+class ModChella : public IModule, public Command<ModChella> {
   public:
-	Chella() {}
+	ModChella() {
+		registerCommand("submit", "Submit raw job to cluster", &ModChella::sumbitJob);
+	}
 
 	inline const std::string name() const {
 		return "Chella";
@@ -15,13 +17,9 @@ class Chella : public IModule {
 		return "Job processing cluster";
 	}
 
-	void exec(const std::string& command, const std::vector<std::string>& argv) {
+	void sumbitJob(int paramc, const std::vector<std::string>& params);
 
-	}
-
-	void commandlist(std::function<void(const std::string&, const std::string&)> print) {
-
-	}
+	defaultModCommand();
 };
 
 #endif // CHELLA_H

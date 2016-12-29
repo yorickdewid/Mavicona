@@ -153,7 +153,7 @@ static std::string shellState() {
 void loadModules() {
 	moduleList.push_back(new Cynder());
 	moduleList.push_back(new Pitcher());
-	moduleList.push_back(new Chella());
+	moduleList.push_back(new ModChella());
 	moduleList.push_back(new ModQuid());
 }
 

@@ -39,9 +39,9 @@ private:
 struct TooFewParameters : public std::exception {
 	TooFewParameters(int paramc) {
 		std::stringstream ss;
-		ss << "Too few parameters, expected ";
+		ss << "Too few parameters, expected at least ";
 		ss << paramc;
-		ss << " parameters";
+		ss << " parameter(s)";
 		m_msg = ss.str().c_str();
 	}
 
