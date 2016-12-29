@@ -13,6 +13,7 @@
 #include "pitcher.h"
 #include "chella.h"
 #include "quid.h"
+#include "server.h"
 
 #define LoadMod(m) moduleList.push_back(new Mod##m());
 
@@ -154,9 +155,10 @@ static std::string shellState() {
 
 void loadModules() {
 	LoadMod(Cynder);
-	LoadMod(Chella);
+	LoadMod(Pitcher);
 	LoadMod(Chella);
 	LoadMod(Quid);
+	LoadMod(Server);
 }
 
 void unloadModules() {

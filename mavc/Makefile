@@ -1,4 +1,4 @@
-OBJS = cynder.o pitcher.o chella.o quid.o hbs.o main.o ../protoc/task.pb.o ../protoc/processjob.pb.o
+OBJS = cynder.o pitcher.o chella.o quid.o server.o hbs.o main.o ../protoc/task.pb.o ../protoc/processjob.pb.o
 DEBUG = -g -O0
 LIBS = -lprotobuf -lzmq -L../quid -lquid
 CXXFLAGS = -Wall -std=c++11 -c $(DEBUG) -I.. -I../quid
