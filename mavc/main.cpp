@@ -163,10 +163,15 @@ void unloadModules() {
 	}
 }
 
-void runShellLoop() {
+void runShellLoop(const std::string& startmod = "", const std::string& startcmd = "") {
 	loadModules();
 
 	catch_signals();
+
+	if (!startmod.empty())
+		findModule(startmod);
+
+	// if (!startcmd.empty())
 
 	std::cout << "Type 'help' to get started" << std::endl;
 	std::cout << shellState();
@@ -192,10 +197,13 @@ void runShellLoop() {
 
 int main(int argc, char *argv[]) {
 
+	std::string startmod;
 	cxxopts::Options options(argv[0], "");
 
 	options.add_options("Help")
 	("s,hbs", "Verify Host based service config", cxxopts::value<std::string>(), "FILE")
+	("m,module", "Start with module", cxxopts::value<std::string>(), "module")
+	("c,command", "Run command", cxxopts::value<std::string>(), "command")
 	("h,help", "Print this help");
 
 	try {
@@ -211,6 +219,10 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
+	if (options.count("module")) {
+		startmod = options["module"].as<std::string>();
+	}
+
 	if (options.count("hbs")) {
 		std::string name = options["hbs"].as<std::string>();
 		if (!file_exist(name.c_str())) {
@@ -221,7 +233,7 @@ int main(int argc, char *argv[]) {
 		return ParamUtil::VerifyHbs(name) ? 0 : 1;
 	}
 
-	runShellLoop();
+	runShellLoop(startmod);
 
 	return 0;
 }
