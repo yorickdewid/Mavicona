@@ -1,3 +1,13 @@
+/**
+ * Copyright (C) 2015-2016 Mavicona, Quenza Inc.
+ * All Rights Reserved
+ *
+ * This file is part of the Mavicona project.
+ *
+ * Content can not be copied and/or distributed without the express
+ * permission of the author.
+ */
+
 #define BASE64_QUADS_BEFORE_LINEBREAK 19
 
 static unsigned long wby_base64_bufsize(unsigned long input_size) {
