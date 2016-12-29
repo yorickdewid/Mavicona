@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <map>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <functional>
 #include <exception>
@@ -22,10 +23,34 @@ struct UnknownCommand : public std::exception {
 	}
 };
 
-struct InvalidParameters : public std::exception {
-	const char *what() const throw () {
-		return "Invalid or too few parameters provided";
+struct InvalidParameter : public std::exception {
+	InvalidParameter(const char *msg) : m_msg("Invalid parameter: ") {
+		m_msg.append(msg);
 	}
+
+	const char *what() const throw () {
+		return m_msg.c_str();
+	}
+
+private:
+	std::string m_msg;
+};
+
+struct TooFewParameters : public std::exception {
+	TooFewParameters(int paramc) {
+		std::stringstream ss;
+		ss << "Too few parameters, expected ";
+		ss << paramc;
+		ss << " parameters";
+		m_msg = ss.str().c_str();
+	}
+
+	const char *what() const throw () {
+		return m_msg.c_str();
+	}
+
+private:
+	std::string m_msg;
 };
 
 class IModule {

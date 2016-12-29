@@ -58,7 +58,9 @@ static void runModuleCommand(const std::string& commandline) {
 
 	try {
 		currentModule->exec(command, argv);
-	} catch (InvalidParameters& e) {
+	} catch (TooFewParameters& e) {
+		std::cerr << e.what() << std::endl;
+	} catch (InvalidParameter& e) {
 		std::cerr << e.what() << std::endl;
 	}
 }
