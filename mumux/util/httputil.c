@@ -19,12 +19,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-
-#define WBY_STATIC
-#define WBY_IMPLEMENTATION
-#define WBY_USE_FIXED_TYPES
-#define WBY_USE_ASSERT
-
 #include <libmumux.h>
 
 #ifdef _WIN32
@@ -58,8 +52,11 @@ static void sleep_for(long ms) {
 #endif
 }
 
-static void test_log(const char* text) {
+static void test_log(const char *text) {
+	((void)text);
+#ifdef DEBUG
 	printf("[debug] %s\n", text);
+#endif
 }
 
 static int dispatch(struct wby_con *connection, void *userdata) {
@@ -81,7 +78,8 @@ static int dispatch(struct wby_con *connection, void *userdata) {
 		wby_response_end(connection);
 		state->quit = 1;
 		return 0;
-	} else return 1;
+	}
+	return 1;
 }
 
 static int websocket_connect(struct wby_con *connection, void *userdata) {
@@ -169,7 +167,7 @@ int main(int argc, char *argv[]) {
 	config.ws_frame = websocket_frame;
 	config.ws_closed = websocket_closed;
 
-#if defined(_WIN32)
+#ifdef WIN32
 	{
 		WORD wsa_version = MAKEWORD(2,2);
 		WSADATA wsa_data;

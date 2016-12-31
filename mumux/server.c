@@ -45,16 +45,7 @@
     (WBY_UINT_TO_PTR((WBY_PTR_TO_UINT((unsigned char *)(x) + (mask-1)) & ~(mask-1))))
 
 /* pointer alignment  */
-#ifdef __cplusplus
-template<typename T> struct wby_alignof;
-template<typename T, int size_diff> struct wby_helper{enum {value = size_diff};};
-template<typename T> struct wby_helper<T,0>{enum {value = wby_alignof<T>::value};};
-template<typename T> struct wby_alignof{struct Big {T x; char c;}; enum {
-	diff = sizeof(Big) - sizeof(T), value = wby_helper<Big, diff>::value};};
-#define WBY_ALIGNOF(t) (wby_alignof<t>::value);
-#else
 #define WBY_ALIGNOF(t) ((char*)(&((struct {char c; t _h;}*)0)->_h) - (char*)0)
-#endif
 
 void wby_init(struct wby_server *srv, const struct wby_config *cfg, unsigned long *needed_memory) {
 	WBY_STORAGE const unsigned long wby_conn_align = WBY_ALIGNOF(struct wby_connection);
@@ -277,8 +268,7 @@ void wby_update_connection(struct wby_server *srv, struct wby_connection* connec
 			if (wby_con_is_websocket_request(&connection->public_data)) {
 				wby_dbg(srv->config.log, "received a websocket upgrade request");
 				if (!srv->config.ws_connect ||
-					srv->config.ws_connect(&connection->public_data, srv->config.userdata) != WBY_OK)
-				{
+					srv->config.ws_connect(&connection->public_data, srv->config.userdata) != WBY_OK) {
 					wby_dbg(srv->config.log, "user callback failed connection attempt");
 					wby_response_begin(&connection->public_data, 400, -1,
 						wby_plain_text_headers, WBY_LEN(wby_plain_text_headers));
@@ -302,9 +292,10 @@ void wby_update_connection(struct wby_server *srv, struct wby_connection* connec
 					}
 				}
 			} else if (srv->config.dispatch(&connection->public_data, srv->config.userdata) != 0) {
-				static const struct wby_header headers[] = {{ "Content-Type", "text/plain" }};
+				//TODO: server static files
+				static const struct wby_header headers[] = {{ "Content-Type", "text/html" }};
 				wby_response_begin(&connection->public_data, 404, -1, headers, WBY_LEN(headers));
-				wby_printf(&connection->public_data, "No handler for %s\r\n",
+				wby_printf(&connection->public_data, "<h1>404 Not Found</h1><hr />Request: %s\r\n",
 					connection->public_data.request.uri);
 				wby_response_end(&connection->public_data);
 			}
